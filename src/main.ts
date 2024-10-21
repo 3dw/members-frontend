@@ -1,4 +1,6 @@
 import './assets/main.css'
+// Add this line to import Semantic UI CSS
+import 'semantic-ui-css/semantic.min.css'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'

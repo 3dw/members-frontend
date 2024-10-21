@@ -10,7 +10,7 @@ describe('AboutView.vue', () => {
     vi.resetAllMocks()
   })
 
-  it('fetches data and displays it', async () => {
+  it('fetches data and displays it in a table', async () => {
     const mockData = [
       {
         id: "0000",
@@ -50,17 +50,39 @@ describe('AboutView.vue', () => {
     // 檢查是否調用了正確的 API
     expect(axios.get).toHaveBeenCalledWith('https://members-backend.alearn13994229.workers.dev/api/projects')
 
-    // 檢查數據是否正確設置
-    expect(wrapper.vm.data).toEqual(mockData)
+    // 檢查返回的數據結構
+    expect(Array.isArray(wrapper.vm.data)).toBe(true)
+    expect(wrapper.vm.data.length).toBeGreaterThan(0)
+    expect(wrapper.vm.data[0]).toHaveProperty('full_name')
+    expect(wrapper.vm.data[0]).toHaveProperty('website')
 
-    // 檢查是否渲染了正確數量的列表項
-    const listItems = wrapper.findAll('li')
-    expect(listItems.length).toBe(3)
+    // 檢查是否渲染了表格
+    const table = wrapper.find('table')
+    expect(table.exists()).toBe(true)
 
-    // 檢查列表項的內容
-    expect(listItems[0].text()).toBe('自學地圖')
-    expect(listItems[1].text()).toBe('自由數學')
-    expect(listItems[2].text()).toBe('自學2.0')
+    // 檢查表頭
+    const tableHeaders = wrapper.findAll('th')
+    expect(tableHeaders.length).toBe(7)
+    expect(tableHeaders[0].text()).toBe('ID')
+    expect(tableHeaders[1].text()).toBe('全名')
+    expect(tableHeaders[2].text()).toBe('網站')
+    expect(tableHeaders[3].text()).toBe('主要類別')
+    expect(tableHeaders[4].text()).toBe('維護者')
+    expect(tableHeaders[5].text()).toBe('電子郵件信箱')
+    expect(tableHeaders[6].text()).toBe('描述')
+
+    // 檢查表格行數
+    const tableRows = wrapper.findAll('tbody tr')
+    expect(tableRows.length).toBe(mockData.length)
+
+    // 檢查第一行的內容
+    const firstRowCells = tableRows[0].findAll('td')
+    expect(firstRowCells[0].text()).toBe('0000')
+    expect(firstRowCells[1].text()).toBe('自學地圖')
+    expect(firstRowCells[2].find('a').attributes('href')).toBe('https://map.alearn.org.tw')
+    expect(firstRowCells[3].text()).toBe('自學入口頁')
+    expect(firstRowCells[4].text()).toBe('Bestian Tang')
+    expect(firstRowCells[5].text()).toBe('bestian@alearn.org.tw')
+    expect(firstRowCells[6].text()).toBe('非學校型態實驗教育入口頁，含高中自學申請流程，適合自學新手')
   })
-
 })
