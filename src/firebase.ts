@@ -12,7 +12,7 @@ import { getAuth } from "firebase/auth";
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyDU95egjb7rapaUJuVJYu0ZeSbP0OLaeCE",
-  authDomain: "autolearn-members.firebaseapp.com",
+  authDomain: "autolearn-members.asia-southeast1.firebaseapp.com",
   projectId: "autolearn-members",
   storageBucket: "autolearn-members.appspot.com",
   messagingSenderId: "535565819374",
