@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
 
 <template>
   <header>
@@ -12,9 +8,44 @@ import HelloWorld from './components/HelloWorld.vue'
   </header>
   <div class="small-spacer"></div>
   <div class="ui container">
-    <RouterView />
+    <RouterView @toggleLogin="toggleLogin"/>
   </div>
+  <Login v-if="showLogin" :showLogin="showLogin" :isInApp="false" @toggleLogin="toggleLogin"  />
 </template>
+
+<script lang="ts">
+import { defineComponent } from 'vue'
+import { RouterLink, RouterView } from 'vue-router'
+import InApp from 'detect-inapp'; // 導入InApp以偵測瀏覽器內部環境
+import Login from './components/Login.vue'
+
+const inApp = new InApp(window.navigator.userAgent);
+  // 初始假設為 InApp 庫的偵測結果
+const actualInApp = inApp.isInApp;
+
+
+export default defineComponent({
+  name: 'App',
+  components: {
+    Login
+  },
+  data() {
+    return {
+      // 使用修正後的 actualInApp
+      isInApp: actualInApp, // 檢測是否在應用內部
+      showLogin: true
+    }
+  },
+  methods: {
+    toggleLogin() {
+      this.showLogin = !this.showLogin
+    }
+  }
+})
+
+</script>
+
+
 
 <style scoped>
 header {
