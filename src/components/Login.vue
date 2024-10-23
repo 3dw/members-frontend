@@ -31,7 +31,7 @@
                   label 保持登入狀態
 
             p 新用戶？按此
-              .ui.large.basic.button#register-btn(@click.stop="registerWithEmail", :class="{disabled: isInApp}") 註冊
+              button.ui.large.basic.button#register-btn(@click.stop="registerWithEmail", :class="{disabled: isInApp}") 註冊
 </template>
 
 <script lang="ts">
