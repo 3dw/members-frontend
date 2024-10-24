@@ -5,19 +5,15 @@ div
   table.ui.celled.stackable.table
     thead
       tr
-        th ID
         th 全名
-        th 網站
         th 主要類別
         th 維護者
         th 電子郵件信箱
         th.description 描述
     tbody
       tr(v-for="item in data" :key="item.id")
-        td {{ item.id }}
-        td {{ item.full_name }}
         td
-          a(:href="item.website" target="_blank") {{ item.website }}
+          a(:href="item.website" target="_blank" rel="noopener noreferrer") {{ item.full_name }}
         td {{ item.main_category }}
         td {{ item.maintainer }}
         td {{ item.maintainer_email }}
