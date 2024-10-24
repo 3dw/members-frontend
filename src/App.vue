@@ -33,7 +33,7 @@ export default defineComponent({
     return {
       // 使用修正後的 actualInApp
       isInApp: actualInApp, // 檢測是否在應用內部
-      showLogin: true
+      showLogin: false
     }
   },
   methods: {
