@@ -66,6 +66,10 @@
             ul
               li
                 a(href="https://www.alearn.org" target="_blank" rel="noopener noreferrer") 官方網站
+              li
+                a(href="https://www.facebook.com/alearnTW" target="_blank" rel="noopener noreferrer") 臉書「自主學習促進會」專頁
+              li
+                a(href="https://www.facebook.com/groups/homeschooltw" target="_blank" rel="noopener noreferrer") 臉書「在家自學社群」社團
               //- 更多網址
 
       //- 友站連結
