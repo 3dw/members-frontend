@@ -1,5 +1,5 @@
 import { defineComponent, ref, onMounted } from 'vue';
-import { projectsRef } from '@/firebase';
+import { projectsRef, supervisorsRef } from '@/firebase';
 import { onValue } from 'firebase/database';
 export default defineComponent({
     name: 'HomeView',
@@ -11,6 +11,9 @@ export default defineComponent({
     },
     setup() {
         const projects = ref([]);
+        const supervisors = ref([]);
+        const arr = new Array();
+        const visibleEmails = ref(arr);
         onMounted(() => {
             onValue(projectsRef, (snapshot) => {
                 const projectsData = snapshot.val();
@@ -18,14 +21,25 @@ export default defineComponent({
             }, (error) => {
                 console.error('讀取專案資料時出錯', error);
             });
+            onValue(supervisorsRef, (snapshot) => {
+                const supervisorsData = snapshot.val();
+                supervisors.value = Object.values(supervisorsData);
+            }, (error) => {
+                console.error('讀取理監事資料時出錯', error);
+            });
         });
         return {
             projects,
+            supervisors,
+            visibleEmails,
         };
     },
     methods: {
         toggleLogin() {
             this.$emit('toggleLogin');
+        },
+        toggleEmail(email) {
+            this.visibleEmails.includes(email) ? this.visibleEmails.splice(this.visibleEmails.indexOf(email), 1) : this.visibleEmails.push(email);
         },
     },
 });

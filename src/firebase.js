@@ -25,4 +25,5 @@ export default app;
 export const auth = getAuth(app);
 export const database = getDatabase(app);
 export const projectsRef = ref(database, 'projects');
+export const supervisorsRef = ref(database, 'supervisors');
 //# sourceMappingURL=firebase.js.map

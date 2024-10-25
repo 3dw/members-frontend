@@ -88,7 +88,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
-import { database, projectsRef, supervisorsRef } from '@/firebase.ts';
+import { database, projectsRef, supervisorsRef } from '@/firebase';
 import { onValue } from 'firebase/database';
 
 export default defineComponent({
@@ -102,7 +102,8 @@ export default defineComponent({
   setup() {
     const projects = ref([]);
     const supervisors = ref([]);
-    const visibleEmails = ref([]);
+    const arr: any[] = new Array();
+    const visibleEmails = ref(arr);
     onMounted(() => {
       onValue(projectsRef, (snapshot) => {
         const projectsData = snapshot.val();
