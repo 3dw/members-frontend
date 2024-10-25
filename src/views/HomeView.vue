@@ -2,28 +2,22 @@
   main.ui.container
     h1.ui.header 自主學習促進會
 
-    //- 四個重疊卡片
     .ui.four.doubling.stackable.cards
       //- 理監事名單
       .card
         .content
           .header 理監事名單
           .description
-            ul
-              li 理事長：朱佳仁
-              li 常務理事：戎培芬
-              li 常務理事：陳怡光
-              li 理事：吳啟新
-              li 理事：蔡伊婷
-              li 理事：李文郁
-              li 理事：林睿育
-              li 理事：曾維瑩
-              li 理事：陳音秀
-              li 候補理事：林津羽
-              li 常務監事：楊鴻祥
-              li 監事：陳郁玲
-              li 監事：謝易霖
-              //- 更多理監事
+            ul(v-if="supervisors.length")
+              li(v-for="supervisor in supervisors" :key="supervisor.email")
+                | {{ supervisor.role }}：{{ supervisor.fullname }}
+                br
+                button.ui.small.blue.button(@click="toggleEmail(supervisor.email)")
+                  span(v-if="!visibleEmails.includes(supervisor.email)") 顯示
+                  span(v-else) 隱藏
+                  | Email
+                span(v-if="visibleEmails.includes(supervisor.email)") {{ supervisor.email }}
+            p(v-else) 載入中...
 
       //- 本會專案一覽
       .card
@@ -94,7 +88,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
-import { database, projectsRef } from '@/firebase';
+import { database, projectsRef, supervisorsRef } from '@/firebase.ts';
 import { onValue } from 'firebase/database';
 
 export default defineComponent({
@@ -107,7 +101,8 @@ export default defineComponent({
   },
   setup() {
     const projects = ref([]);
-
+    const supervisors = ref([]);
+    const visibleEmails = ref([]);
     onMounted(() => {
       onValue(projectsRef, (snapshot) => {
         const projectsData = snapshot.val();
@@ -115,15 +110,27 @@ export default defineComponent({
       }, (error) => {
         console.error('讀取專案資料時出錯', error);
       });
+
+      onValue(supervisorsRef, (snapshot) => {
+        const supervisorsData = snapshot.val();
+        supervisors.value = Object.values(supervisorsData);
+      }, (error) => {
+        console.error('讀取理監事資料時出錯', error);
+      });
     });
 
     return {
       projects,
+      supervisors,
+      visibleEmails,
     };
   },
   methods: {
     toggleLogin() {
       this.$emit('toggleLogin');
+    },
+    toggleEmail(email: string) {
+      this.visibleEmails.includes(email) ? this.visibleEmails.splice(this.visibleEmails.indexOf(email), 1) : this.visibleEmails.push(email);
     },
   },
 });
