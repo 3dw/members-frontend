@@ -58,6 +58,8 @@ function __VLS_template() {
     };
     let __VLS_directives;
     let __VLS_styleScopedClasses;
+    // CSS variable injection 
+    // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
     var __VLS_slots;
     var __VLS_inheritedAttrs;

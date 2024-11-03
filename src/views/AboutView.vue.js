@@ -1,21 +1,42 @@
 import { onMounted, ref } from 'vue';
-import { projectsRef } from '@/firebase';
+import { projectsRef, supervisorsRef } from '@/firebase';
 import { onValue } from 'firebase/database';
 export default (await import('vue')).defineComponent({
     setup() {
         const data = ref([]);
+        const projects = ref([]);
+        const supervisors = ref([]);
+        const arr = new Array();
+        const visibleEmails = ref(arr);
         onMounted(() => {
             onValue(projectsRef, (snapshot) => {
-                const projects = snapshot.val();
-                data.value = Object.values(projects);
+                const projectsData = snapshot.val();
+                projects.value = Object.values(projectsData);
             }, (error) => {
-                console.error('讀取資料時出錯', error);
+                console.error('讀取專案資料時出錯', error);
+            });
+            onValue(supervisorsRef, (snapshot) => {
+                const supervisorsData = snapshot.val();
+                supervisors.value = Object.values(supervisorsData);
+            }, (error) => {
+                console.error('讀取理監事資料時出錯', error);
             });
         });
         return {
-            data
+            data,
+            projects,
+            supervisors,
+            visibleEmails,
         };
-    }
+    },
+    methods: {
+        toggleLogin() {
+            this.$emit('toggleLogin');
+        },
+        toggleEmail(email) {
+            this.visibleEmails.includes(email) ? this.visibleEmails.splice(this.visibleEmails.indexOf(email), 1) : this.visibleEmails.push(email);
+        },
+    },
 });
 function __VLS_template() {
     const __VLS_ctx = {};
