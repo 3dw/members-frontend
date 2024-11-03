@@ -3,26 +3,11 @@
     h1.ui.header 自主學習促進會
 
     .ui.four.doubling.stackable.cards
-      //- 理監事名單
-      .card
-        .content
-          .header 理監事名單
-          .description
-            ul(v-if="supervisors.length")
-              li(v-for="supervisor in supervisors" :key="supervisor.email")
-                | {{ supervisor.role }}：{{ supervisor.fullname }}
-                br
-                button.ui.small.blue.button(@click="toggleEmail(supervisor.email)")
-                  span(v-if="!visibleEmails.includes(supervisor.email)") 顯示
-                  span(v-else) 隱藏
-                  | Email
-                span(v-if="visibleEmails.includes(supervisor.email)") {{ supervisor.email }}
-            p(v-else) 載入中...
 
       //- 本會專案一覽
-      .card
-        .content
-          .header 本會專案一覽
+      // .card
+      //  .content
+      //    .header 本會專案一覽
           .description(style="max-height: 300px; overflow-y: auto;")
             ul(v-if="projects.length")
               li(v-for="project in projects" :key="project.id")
@@ -64,12 +49,18 @@
                 a(href="https://www.facebook.com/alearnTW" target="_blank" rel="noopener noreferrer") 臉書「自主學習促進會」專頁
               li
                 a(href="https://www.facebook.com/groups/homeschooltw" target="_blank" rel="noopener noreferrer") 臉書「在家自學社群」社團
+            ul(v-if="projects.length")
+              li(v-for="project in projects" :key="project.id")
+                a(:href="project.website" target="_blank", rel="noopener noreferrer") {{ project.full_name }}
+                // br
+                // | {{ project.description }}
+            p(v-else) 載入中...
               //- 更多網址
 
       //- 友站連結
-      .card
-        .content
-          .header 友站連結
+      // .card
+      //   .content
+      //     .header 友站連結
           .description
             ul
               li
@@ -79,11 +70,11 @@
               //- 更多友站連結
 
       //- 會員專區
-      .card
-        .content
-          .header 會員專區
-          .description
-            button.ui.button(@click="toggleLogin") 會員登入
+      // .card
+      //   .content
+      //     .header 會員專區
+      //     .description
+      //       button.ui.button(@click="toggleLogin") 會員登入
 </template>
 
 <script lang="ts">
@@ -136,4 +127,10 @@ export default defineComponent({
   },
 });
 </script>
+
+<style scoped>
+li {
+  margin-bottom: 10px;
+}
+</style>
 

@@ -1,16 +1,34 @@
-
-<template>
-  <header>
-    <nav class="ui fixed top menu">
-      <RouterLink to="/" class="item">Home</RouterLink>
-      <RouterLink to="/about" class="item">About</RouterLink>
-    </nav>
-  </header>
-  <div class="small-spacer"></div>
-  <div class="ui container">
-    <RouterView @toggleLogin="toggleLogin"/>
-  </div>
-  <Login v-if="showLogin" :showLogin="showLogin" :isInApp="false" @toggleLogin="toggleLogin"  />
+<template lang="pug">
+header
+  nav.ui.fixed.top.menu
+    button.no-border.ui.item(@click="toggleSidebar")
+      i.icon.bars
+    RouterLink.item(to="/")
+      i.home.icon
+    RouterLink.item(to="/about")
+      i.info.icon
+      | 關於我們
+    .right.menu
+      button.no-border.ui.item(@click="toggleLogin")
+        i.user.icon
+        | 登入
+.small-spacer
+.ui.sidebar.vertical.menu#side-menu(:class="{'hidden': !sidebarVisible}")
+  RouterLink.item(to='/', exact='', name="home")
+    i.home.icon
+    | 首頁
+  RouterLink.item(to='/about', name="about")
+    i.info.icon
+    | 關於我們
+.ui.sidebar.bg(:class="{'hidden': !sidebarVisible}", @click="toggleSidebar")
+.ui.container
+  RouterView(@toggleLogin="toggleLogin")
+Login(
+  v-if="showLogin"
+  :showLogin="showLogin"
+  :isInApp="false"
+  @toggleLogin="toggleLogin"
+)
 </template>
 
 <script lang="ts">
@@ -33,12 +51,16 @@ export default defineComponent({
     return {
       // 使用修正後的 actualInApp
       isInApp: actualInApp, // 檢測是否在應用內部
-      showLogin: false
+      showLogin: false,
+      sidebarVisible: false
     }
   },
   methods: {
     toggleLogin() {
       this.showLogin = !this.showLogin
+    },
+    toggleSidebar() {
+      this.sidebarVisible = !this.sidebarVisible
     }
   }
 })
@@ -66,7 +88,7 @@ nav {
 }
 
 nav a.router-link-exact-active {
-  color: var(--color-text) !important;
+  color: black !important;
   font-weight: bold;
   background-color: hsla(160, 100%, 37%, 1) !important;
 }
@@ -79,6 +101,37 @@ nav a {
 
 nav a:first-of-type {
   border: 0;
+}
+
+.no-border {
+  border: none !important;
+}
+
+.ui.sidebar {
+  transition: transform .3s ease, opacity .3s ease, visibility .3s ease !important;
+  z-index: 1000;
+  position: fixed;
+  top: 0 !important;
+  left: 0;
+  width: 250px;
+  height: 100%;
+  background-color: #fff;
+  opacity: 1;
+  visibility: visible;
+}
+
+.ui.sidebar.bg {
+  z-index: 2 !important; /* 設定一個低值 */
+  background-color: rgba(180, 180, 180, 0.62); /* 確保有背景色 */
+  width: 100vw;
+  cursor: pointer;
+}
+
+.ui.sidebar.hidden {
+  opacity: 0;
+  visibility: hidden !important;
+  transition: all 0s linear !important;
+  transform: translateX(-100%); /* 隱藏時向左滑動 */
 }
 
 </style>
