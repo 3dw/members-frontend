@@ -54,7 +54,7 @@ import { getAuth, EmailAuthProvider,
     browserLocalPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification,
     inMemoryPersistence
  } from 'firebase/auth'
- import { app, usersRef, groupsRef, booksRef, database } from './firebase'; // 導入Firebase相關配置和參考
+ import { app, usersRef, database } from './firebase'; // 導入Firebase相關配置和參考
 
  import InApp from 'detect-inapp'; // 導入InApp以偵測瀏覽器內部環境
 import Login from './components/Login.vue'
@@ -73,11 +73,19 @@ export default defineComponent({
     Login
   },
   data() {
+    const obj:any = {};
+    const obj1:any = {};
     return {
       // 使用修正後的 actualInApp
       isInApp: actualInApp, // 檢測是否在應用內部
       showLogin: false,
-      sidebarVisible: false
+      sidebarVisible: false,
+      uid: '',
+      users: obj,
+      user: obj1,
+      photoURL: '',
+      email: '',
+      emailVerified: false
     }
   },
   methods: {
@@ -227,9 +235,9 @@ export default defineComponent({
     updateUserInfo(pvdata: any[]) {
       if (this.users && this.uid && this.users[this.uid]) {
         this.user = { ...this.users[this.uid], providerData: pvdata };
-        if (this.user.latlngColumn) {
-          this.locate(this.user, false);
-        }
+//        if (this.user.latlngColumn) {
+//          this.locate(this.user, false);
+//        }
       } else {
         this.fetchUserData(pvdata);
       }
@@ -242,9 +250,9 @@ export default defineComponent({
           this.users = data;
           if (this.uid && this.users && this.users[this.uid]) {
             this.user = { ...this.users[this.uid], providerData: pvdata };
-            if (this.user.latlngColumn) {
-              this.locate(this.user, false);
-            }
+//            if (this.user.latlngColumn) {
+//              this.locate(this.user, false);
+//            }
           } else {
             this.user = { providerData: pvdata };
           }
