@@ -15,7 +15,7 @@ export default defineConfig({
       includeAssets: ['favicon.svg', 'favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
       manifest: {
         name: 'Autonomous',
-        short_name: 'App',
+        short_name: 'Autonomous',
         description: 'My Awesome App Description',
         theme_color: '#ffffff',
         icons: [
@@ -73,6 +73,13 @@ export default defineConfig({
             purpose: 'maskable',
           }
         ]
+      },
+      workbox: {
+        workboxOptions: {
+          exclude: [/\.gitkeep/],
+          skipWaiting: true,
+          clientsClaim: true
+        }
       }
     }),
   ],

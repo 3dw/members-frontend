@@ -8,7 +8,7 @@
           h2.ui.black.header(style="font-size: 1.5rem; font-weight: 600;")
             | 登入您的帳號
           //- Email & Password Login Form
-          .ui.form.segment(style="border-radius: 10px; padding: 15px; background-color: #f0f0f0;")
+          form.ui.form.segment(style="border-radius: 10px; padding: 15px; background-color: #f0f0f0;")
             .field
               .ui.left.icon.input
                 i.envelope.icon
@@ -17,21 +17,21 @@
             .field
               .ui.left.icon.input
                 i.lock.icon
-                input(type="password" name="user_password" placeholder="Password", style="font-size: 14px;", v-model="user_password", @click.stop)
+                input(type="password" name="user_password" placeholder="Password", style="font-size: 14px;", v-model="user_password", autocomplete, @click.stop)
 
             .ui.fluid.large.button(@click.prevent="loginWithEmail", style="background-color: #e47e10 ; color: white; font-weight: bold;", :class="{disabled: isInApp}") 登入
 
             a.small.forgot-password(@click="resetPassword") 忘記密碼
 
           form.ui.large.form
-            .ui.segment(style="border: none; padding-top: 10px;")      
+            .ui.segment(style="border: none; padding-top: 10px;")
               .field
                 .ui.checkbox(@click.stop)
                   input(type="checkbox" v-model="keeploggedin")
                   label 保持登入狀態
 
             p 新用戶？按此
-              button.ui.large.basic.button#register-btn(@click.stop="registerWithEmail", :class="{disabled: isInApp}") 註冊
+              button.ui.large.basic.button#register-btn(@click.stop.prevent="registerWithEmail", :class="{disabled: isInApp}") 註冊
 </template>
 
 <script lang="ts">
@@ -86,10 +86,10 @@ export default defineComponent({
         return;
       }
 
-      if (!validateEmail(users_email.value)) {
-        alert('email格式錯誤，請重試');
+      /* if (!validateEmail(users_email.value)) {
+        alert('請使用@aleran.org.tw網域的Email');
         return;
-      }
+      } */
 
       if (!user_password.value || typeof user_password.value !== 'string') {
         alert('密碼請至少包含一個英文字，請重新輸入');
@@ -104,10 +104,10 @@ export default defineComponent({
       console.log('Login clicked');
       const path = window.location.pathname;
 
-      if (!validateEmail(users_email.value)) {
+      /* if (!validateEmail(users_email.value)) {
         alert('請用@alearn.org.tw的Email登入');
         return;
-      }
+      } */
 
       if (path === '/friends' || path === '/maps' || path === '/privacy-policy' || path.startsWith('/flag') || path.startsWith('/group')) {
         autoredirect = false;
@@ -124,7 +124,7 @@ export default defineComponent({
     const resetPassword = () => {
       console.log("Reset password function triggered");
       console.log("Email for reset:", users_email.value);
-      
+
       if (!validateEmail(users_email.value)) {
         alert('請先輸入有效的電子郵件地址');
         return;
@@ -135,7 +135,7 @@ export default defineComponent({
 
       sendPasswordResetEmail(auth, users_email.value)
         .then(() => {
-          alert('密碼重置郵件已發送，請檢查您的郵箱');
+          alert('密碼重置郵件已發送，請檢查您的電子郵件信箱');
           console.log("Password reset email sent successfully");
         })
         .catch((error: { code: string; message: string }) => {

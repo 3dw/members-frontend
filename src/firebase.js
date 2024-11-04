@@ -19,11 +19,11 @@ const firebaseConfig = {
     databaseURL: "https://autolearn-members-default-rtdb.asia-southeast1.firebasedatabase.app/"
 };
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 // const analytics = getAnalytics(app);
-export default app;
 export const auth = getAuth(app);
 export const database = getDatabase(app);
 export const projectsRef = ref(database, 'projects');
 export const supervisorsRef = ref(database, 'supervisors');
+export const usersRef = ref(database, 'users');
 //# sourceMappingURL=firebase.js.map
