@@ -75,11 +75,9 @@ export default defineConfig({
         ]
       },
       workbox: {
-        workboxOptions: {
-          exclude: [/\.gitkeep/],
-          skipWaiting: true,
-          clientsClaim: true
-        }
+        skipWaiting: true,
+        clientsClaim: true,
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
       }
     }),
   ],

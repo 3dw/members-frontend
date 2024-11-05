@@ -41,10 +41,10 @@ export default defineComponent({
                 window.alert('請先填寫email和密碼');
                 return;
             }
-            if (!validateEmail(users_email.value)) {
-                alert('email格式錯誤，請重試');
-                return;
-            }
+            /* if (!validateEmail(users_email.value)) {
+              alert('請使用@aleran.org.tw網域的Email');
+              return;
+            } */
             if (!user_password.value || typeof user_password.value !== 'string') {
                 alert('密碼請至少包含一個英文字，請重新輸入');
                 return;
@@ -55,10 +55,10 @@ export default defineComponent({
             let autoredirect = true;
             console.log('Login clicked');
             const path = window.location.pathname;
-            if (!validateEmail(users_email.value)) {
-                alert('請用@alearn.org.tw的Email登入');
-                return;
-            }
+            /* if (!validateEmail(users_email.value)) {
+              alert('請用@alearn.org.tw的Email登入');
+              return;
+            } */
             if (path === '/friends' || path === '/maps' || path === '/privacy-policy' || path.startsWith('/flag') || path.startsWith('/group')) {
                 autoredirect = false;
             }
@@ -79,7 +79,7 @@ export default defineComponent({
             console.log("Firebase auth object:", auth);
             sendPasswordResetEmail(auth, users_email.value)
                 .then(() => {
-                alert('密碼重置郵件已發送，請檢查您的郵箱');
+                alert('密碼重置郵件已發送，請檢查您的電子郵件信箱');
                 console.log("Password reset email sent successfully");
             })
                 .catch((error) => {

@@ -159,7 +159,7 @@ export default defineComponent({
         }
       }
     },
-    async loginWithEmail(autoredirect, normalRegister_email, normalRegister_password, normalRegister_keeploggedin) {
+    async loginWithEmail(autoredirect: boolean, normalRegister_email: string, normalRegister_password: string, normalRegister_keeploggedin: boolean) {
       try {
         if (normalRegister_keeploggedin) {
           await setPersistence(auth, browserLocalPersistence);
