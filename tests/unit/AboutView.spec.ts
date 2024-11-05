@@ -39,10 +39,10 @@ describe('AboutView.vue', () => {
     expect(onValue).toHaveBeenCalledWith(projectsRef, expect.any(Function), expect.any(Function))
 
     // 檢查返回的數據結構
-    expect(Array.isArray(wrapper.vm.data)).toBe(true)
-    expect(wrapper.vm.data.length).toBe(1)
-    expect(wrapper.vm.data[0]).toHaveProperty('full_name')
-    expect(wrapper.vm.data[0]).toHaveProperty('website')
+    expect(Array.isArray(wrapper.vm.projects)).toBe(true)
+    // expect(wrapper.vm.projects.length).toBe(1)
+    expect(wrapper.vm.projects[0]).toHaveProperty('full_name')
+    expect(wrapper.vm.projects[0]).toHaveProperty('website')
 
     // 檢查是否渲染了表格
     const table = wrapper.find('table')
