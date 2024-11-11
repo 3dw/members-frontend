@@ -2,6 +2,16 @@
   main.ui.container
     h1.ui.header 自主學習促進會
 
+    //- 與AI對話
+    h2.ui.header 與AI對話
+    .ui.segment
+      .ui.input
+        input(type="text" placeholder="與AI對話...", v-model="message")
+        button.ui.button(@click="sendMessage", @keyup.enter="sendMessage") 送出
+      .result
+        p(v-if="result === '' && message !== '' && isLoading") 載入中...
+        p(v-else-if="result !== ''") {{ result }}
+
     .ui.four.doubling.stackable.cards
 
       //- 本會專案一覽
@@ -81,6 +91,7 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import { database, projectsRef, supervisorsRef } from '@/firebase';
 import { onValue } from 'firebase/database';
+import axios from 'axios';
 
 export default defineComponent({
   name: 'HomeView',
@@ -91,10 +102,13 @@ export default defineComponent({
     },
   },
   setup() {
+    const isLoading = ref(false);
     const projects = ref([]);
     const supervisors = ref([]);
     const arr: any[] = new Array();
     const visibleEmails = ref(arr);
+    const message = ref('');
+    const result = ref('');
     onMounted(() => {
       onValue(projectsRef, (snapshot) => {
         const projectsData = snapshot.val();
@@ -112,9 +126,12 @@ export default defineComponent({
     });
 
     return {
+      isLoading,
       projects,
       supervisors,
       visibleEmails,
+      message,
+      result,
     };
   },
   methods: {
@@ -124,6 +141,19 @@ export default defineComponent({
     toggleEmail(email: string) {
       this.visibleEmails.includes(email) ? this.visibleEmails.splice(this.visibleEmails.indexOf(email), 1) : this.visibleEmails.push(email);
     },
+    sendMessage() {
+      this.isLoading = true;
+      console.log(this.message);
+      axios.get('https://members-backend.alearn13994229.workers.dev/ai/' + this.message, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }).then((response) => {
+        console.log(response);
+        this.result = response.data;
+        this.isLoading = false;
+      });
+    },
   },
 });
 </script>
@@ -132,5 +162,11 @@ export default defineComponent({
 li {
   margin-bottom: 10px;
 }
+
+.result {
+  margin-top: 10px;
+  white-space: pre-wrap;
+}
+
 </style>
 
