@@ -11,7 +11,7 @@ const router = createRouter({
     },
     {
       path: '/faq',
-      name: 'faq',
+      name: 'FaqView',
       component: () => import('../views/FaqView.vue')
     },
     {
