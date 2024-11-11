@@ -38,7 +38,7 @@ export default defineComponent({
         const items = response.data
         console.log(id)
         console.log(items)
-        const item = items.find((item: any) => item.id === parseInt(id))
+        const item = items.find((item: any) => item.id === parseInt(id as string))
         if (item) {
           faqItem.value = item
         }
