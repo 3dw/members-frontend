@@ -6,11 +6,11 @@
     h2.ui.header 與AI對話
     .ui.segment
       .ui.input
-        input(type="text" placeholder="與AI對話...", v-model="message")
-        button.ui.button(@click="sendMessage", @keyup.enter="sendMessage") 送出
+        input(autofocus type="text" placeholder="與AI對話...", v-model="message", @keyup.enter="sendMessage")
+        button.ui.button(@click="sendMessage") 送出
       .result
-        p(v-if="result === '' && message !== '' && isLoading") 載入中...
-        p(v-else-if="result !== ''") {{ result }}
+        p(v-if="result === '' && message !== '' && isLoading") 載入中，請稍候...
+        p(v-else-if="result !== ''") {{ parseResult(result) }}
 
     .ui.four.doubling.stackable.cards
 
@@ -144,6 +144,9 @@ export default defineComponent({
     sendMessage() {
       this.isLoading = true;
       console.log(this.message);
+      if (!this.message.endsWith('？')) {
+        this.message += '？';
+      }
       axios.get('https://members-backend.alearn13994229.workers.dev/ai/' + this.message, {
         headers: {
           'Content-Type': 'application/json',
@@ -154,6 +157,12 @@ export default defineComponent({
         this.isLoading = false;
       });
     },
+    parseResult(result: string) {
+      if (result === '。') {
+        return '請說得詳細一點';
+      }
+      return result;
+    }
   },
 });
 </script>
