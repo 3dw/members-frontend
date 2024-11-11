@@ -51,6 +51,9 @@ export default defineComponent({
         sendMessage() {
             this.isLoading = true;
             console.log(this.message);
+            if (!this.message.endsWith('？')) {
+                this.message += '？';
+            }
             axios.get('https://members-backend.alearn13994229.workers.dev/ai/' + this.message, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -61,6 +64,12 @@ export default defineComponent({
                 this.isLoading = false;
             });
         },
+        parseResult(result) {
+            if (result === '。') {
+                return '請說得詳細一點';
+            }
+            return result;
+        }
     },
 });
 ;
