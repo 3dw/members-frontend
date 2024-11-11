@@ -15,6 +15,11 @@ const router = createRouter({
       component: () => import('../views/FaqView.vue')
     },
     {
+      path: '/edit_faq/:id',
+      name: 'EditFaqView',
+      component: () => import('../views/EditFaqView.vue')
+    },
+    {
       path: '/about',
       name: 'about',
       // route level code-splitting
