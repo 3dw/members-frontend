@@ -8,6 +8,9 @@ header
     RouterLink.item(to="/about")
       i.info.icon
       | 關於我們
+    RouterLink.item(to="/faq")
+      i.help.icon
+      | 常見問題
     .right.menu
       button.no-border.ui.item(@click="toggleLogin", v-if="!uid")
         i.user.icon
@@ -30,6 +33,9 @@ header
   RouterLink.item(to='/about', name="about")
     i.info.icon
     | 關於我們
+  RouterLink.item(to='/faq', name="faq")
+    i.help.icon
+    | 常見問題
 .ui.sidebar.bg(:class="{'hidden': !sidebarVisible}", @click="toggleSidebar")
 .ui.container
   RouterView(@toggleLogin="toggleLogin")
