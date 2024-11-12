@@ -15,6 +15,11 @@ const router = createRouter({
       component: () => import('../views/FaqView.vue')
     },
     {
+      path: '/create_faq',
+      name: 'CreateFaqView',
+      component: () => import('../views/CreateFaqView.vue')
+    },
+    {
       path: '/edit_faq/:id',
       name: 'EditFaqView',
       component: () => import('../views/EditFaqView.vue')

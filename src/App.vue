@@ -36,6 +36,9 @@ header
   RouterLink.item(to='/faq', name="faq")
     i.help.icon
     | 常見問題
+  RouterLink.item(to='/create_faq', name="create-faq")
+    i.plus.icon
+    | 新增問答
 .ui.sidebar.bg(:class="{'hidden': !sidebarVisible}", @click="toggleSidebar")
 .ui.container
   RouterView(@toggleLogin="toggleLogin")
