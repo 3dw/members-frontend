@@ -3,7 +3,9 @@ import axios from 'axios';
 export default defineComponent({
     name: 'FaqView',
     setup() {
+        // 修改 ref 的型別定義
         const faqItems = ref([]);
+        const categories = ref(['起步', '計畫', '支持', '資源', '其他']);
         onMounted(async () => {
             try {
                 const response = await axios.get('https://members-backend.alearn13994229.workers.dev/api/Faq');
@@ -14,8 +16,14 @@ export default defineComponent({
             }
         });
         return {
-            faqItems
+            faqItems,
+            categories
         };
+    },
+    computed: {
+        sortedFaqItems() {
+            return this.faqItems.slice().sort((a, b) => this.categories.indexOf(a.category) - this.categories.indexOf(b.category));
+        }
     },
     methods: {
         fetchFaq() {
