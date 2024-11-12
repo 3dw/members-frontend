@@ -28,11 +28,19 @@ import { defineComponent, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 
+interface FaqItem {
+  id: string | number
+  category: string
+  question: string
+  answer: string
+  links?: string
+}
+
 export default defineComponent({
   name: 'CreateFaqView',
   setup() {
     const route = useRoute()
-    const faqItem = ref({
+    const faqItem = ref<FaqItem>({
       id: '',
       category: '',
       question: '',
