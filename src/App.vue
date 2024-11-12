@@ -13,6 +13,10 @@ header
       i.help.icon
       span.fat-only 常見
       | 問題
+    RouterLink.item(to="/create_faq")
+      i.plus.icon
+      | 新增
+      span.fat-only 問答
     .right.menu
       button.no-border.ui.item(@click="toggleLogin", v-if="!uid")
         i.user.icon

@@ -10,7 +10,7 @@ div.faq-container
           th 相關連結
           th 操作
       tbody
-        tr(v-for="item in faqItems" :key="item.id")
+        tr(v-for="item in sortedFaqItems" :key="item.id")
           td {{ item.category }}
           td {{ item.question }}
           td.answer-cell {{ parseAnswer(item.answer) }}
@@ -39,6 +39,7 @@ export default defineComponent({
   name: 'FaqView',
   setup() {
     const faqItems = ref([])
+    const categories = ref(['起步', '計畫', '支持', '資源', '其他'])
 
     onMounted(async () => {
       try {
@@ -50,7 +51,13 @@ export default defineComponent({
     })
 
     return {
-      faqItems
+      faqItems,
+      categories
+    }
+  },
+  computed: {
+    sortedFaqItems() {
+      return this.faqItems.slice().sort((a, b) => this.categories.indexOf(a.category) - this.categories.indexOf(b.category))
     }
   },
   methods: {

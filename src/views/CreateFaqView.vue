@@ -68,6 +68,14 @@ export default defineComponent({
         alert('請選擇類別')
         return
       }
+      if (this.faqItem.question === '') {
+        alert('請輸入問題')
+        return
+      }
+      if (this.faqItem.answer === '') {
+        alert('請輸入回答')
+        return
+      }
       try {
         this.uploading = true
         await axios.post(
