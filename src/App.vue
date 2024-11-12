@@ -3,14 +3,16 @@ header
   nav.ui.fixed.top.menu
     button.no-border.ui.item(@click="toggleSidebar")
       i.icon.bars
-    RouterLink.item(to="/")
+    RouterLink.item.fat-only(to="/")
       i.home.icon
     RouterLink.item(to="/about")
       i.info.icon
-      | 關於我們
+      | 關於
+      span.fat-only 我們
     RouterLink.item(to="/faq")
       i.help.icon
-      | 常見問題
+      span.fat-only 常見
+      | 問題
     .right.menu
       button.no-border.ui.item(@click="toggleLogin", v-if="!uid")
         i.user.icon

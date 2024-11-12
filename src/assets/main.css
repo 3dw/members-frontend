@@ -21,6 +21,12 @@ a,
   }
 }
 
+@media (max-width: 768px) {
+  .fat-only {
+    display: none !important;
+  }
+}
+
 .small-spacer {
   height: 3rem;
 }
