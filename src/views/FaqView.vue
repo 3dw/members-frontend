@@ -35,10 +35,20 @@ div.faq-container
 import { defineComponent, ref, onMounted } from 'vue'
 import axios from 'axios'
 
+// 添加介面定義
+interface FaqItem {
+  id: string
+  category: string
+  question: string
+  answer: string
+  links?: string
+}
+
 export default defineComponent({
   name: 'FaqView',
   setup() {
-    const faqItems = ref([])
+    // 修改 ref 的型別定義
+    const faqItems = ref<FaqItem[]>([])
     const categories = ref(['起步', '計畫', '支持', '資源', '其他'])
 
     onMounted(async () => {
@@ -56,8 +66,10 @@ export default defineComponent({
     }
   },
   computed: {
-    sortedFaqItems() {
-      return this.faqItems.slice().sort((a, b) => this.categories.indexOf(a.category) - this.categories.indexOf(b.category))
+    sortedFaqItems(): FaqItem[] {
+      return this.faqItems.slice().sort((a, b) =>
+        this.categories.indexOf(a.category) - this.categories.indexOf(b.category)
+      )
     }
   },
   methods: {
