@@ -35,7 +35,7 @@ div.faq-container
               .item(v-for="link in parseLinks(item.links)" :key="link.h")
                 a(:href="link.h" target="_blank" rel="noopener noreferrer") {{ link.t }}
                 br
-                button.ui.button.mini.circular.red.icon(type="button" @click="deleteLink(item.id, link.h)")
+                button.ui.button.mini.circular.red.icon(v-if="uid" type="button" @click="deleteLink(item.id, link.h)")
                   i.trash.icon
                   | 刪除
           td
