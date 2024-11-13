@@ -5,7 +5,9 @@ export default defineComponent({
     setup() {
         // 修改 ref 的型別定義
         const faqItems = ref([]);
-        const categories = ref(['起步', '計畫', '支持', '資源', '其他']);
+        const categories = ref(['全部', '起步', '計畫', '支持', '資源', '其他']);
+        const searchKeyword = ref('');
+        const selectedCategory = ref('全部');
         onMounted(async () => {
             try {
                 const response = await axios.get('https://members-backend.alearn13994229.workers.dev/api/Faq');
@@ -17,12 +19,30 @@ export default defineComponent({
         });
         return {
             faqItems,
-            categories
+            categories,
+            searchKeyword,
+            selectedCategory
         };
     },
     computed: {
         sortedFaqItems() {
             return this.faqItems.slice().sort((a, b) => this.categories.indexOf(a.category) - this.categories.indexOf(b.category));
+        },
+        filteredAndSortedFaqItems() {
+            const keyword = this.searchKeyword.toLowerCase().trim();
+            let filtered = this.faqItems;
+            // 先依類別過濾
+            if (this.selectedCategory !== '全部') {
+                filtered = filtered.filter(item => item.category === this.selectedCategory);
+            }
+            // 再依關鍵字過濾
+            if (keyword) {
+                filtered = filtered.filter(item => item.category.toLowerCase().includes(keyword) ||
+                    item.question.toLowerCase().includes(keyword) ||
+                    item.answer.toLowerCase().includes(keyword));
+            }
+            // 最後依類別排序
+            return filtered.sort((a, b) => this.categories.indexOf(a.category) - this.categories.indexOf(b.category));
         }
     },
     methods: {
@@ -62,6 +82,22 @@ export default defineComponent({
                     console.error('刪除失敗:', error);
                 });
             }
+        },
+        escapeHtml(text) {
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        },
+        highlightText(text) {
+            if (!this.searchKeyword.trim())
+                return this.escapeHtml(text);
+            const escapedText = this.escapeHtml(text);
+            const keyword = this.escapeHtml(this.searchKeyword.toLowerCase().trim());
+            const regex = new RegExp(`(${keyword})`, 'gi');
+            return escapedText.replace(regex, '<span class="highlight">$1</span>');
         }
     }
 });

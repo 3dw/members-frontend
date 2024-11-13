@@ -69,6 +69,22 @@ export default defineComponent({
                 return '請說得詳細一點';
             }
             return result;
+        },
+        sendFeedback(feedback) {
+            console.log(feedback);
+            if (feedback === 'good') {
+                console.log('good');
+                window.alert('感謝您的回饋！');
+            }
+            else if (feedback === 'bad') {
+                console.log('bad');
+                if (window.confirm('請告訴我們哪裡做得不好，我們會努力改進！')) {
+                    this.$router.push('/feedback');
+                }
+                else {
+                    window.alert('感謝您的回饋！');
+                }
+            }
         }
     },
 });
