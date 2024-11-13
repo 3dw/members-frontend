@@ -3,14 +3,31 @@
     h1.ui.header 自主學習促進會
 
     //- 與AI對話
-    h2.ui.header 與AI對話
-    .ui.segment
-      .ui.input
-        input(autofocus type="text" placeholder="與AI對話...", v-model="message", @keyup.enter="sendMessage")
-        button.ui.button(@click="sendMessage") 送出
-      .result
-        p(v-if="result === '' && message !== '' && isLoading") 載入中，請稍候...
-        p(v-else-if="result !== ''") {{ parseResult(result) }}
+    h2.left.aligned.ui.header 自學AI
+      .left.aligned.ui.sub.header 以自學問答集為基礎，提供更即時的回答
+    .ui.input
+      input(
+        autofocus
+        type="text"
+        placeholder="問AI關於自學的任何問題..."
+        v-model="message"
+        @keyup.enter="sendMessage"
+      )
+      button.ui.primary.button(@click="sendMessage") 送出
+    .result
+      p(v-if="result === '' && message !== '' && isLoading") 載入中，請稍候...
+      p(v-else-if="result !== ''") {{ parseResult(result) }}
+        br
+        br
+        | 您覺得這個回答怎麼樣呢？
+        button.ui.basic.green.button(@click="sendFeedback('good')")
+          i.thumbs.up.icon
+          | 很棒
+        button.ui.basic.red.button(@click="sendFeedback('bad')")
+          i.thumbs.down.icon
+          | 不佳
+
+    .ui.divider
 
     .ui.four.doubling.stackable.cards
 
@@ -162,6 +179,20 @@ export default defineComponent({
         return '請說得詳細一點';
       }
       return result;
+    },
+    sendFeedback(feedback: string) {
+      console.log(feedback);
+      if (feedback === 'good') {
+        console.log('good');
+        window.alert('感謝您的回饋！');
+      } else if (feedback === 'bad') {
+        console.log('bad');
+        if (window.confirm('請告訴我們哪裡做得不好，我們會努力改進！')) {
+          this.$router.push('/feedback');
+        } else {
+          window.alert('感謝您的回饋！');
+        }
+      }
     }
   },
 });
@@ -175,6 +206,11 @@ li {
 .result {
   margin-top: 10px;
   white-space: pre-wrap;
+}
+
+.ui.input {
+  margin-bottom: 10px;
+  min-width: 300px;
 }
 
 </style>

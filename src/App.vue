@@ -17,6 +17,9 @@ header
       i.plus.icon
       | 新增
       span.fat-only 問答
+    RouterLink.item.fat-only(to="/feedback")
+      i.magic.icon
+      | 回饋
     .right.menu
       button.no-border.ui.item(@click="toggleLogin", v-if="!uid")
         i.user.icon
@@ -45,6 +48,9 @@ header
   RouterLink.item(to='/create_faq', name="create-faq")
     i.plus.icon
     | 新增問答
+  RouterLink.item.fat-only(to='/feedback', name="feedback")
+    i.magic.icon
+    | 回饋
 .ui.sidebar.bg(:class="{'hidden': !sidebarVisible}", @click="toggleSidebar")
 .ui.container
   RouterView(@toggleLogin="toggleLogin")

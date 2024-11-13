@@ -61,3 +61,10 @@ a, button {
 .flex-align-center {
   align-items: center;
 }
+
+
+.highlight {
+  background-color: yellow !important;
+  font-weight: bold;
+}
+

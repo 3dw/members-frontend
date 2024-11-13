@@ -1,6 +1,22 @@
 <template lang="pug">
 div.faq-container
+  h2.ui.header 常見問題
   .ui.container
+    form.ui.form
+      .two.stackable.fields
+        .field(style="max-width:150px;")
+          label 類別篩選
+          select.ui.dropdown(v-model="selectedCategory")
+            option(v-for="category in categories" :value="category") {{ category }}
+        .field
+          label 關鍵字篩選
+          .ui.icon.input
+            input(
+              type="text"
+              v-model="searchKeyword"
+              placeholder="搜尋常見問題..."
+            )
+            i.search.icon
     table.ui.celled.table
       thead
         tr
@@ -10,10 +26,10 @@ div.faq-container
           th 相關連結
           th 操作
       tbody
-        tr(v-for="item in sortedFaqItems" :key="item.id")
-          td {{ item.category }}
-          td {{ item.question }}
-          td.answer-cell {{ parseAnswer(item.answer) }}
+        tr(v-for="item in filteredAndSortedFaqItems" :key="item.id")
+          td(v-html="highlightText(item.category)")
+          td(v-html="highlightText(item.question)")
+          td.answer-cell(v-html="highlightText(parseAnswer(item.answer))")
           td.answer-cell
             .ui.bulleted.list(v-if="item.links && parseLinks(item.links).length > 0")
               .item(v-for="link in parseLinks(item.links)" :key="link.h")
@@ -49,7 +65,9 @@ export default defineComponent({
   setup() {
     // 修改 ref 的型別定義
     const faqItems = ref<FaqItem[]>([])
-    const categories = ref(['起步', '計畫', '支持', '資源', '其他'])
+    const categories = ref(['全部', '起步', '計畫', '支持', '資源', '其他'])
+    const searchKeyword = ref('')
+    const selectedCategory = ref('全部')
 
     onMounted(async () => {
       try {
@@ -62,12 +80,37 @@ export default defineComponent({
 
     return {
       faqItems,
-      categories
+      categories,
+      searchKeyword,
+      selectedCategory
     }
   },
   computed: {
     sortedFaqItems(): FaqItem[] {
       return this.faqItems.slice().sort((a, b) =>
+        this.categories.indexOf(a.category) - this.categories.indexOf(b.category)
+      )
+    },
+    filteredAndSortedFaqItems(): FaqItem[] {
+      const keyword = this.searchKeyword.toLowerCase().trim()
+      let filtered = this.faqItems
+
+      // 先依類別過濾
+      if (this.selectedCategory !== '全部') {
+        filtered = filtered.filter(item => item.category === this.selectedCategory)
+      }
+
+      // 再依關鍵字過濾
+      if (keyword) {
+        filtered = filtered.filter(item =>
+          item.category.toLowerCase().includes(keyword) ||
+          item.question.toLowerCase().includes(keyword) ||
+          item.answer.toLowerCase().includes(keyword)
+        )
+      }
+
+      // 最後依類別排序
+      return filtered.sort((a, b) =>
         this.categories.indexOf(a.category) - this.categories.indexOf(b.category)
       )
     }
@@ -109,6 +152,23 @@ export default defineComponent({
           console.error('刪除失敗:', error)
         })
       }
+    },
+    escapeHtml(text: string): string {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+    },
+    highlightText(text: string): string {
+      if (!this.searchKeyword.trim()) return this.escapeHtml(text)
+
+      const escapedText = this.escapeHtml(text)
+      const keyword = this.escapeHtml(this.searchKeyword.toLowerCase().trim())
+      const regex = new RegExp(`(${keyword})`, 'gi')
+
+      return escapedText.replace(regex, '<span class="highlight">$1</span>')
     }
   }
 })
@@ -128,4 +188,5 @@ th, td {
   min-width: 9rem;
   font-size: 1.2rem;
 }
+
 </style>
