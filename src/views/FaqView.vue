@@ -39,7 +39,10 @@ div.faq-container
                   i.trash.icon
                   | 刪除
           td
-            button.ui.button.primary(type="button" @click="editFaq(item.id)")
+            button.ui.button.orange(v-if="!uid" type="button" @click="toggleLogin")
+              i.user.icon
+              | 登人
+            button.ui.button.primary(v-else type="button" @click="editFaq(item.id)")
               i.pencil.icon
               | 編輯
             // button.ui.button.red.disabled(type="button" @click="deleteFaq(item.id)")
@@ -62,6 +65,12 @@ interface FaqItem {
 
 export default defineComponent({
   name: 'FaqView',
+  props: {
+    uid: {
+      type: String,
+      required: true
+    }
+  },
   setup() {
     // 修改 ref 的型別定義
     const faqItems = ref<FaqItem[]>([])
@@ -116,6 +125,9 @@ export default defineComponent({
     }
   },
   methods: {
+    toggleLogin() {
+      this.$emit('toggleLogin')
+    },
     fetchFaq() {
       this.faqItems = []
       axios.get('https://members-backend.alearn13994229.workers.dev/api/Faq').then((response) => {

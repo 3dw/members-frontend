@@ -117,11 +117,11 @@ export default defineComponent({
                 this.emailVerified = true;
                 console.log('登入成功：', user);
                 this.updateUserData(user);
-                if (autoredirect && user.emailVerified) {
+                /* if (autoredirect && user.emailVerified) {
                     this.$nextTick().then(() => {
                         this.$router.push('/profile');
                     });
-                }
+                } */
             }
             catch (error) {
                 console.error("登入失敗：", error);

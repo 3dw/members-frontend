@@ -3,7 +3,7 @@ div.faq-container
   .ui.container
     .ui.dimmer(v-if="uploading")
       .ui.loader
-    .ui.form
+    .ui.form(v-if="uid")
       .field
         label 類別：
         select(v-model="faqItem.category")
@@ -21,6 +21,9 @@ div.faq-container
         textarea(v-model="faqItem.answer" rows="20")
       button.ui.button.primary(type="button" @click="createFaq") 上傳
       button.ui.button(@click="goBack") 返回
+    button.ui.button.orange(v-else type="button" @click="toggleLogin")
+      i.user.icon
+      | 請先登人以創建問答
 </template>
 
 <script lang="ts">
@@ -38,6 +41,12 @@ interface FaqItem {
 
 export default defineComponent({
   name: 'CreateFaqView',
+  props: {
+    uid: {
+      type: String,
+      required: true
+    }
+  },
   setup() {
     const route = useRoute()
     const faqItem = ref<FaqItem>({
@@ -71,6 +80,9 @@ export default defineComponent({
     }
   },
   methods: {
+    toggleLogin() {
+      this.$emit('toggleLogin')
+    },
     async createFaq() {
       if (this.faqItem.category === '') {
         alert('請選擇類別')

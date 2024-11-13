@@ -28,9 +28,9 @@ header
         img.ui.avatar.image(v-if="photoURL" :src="photoURL" alt="User Avatar" @error="useDefaultAvatar" @load="onImageLoad")
         i.user.icon(v-else)
         .menu
-          router-link.item(to="/profile")
-            i.flag.icon
-            | 我的旗幟
+          // router-link.item(to="/profile")
+          //   i.flag.icon
+          //   | 我的旗幟
           button.no-border.ui.item(v-if="uid", @click="logout")
             i.sign-out.icon
             | 登出
@@ -53,7 +53,7 @@ header
     | 回饋
 .ui.sidebar.bg(:class="{'hidden': !sidebarVisible}", @click="toggleSidebar")
 .ui.container
-  RouterView(@toggleLogin="toggleLogin")
+  RouterView(@toggleLogin="toggleLogin", :uid="uid")
 Login(
   v-if="showLogin"
   :showLogin="showLogin"
@@ -108,6 +108,23 @@ export default defineComponent({
       email: '',
       emailVerified: false
     }
+  },
+  mounted() {
+    const vm = this;
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        vm.uid = user.uid;
+        vm.email = user.email || '';
+        vm.photoURL = user.photoURL || 'https://we.alearn.org.tw/logo-new.png';
+        vm.emailVerified = user.emailVerified;
+        vm.updateUserData(user);
+      } else {
+        vm.uid = '';
+        vm.email = '';
+        vm.photoURL = '';
+        vm.emailVerified = false;
+      }
+    });
   },
   methods: {
     toggleLogin() {
@@ -201,11 +218,11 @@ export default defineComponent({
         console.log('登入成功：', user);
         this.updateUserData(user);
 
-        if (autoredirect && user.emailVerified) {
+        /* if (autoredirect && user.emailVerified) {
           this.$nextTick().then(() => {
             this.$router.push('/profile');
           });
-        }
+        } */
       } catch (error: any) {
         console.error("登入失敗：", error);
         let errorMessage = "登入失敗：";

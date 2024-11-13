@@ -1,7 +1,7 @@
 <template lang="pug">
 div.faq-container
   .ui.container
-    .ui.form
+    .ui.form(v-if="uid")
       .field
         label 類別：
           | {{ faqItem.category }}
@@ -13,6 +13,9 @@ div.faq-container
         textarea(v-model="faqItem.answer" rows="20")
       button.ui.button.primary(type="button" @click="updateFaq") 儲存
       button.ui.button(@click="goBack") 返回
+    button.ui.button.orange(v-else type="button" @click="toggleLogin")
+      i.user.icon
+      | 請先登人以編輯問答
 </template>
 
 <script lang="ts">
@@ -22,6 +25,12 @@ import axios from 'axios'
 
 export default defineComponent({
   name: 'EditFaqView',
+  props: {
+    uid: {
+      type: String,
+      required: true
+    }
+  },
   setup() {
     const route = useRoute()
     const faqItem = ref({
@@ -52,6 +61,9 @@ export default defineComponent({
     }
   },
   methods: {
+    toggleLogin() {
+      this.$emit('toggleLogin')
+    },
     parseAnswer(answer: string) {
       console.log(answer)
       return answer.replace(/\\n/g, '\n')

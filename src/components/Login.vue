@@ -37,6 +37,7 @@
 <script lang="ts">
 import { defineComponent, ref, watch, onMounted } from 'vue';
 import { getAuth, sendPasswordResetEmail } from 'firebase/auth';
+import axios from 'axios';
 
 export default defineComponent({
   name: "LoginBox",
@@ -70,13 +71,24 @@ export default defineComponent({
       emit('toggleLogin');
     };
 
-    const validateEmail = (email: string): boolean => {
+    const validateEmail = async (email: string): Promise<boolean> => {
       const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       const re2 = /@alearn.org.tw$/;
-      return re.test(String(email).toLowerCase()) && re2.test(String(email).toLowerCase());
+
+      if (re.test(String(email).toLowerCase()) && re2.test(String(email).toLowerCase())) {
+        return true;
+      }
+
+      try {
+        const response = await axios.get(`https://members-backend.alearn13994229.workers.dev/is_member_email/${email}`);
+        return response.data.isMember === true;
+      } catch (error) {
+        console.error('Error checking member email:', error);
+        return false;
+      }
     };
 
-    const registerWithEmail = () => {
+    const registerWithEmail = async () => {
       console.log("users_email:", users_email.value);
       console.log("user_password:", user_password.value);
       console.log('Register clicked');
@@ -86,10 +98,10 @@ export default defineComponent({
         return;
       }
 
-      /* if (!validateEmail(users_email.value)) {
-        alert('請使用@aleran.org.tw網域的Email');
+      if (!(await validateEmail(users_email.value))) {
+        alert('請使用@aleran.org.tw網域的Email，或是會員名冊上有的Email');
         return;
-      } */
+      }
 
       if (!user_password.value || typeof user_password.value !== 'string') {
         alert('密碼請至少包含一個英文字，請重新輸入');
