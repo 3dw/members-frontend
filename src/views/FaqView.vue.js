@@ -2,6 +2,12 @@ import { defineComponent, ref, onMounted } from 'vue';
 import axios from 'axios';
 export default defineComponent({
     name: 'FaqView',
+    props: {
+        uid: {
+            type: String,
+            required: true
+        }
+    },
     setup() {
         // 修改 ref 的型別定義
         const faqItems = ref([]);
@@ -46,6 +52,9 @@ export default defineComponent({
         }
     },
     methods: {
+        toggleLogin() {
+            this.$emit('toggleLogin');
+        },
         fetchFaq() {
             this.faqItems = [];
             axios.get('https://members-backend.alearn13994229.workers.dev/api/Faq').then((response) => {

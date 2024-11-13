@@ -29,6 +29,24 @@ export default defineComponent({
             emailVerified: false
         };
     },
+    mounted() {
+        const vm = this;
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                vm.uid = user.uid;
+                vm.email = user.email || '';
+                vm.photoURL = user.photoURL || 'https://we.alearn.org.tw/logo-new.png';
+                vm.emailVerified = user.emailVerified;
+                vm.updateUserData(user);
+            }
+            else {
+                vm.uid = '';
+                vm.email = '';
+                vm.photoURL = '';
+                vm.emailVerified = false;
+            }
+        });
+    },
     methods: {
         toggleLogin() {
             this.showLogin = !this.showLogin;
@@ -118,9 +136,9 @@ export default defineComponent({
                 console.log('登入成功：', user);
                 this.updateUserData(user);
                 /* if (autoredirect && user.emailVerified) {
-                    this.$nextTick().then(() => {
-                        this.$router.push('/profile');
-                    });
+                  this.$nextTick().then(() => {
+                    this.$router.push('/profile');
+                  });
                 } */
             }
             catch (error) {

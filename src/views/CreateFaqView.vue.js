@@ -3,6 +3,12 @@ import { useRoute } from 'vue-router';
 import axios from 'axios';
 export default defineComponent({
     name: 'CreateFaqView',
+    props: {
+        uid: {
+            type: String,
+            required: true
+        }
+    },
     setup() {
         const route = useRoute();
         const faqItem = ref({
@@ -34,6 +40,9 @@ export default defineComponent({
         };
     },
     methods: {
+        toggleLogin() {
+            this.$emit('toggleLogin');
+        },
         async createFaq() {
             if (this.faqItem.category === '') {
                 alert('請選擇類別');

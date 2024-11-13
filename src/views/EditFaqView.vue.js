@@ -3,6 +3,12 @@ import { useRoute } from 'vue-router';
 import axios from 'axios';
 export default defineComponent({
     name: 'EditFaqView',
+    props: {
+        uid: {
+            type: String,
+            required: true
+        }
+    },
     setup() {
         const route = useRoute();
         const faqItem = ref({
@@ -32,6 +38,9 @@ export default defineComponent({
         };
     },
     methods: {
+        toggleLogin() {
+            this.$emit('toggleLogin');
+        },
         parseAnswer(answer) {
             console.log(answer);
             return answer.replace(/\\n/g, '\n');
