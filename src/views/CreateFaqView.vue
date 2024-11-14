@@ -1,7 +1,7 @@
 <template lang="pug">
 div.faq-container
-  .ui.container
-    .ui.dimmer(v-if="uploading")
+  .ui.container.relative
+    .ui.active.inverted.dimmer(v-if="uploading")
       .ui.loader
     .ui.form(v-if="uid")
       .field
@@ -139,5 +139,22 @@ textarea {
 
 .answer-cell {
   white-space: pre-line;
+}
+
+.relative {
+  position: relative !important;
+  min-height: 100px;
+}
+
+.ui.dimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
 }
 </style>

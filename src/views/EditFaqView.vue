@@ -104,6 +104,17 @@ textarea {
 
 .faq-container {
   padding: 2rem 0;
+  position: relative;
+  min-height: 300px;
+}
+
+.ui.dimmer {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 999;
 }
 
 .answer-cell {
