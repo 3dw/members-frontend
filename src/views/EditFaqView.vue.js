@@ -17,6 +17,7 @@ export default defineComponent({
             question: '',
             answer: ''
         });
+        const updating = ref(false);
         onMounted(async () => {
             try {
                 const id = route.params.id;
@@ -34,7 +35,8 @@ export default defineComponent({
             }
         });
         return {
-            faqItem
+            faqItem,
+            updating
         };
     },
     methods: {
@@ -46,10 +48,16 @@ export default defineComponent({
             return answer.replace(/\\n/g, '\n');
         },
         async updateFaq() {
+            this.updating = true;
             try {
-                await axios.post(`https://members-backend.alearn13994229.workers.dev/update/faq/${this.faqItem.id}`, { content: this.parseAnswer(this.faqItem.answer) });
-                alert('更新成功');
-                this.goBack();
+                await axios.post(`https://members-backend.alearn13994229.workers.dev/update/faq/${this.faqItem.id}`, { content: this.parseAnswer(this.faqItem.answer) }).then(() => {
+                    alert('更新成功');
+                    this.goBack();
+                })
+                    .catch((error) => {
+                    console.error('更新FAQ失敗:', error);
+                    alert('更新失敗');
+                });
             }
             catch (error) {
                 console.error('更新FAQ失敗:', error);
@@ -75,6 +83,7 @@ function __VLS_template() {
     };
     let __VLS_directives;
     let __VLS_styleScopedClasses;
+    __VLS_styleScopedClasses['faq-container'];
     // CSS variable injection 
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
