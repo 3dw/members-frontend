@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Allow: /feedback
+Allow: /faq
+Allow: /about
+Disallow: /create_faq
+Disallow: /edit_faq 
