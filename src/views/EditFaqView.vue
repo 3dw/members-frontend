@@ -1,5 +1,7 @@
 <template lang="pug">
 div.faq-container
+  .ui.dimmer(v-if="updating")
+    .ui.loader
   .ui.container
     .ui.form(v-if="uid")
       .field
@@ -39,7 +41,7 @@ export default defineComponent({
       question: '',
       answer: ''
     })
-
+    const updating = ref(false)
     onMounted(async () => {
       try {
         const id = route.params.id
@@ -57,7 +59,8 @@ export default defineComponent({
     })
 
     return {
-      faqItem
+      faqItem,
+      updating
     }
   },
   methods: {
@@ -69,13 +72,19 @@ export default defineComponent({
       return answer.replace(/\\n/g, '\n')
     },
     async updateFaq() {
+      this.updating = true
       try {
         await axios.post(
           `https://members-backend.alearn13994229.workers.dev/update/faq/${this.faqItem.id}`,
           { content: this.parseAnswer(this.faqItem.answer) }
-        )
-        alert('更新成功')
-        this.goBack()
+        ).then(() => {
+            alert('更新成功')
+            this.goBack()
+          })
+          .catch((error) => {
+            console.error('更新FAQ失敗:', error)
+            alert('更新失敗')
+          })
       } catch (error) {
         console.error('更新FAQ失敗:', error)
         alert('更新失敗')
