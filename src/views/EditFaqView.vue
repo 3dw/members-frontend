@@ -109,4 +109,14 @@ textarea {
 .answer-cell {
   white-space: pre-line;
 }
+
+@media (max-width: 768px) {
+  .faq-container {
+    padding: 1rem 0;
+  }
+
+  .ui.container {
+    width: 100%;
+  }
+}
 </style>
