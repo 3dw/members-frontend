@@ -84,6 +84,7 @@ function __VLS_template() {
     let __VLS_directives;
     let __VLS_styleScopedClasses;
     __VLS_styleScopedClasses['faq-container'];
+    __VLS_styleScopedClasses['ui'];
     // CSS variable injection 
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
