@@ -2,6 +2,8 @@
   main.ui.container
     h1.ui.header 自主學習促進會
 
+    //- iframe(src="https://map.alearn.org.tw/embed/ai", width="100%", height="600px")
+
     //- 與AI對話
     h2.left.aligned.ui.header 自學AI
       .left.aligned.ui.sub.header 以自學問答集為基礎，提供更即時的回答
