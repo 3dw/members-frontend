@@ -155,7 +155,7 @@ export default defineComponent({
     },
     parseLinks(links: string) {
       console.log(links)
-      return JSON.parse(links)
+      return JSON.parse(links).filter(link =>  link != null && link.t !== '')
     },
     parseAnswer(answer: string) {
       console.log(answer)
