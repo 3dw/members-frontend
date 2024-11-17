@@ -47,9 +47,14 @@ div.faq-container
               .ui.form
                 input(type="text" v-model="newLinkText" placeholder="連結名稱")
                 input(type="text" v-model="newLinkHref" placeholder="連結網址")
-                button.ui.button.primary(type="button" @click.prevent="addLink(item.id)")
-                  i.plus.icon
-                  | 新增
+                br
+                .ui.buttons
+                  a.ui.basic.primary.button(v-if="newLinkHref" :href="newLinkHref" target="_blank" rel="noopener noreferrer")
+                    img(:src="'https://www.google.com/s2/favicons?domain=' + newLinkHref" alt="測試連結")
+                    | 測試連結
+                  button.ui.button.primary(type="button" @click.prevent="addLink(item.id)")
+                    i.plus.icon
+                    | 新增
           td
             button.ui.button.orange(v-if="!uid" type="button" @click="toggleLogin")
               i.user.icon
@@ -191,6 +196,9 @@ export default defineComponent({
       console.log(newLink)
       axios.post(`https://members-backend.alearn13994229.workers.dev/insert/faq/${id}/link`, newLink).then(() => {
         window.alert('新增成功')
+        this.newLinkText = ''
+        this.newLinkHref = ''
+        this.showAddLinkId = ''
         console.log('新增成功')
         this.fetchFaq()
       }).catch((error) => {
