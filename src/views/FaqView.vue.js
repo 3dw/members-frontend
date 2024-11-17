@@ -14,6 +14,9 @@ export default defineComponent({
         const categories = ref(['全部', '起步', '計畫', '支持', '資源', '其他']);
         const searchKeyword = ref('');
         const selectedCategory = ref('全部');
+        const newLinkText = ref('');
+        const newLinkHref = ref('');
+        const showAddLinkId = ref('');
         onMounted(async () => {
             try {
                 const response = await axios.get('https://members-backend.alearn13994229.workers.dev/api/Faq');
@@ -27,7 +30,10 @@ export default defineComponent({
             faqItems,
             categories,
             searchKeyword,
-            selectedCategory
+            selectedCategory,
+            newLinkText,
+            newLinkHref,
+            showAddLinkId
         };
     },
     computed: {
@@ -65,7 +71,7 @@ export default defineComponent({
         },
         parseLinks(links) {
             console.log(links);
-            return JSON.parse(links);
+            return JSON.parse(links).filter(link => link != null && link.t !== '');
         },
         parseAnswer(answer) {
             console.log(answer);
@@ -91,6 +97,25 @@ export default defineComponent({
                     console.error('刪除失敗:', error);
                 });
             }
+        },
+        addLink(id) {
+            console.log(id);
+            const newLink = {
+                t: this.newLinkText,
+                h: this.newLinkHref
+            };
+            console.log(newLink);
+            axios.post(`https://members-backend.alearn13994229.workers.dev/insert/faq/${id}/link`, newLink).then(() => {
+                window.alert('新增成功');
+                this.newLinkText = '';
+                this.newLinkHref = '';
+                this.showAddLinkId = '';
+                console.log('新增成功');
+                this.fetchFaq();
+            }).catch((error) => {
+                window.alert('新增失敗');
+                console.error('新增失敗:', error);
+            });
         },
         escapeHtml(text) {
             return text
