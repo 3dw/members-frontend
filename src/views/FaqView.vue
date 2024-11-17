@@ -38,6 +38,18 @@ div.faq-container
                 button.ui.button.mini.circular.red.icon(v-if="uid" type="button" @click="deleteLink(item.id, link.h)")
                   i.trash.icon
                   | 刪除
+            .item.ui.divider
+            .item
+              button.ui.button.mini.circular.orange.icon(v-if="uid" type="button" @click="showAddLinkId = item.id")
+                i.plus.icon
+                | 新增
+            .item(v-if="showAddLinkId === item.id")
+              .ui.form
+                input(type="text" v-model="newLinkText" placeholder="連結名稱")
+                input(type="text" v-model="newLinkHref" placeholder="連結網址")
+                button.ui.button.primary(type="button" @click.prevent="addLink(item.id)")
+                  i.plus.icon
+                  | 新增
           td
             button.ui.button.orange(v-if="!uid" type="button" @click="toggleLogin")
               i.user.icon
@@ -77,7 +89,9 @@ export default defineComponent({
     const categories = ref(['全部', '起步', '計畫', '支持', '資源', '其他'])
     const searchKeyword = ref('')
     const selectedCategory = ref('全部')
-
+    const newLinkText = ref('')
+    const newLinkHref = ref('')
+    const showAddLinkId = ref('')
     onMounted(async () => {
       try {
         const response = await axios.get('https://members-backend.alearn13994229.workers.dev/api/Faq')
@@ -91,7 +105,10 @@ export default defineComponent({
       faqItems,
       categories,
       searchKeyword,
-      selectedCategory
+      selectedCategory,
+      newLinkText,
+      newLinkHref,
+      showAddLinkId
     }
   },
   computed: {
@@ -164,6 +181,22 @@ export default defineComponent({
           console.error('刪除失敗:', error)
         })
       }
+    },
+    addLink(id: string) {
+      console.log(id)
+      const newLink = {
+        t: this.newLinkText,
+        h: this.newLinkHref
+      }
+      console.log(newLink)
+      axios.post(`https://members-backend.alearn13994229.workers.dev/insert/faq/${id}/link`, newLink).then(() => {
+        window.alert('新增成功')
+        console.log('新增成功')
+        this.fetchFaq()
+      }).catch((error) => {
+        window.alert('新增失敗')
+        console.error('新增失敗:', error)
+      })
     },
     escapeHtml(text: string): string {
       return text
