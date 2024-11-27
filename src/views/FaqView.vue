@@ -56,12 +56,16 @@ div.faq-container
                     i.plus.icon
                     | 新增
           td
-            button.ui.button.orange(v-if="!uid" type="button" @click="toggleLogin")
-              i.user.icon
-              | 登人
-            button.ui.button.primary(v-else type="button" @click="editFaq(item.id)")
-              i.pencil.icon
-              | 編輯
+            .ui.vertical.buttons
+              button.ui.button.orange(v-if="!uid" type="button" @click="toggleLogin")
+                i.user.icon
+                | 登入/註冊
+              button.ui.button.primary(v-else type="button" @click="editFaq(item.id)")
+                i.pencil.icon
+                | 編輯
+              a.ui.button.secondary(:href="`https://map.alearn.org.tw/ans/${item.id}`")
+                | 前往
+                i.chevron.right.icon
             // button.ui.button.red.disabled(type="button" @click="deleteFaq(item.id)")
             //   i.trash.icon
             //   | 刪除

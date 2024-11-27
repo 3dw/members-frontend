@@ -24,6 +24,7 @@ header
       button.no-border.ui.item(@click="toggleLogin", v-if="!uid")
         i.user.icon
         | 登入
+        span.fat-only / 註冊
       .ui.simple.dropdown.item(v-else)
         img.ui.avatar.image(v-if="photoURL" :src="photoURL" alt="User Avatar" @error="useDefaultAvatar" @load="onImageLoad")
         i.user.icon(v-else)
