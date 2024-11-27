@@ -78,6 +78,8 @@
                 a(href="https://www.facebook.com/alearnTW" target="_blank" rel="noopener noreferrer") 臉書「自主學習促進會」專頁
               li
                 a(href="https://www.facebook.com/groups/homeschooltw" target="_blank" rel="noopener noreferrer") 臉書「在家自學社群」社團
+              li
+                a(href="https://lin.ee/CashU46" target="_blank" rel="noopener noreferrer") 自學AI聊天機器人@Line
             ul(v-if="projects.length")
               li(v-for="project in projects" :key="project.id")
                 a(:href="project.website" target="_blank", rel="noopener noreferrer") {{ project.full_name }}
