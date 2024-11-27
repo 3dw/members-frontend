@@ -10,6 +10,21 @@ const router = createRouter({
       component: HomeView
     },
     {
+      path: '/maps',
+      name: 'MapsView',
+      component: () => import('../views/MapsView.vue')
+    },
+    {
+      path: '/profile',
+      name: 'ProfileView',
+      component: () => import('../views/ProfileView.vue')
+    },
+    {
+      path: '/privacy-policy',
+      name: 'PrivacyPolicyView',
+      component: () => import('../views/PrivacyPolicyView.vue')
+    },
+    {
       path: '/feedback',
       name: 'FeedbackView',
       component: () => import('../views/FeedbackView.vue')

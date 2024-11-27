@@ -28,9 +28,9 @@ header
         img.ui.avatar.image(v-if="photoURL" :src="photoURL" alt="User Avatar" @error="useDefaultAvatar" @load="onImageLoad")
         i.user.icon(v-else)
         .menu
-          // router-link.item(to="/profile")
-          //   i.flag.icon
-          //   | 我的旗幟
+          router-link.item(to="/profile")
+            i.flag.icon
+            | 我的旗幟
           button.no-border.ui.item(v-if="uid", @click="logout")
             i.sign-out.icon
             | 登出
@@ -53,7 +53,17 @@ header
     | 回饋
 .ui.sidebar.bg(:class="{'hidden': !sidebarVisible}", @click="toggleSidebar")
 .ui.container
-  RouterView(@toggleLogin="toggleLogin", :uid="uid")
+  RouterView(
+    @toggleLogin="toggleLogin",
+    @locate="locate",
+    :uid="uid",
+    :isInApp="isInApp",
+    :user="user",
+    :users="users",
+    :photoURL="photoURL",
+    :email="email",
+    :emailVerified="emailVerified"
+  )
 Login(
   v-if="showLogin"
   :showLogin="showLogin"
@@ -106,7 +116,9 @@ export default defineComponent({
       user: obj1,
       photoURL: '',
       email: '',
-      emailVerified: false
+      emailVerified: false,
+      zoom: 13,
+      center: [23.5330, 121.0654]
     }
   },
   mounted() {
@@ -218,11 +230,11 @@ export default defineComponent({
         console.log('登入成功：', user);
         this.updateUserData(user);
 
-        /* if (autoredirect && user.emailVerified) {
+        if (autoredirect && user.emailVerified) {
           this.$nextTick().then(() => {
             this.$router.push('/profile');
           });
-        } */
+        }
       } catch (error: any) {
         console.error("登入失敗：", error);
         let errorMessage = "登入失敗：";
@@ -270,12 +282,26 @@ export default defineComponent({
       this.updateUserInfo(pvdata);
     },
 
+    // eslint-disable-next-line
+    locate: function (h:any, gotoMap: boolean) {
+      this.zoom = 13
+      this.center = h.latlngColumn.split(',')
+      console.log("Updated location:", this.center);
+      // 使用 nextTick 確保子組件接收到最新的 props
+      this.$nextTick(() => {
+        console.log('Center updated and propagated to children');
+      });
+      if (gotoMap) {
+        this.$router.push({path: '/maps'})
+      }
+    },
+
     updateUserInfo(pvdata: any[]) {
       if (this.users && this.uid && this.users[this.uid]) {
         this.user = { ...this.users[this.uid], providerData: pvdata };
-//        if (this.user.latlngColumn) {
-//          this.locate(this.user, false);
-//        }
+        if (this.user.latlngColumn) {
+          this.locate(this.user, false);
+        }
       } else {
         this.fetchUserData(pvdata);
       }
