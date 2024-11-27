@@ -26,7 +26,9 @@ export default defineComponent({
             user: obj1,
             photoURL: '',
             email: '',
-            emailVerified: false
+            emailVerified: false,
+            zoom: 13,
+            center: [23.5330, 121.0654]
         };
     },
     mounted() {
@@ -135,11 +137,11 @@ export default defineComponent({
                 this.emailVerified = true;
                 console.log('登入成功：', user);
                 this.updateUserData(user);
-                /* if (autoredirect && user.emailVerified) {
-                  this.$nextTick().then(() => {
-                    this.$router.push('/profile');
-                  });
-                } */
+                if (autoredirect && user.emailVerified) {
+                    this.$nextTick().then(() => {
+                        this.$router.push('/profile');
+                    });
+                }
             }
             catch (error) {
                 console.error("登入失敗：", error);
@@ -189,12 +191,25 @@ export default defineComponent({
                 }];
             this.updateUserInfo(pvdata);
         },
+        // eslint-disable-next-line
+        locate: function (h, gotoMap) {
+            this.zoom = 13;
+            this.center = h.latlngColumn.split(',');
+            console.log("Updated location:", this.center);
+            // 使用 nextTick 確保子組件接收到最新的 props
+            this.$nextTick(() => {
+                console.log('Center updated and propagated to children');
+            });
+            if (gotoMap) {
+                this.$router.push({ path: '/maps' });
+            }
+        },
         updateUserInfo(pvdata) {
             if (this.users && this.uid && this.users[this.uid]) {
                 this.user = { ...this.users[this.uid], providerData: pvdata };
-                //        if (this.user.latlngColumn) {
-                //          this.locate(this.user, false);
-                //        }
+                if (this.user.latlngColumn) {
+                    this.locate(this.user, false);
+                }
             }
             else {
                 this.fetchUserData(pvdata);

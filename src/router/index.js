@@ -9,14 +9,14 @@ const router = createRouter({
             component: HomeView
         },
         {
-          path: '/maps',
-          name: 'MapsView',
-          component: () => import('../views/MapsView.vue')
+            path: '/maps',
+            name: 'MapsView',
+            component: () => import('../views/MapsView.vue')
         },
         {
-          path: '/profile',
-          name: 'ProfileView',
-          component: () => import('../views/ProfileView.vue')
+            path: '/profile',
+            name: 'ProfileView',
+            component: () => import('../views/ProfileView.vue')
         },
         {
             path: '/privacy-policy',
