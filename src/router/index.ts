@@ -15,6 +15,11 @@ const router = createRouter({
       component: () => import('../views/MapsView.vue')
     },
     {
+      path: '/flag/:uid',
+      name: 'FlagView',
+      component: () => import('../views/FlagView.vue')
+    },
+    {
       path: '/profile',
       name: 'ProfileView',
       component: () => import('../views/ProfileView.vue')
