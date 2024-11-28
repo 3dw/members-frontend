@@ -24,6 +24,15 @@ div.faq-container
 import { defineComponent, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
+import { changelogsRef } from '../firebase'
+import { onValue, set } from 'firebase/database'
+
+interface Changelog {,
+  date: string,
+  uid: string,
+  faqId: number,
+  text: string
+}
 
 export default defineComponent({
   name: 'EditFaqView',
@@ -34,6 +43,7 @@ export default defineComponent({
     }
   },
   setup() {
+
     const route = useRoute()
     const faqItem = ref({
       id: '',
@@ -79,16 +89,27 @@ export default defineComponent({
           { content: this.parseAnswer(this.faqItem.answer) }
         ).then(() => {
             alert('更新成功')
-            this.goBack()
           })
           .catch((error) => {
             console.error('更新FAQ失敗:', error)
             alert('更新失敗')
+            return
           })
       } catch (error) {
         console.error('更新FAQ失敗:', error)
         alert('更新失敗')
+        return
       }
+      const changelog: Changelog = {
+        date: new Date().toISOString(),
+        uid: this.uid,
+        faqId: this.faqItem.id,
+        text: '問題：' + this.faqItem.question + '己修改回答為：' + this.faqItem.answer
+      }
+      set(changelogsRef, changelog).then(() => {
+        console.log('更新成功')
+        this.goBack()
+      })
     },
     goBack() {
       this.$router.push('/faq')

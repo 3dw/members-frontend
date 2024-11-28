@@ -41,11 +41,11 @@ interface FaqItem {
   links?: string
 }
 
-interface Changelog {
+interface Changelog {,
   date: string,
-  text?: string,
   uid: string,
-  href?: string
+  faqId: number,
+  text: string
 }
 
 export default defineComponent({
@@ -124,7 +124,6 @@ export default defineComponent({
         ).then(() => {
           this.uploading = false
           alert('上傳成功')
-          this.goBack()
         }).catch((error) => {
           this.uploading = false
           console.error('新增FAQ失敗:', error)
@@ -140,9 +139,13 @@ export default defineComponent({
       const newChangelog: Changelog = {
         date: new Date().toISOString(),
         uid: this.uid,
-        text: `新增FAQ：${this.faqItem.question}`
+        text: `新增FAQ：${this.faqItem.question}`,
+        faqId: this.faqItem.id
       }
-      await set(changelogsRef, newChangelog)
+      set(changelogsRef, newChangelog).then(() => {
+        console.log('新增成功')
+        this.goBack()
+      })
     },
     goBack() {
       this.$router.push('/faq')
