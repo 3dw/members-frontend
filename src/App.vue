@@ -49,6 +49,9 @@ header
   RouterLink.item(to='/create_faq', name="create-faq")
     i.plus.icon
     | 新增問答
+  RouterLink.item(to='/changelog', name="changelog")
+    i.history.icon
+    | 變更紀錄
   RouterLink.item.fat-only(to='/feedback', name="feedback")
     i.magic.icon
     | 回饋

@@ -11,8 +11,8 @@ const router = createRouter({
     },
     {
       path: '/changelog',
-      name: 'ChangelogView',
-      component: () => import('../views/ChangelogView.vue')
+      name: 'ChangeLogView',
+      component: () => import('../views/ChangeLogView.vue')
     },
     {
       path: '/maps',

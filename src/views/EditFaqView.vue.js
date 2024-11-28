@@ -1,6 +1,8 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
+import { changelogsRef } from '../firebase';
+import { push } from 'firebase/database';
 export default defineComponent({
     name: 'EditFaqView',
     props: {
@@ -52,17 +54,28 @@ export default defineComponent({
             try {
                 await axios.post(`https://members-backend.alearn13994229.workers.dev/update/faq/${this.faqItem.id}`, { content: this.parseAnswer(this.faqItem.answer) }).then(() => {
                     alert('更新成功');
-                    this.goBack();
                 })
                     .catch((error) => {
                     console.error('更新FAQ失敗:', error);
                     alert('更新失敗');
+                    return;
                 });
             }
             catch (error) {
                 console.error('更新FAQ失敗:', error);
                 alert('更新失敗');
+                return;
             }
+            const changelog = {
+                date: new Date().toISOString(),
+                uid: this.uid,
+                faqId: Number(this.faqItem.id),
+                text: '問題：' + this.faqItem.question + '己修改回答為：' + this.faqItem.answer
+            };
+            push(changelogsRef, changelog).then(() => {
+                console.log('更新成功');
+                this.goBack();
+            });
         },
         goBack() {
             this.$router.push('/faq');

@@ -1,6 +1,8 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
+import { changelogsRef } from '@/firebase';
+import { push } from 'firebase/database';
 export default defineComponent({
     name: 'CreateFaqView',
     props: {
@@ -66,18 +68,29 @@ export default defineComponent({
                 }).then(() => {
                     this.uploading = false;
                     alert('上傳成功');
-                    this.goBack();
                 }).catch((error) => {
                     this.uploading = false;
                     console.error('新增FAQ失敗:', error);
                     alert('上傳失敗');
+                    return;
                 });
             }
             catch (error) {
                 this.uploading = false;
                 console.error('新增FAQ失敗:', error);
                 alert('上傳失敗');
+                return;
             }
+            const newChangelog = {
+                date: new Date().toISOString(),
+                uid: this.uid,
+                text: `新增FAQ：${this.faqItem.question}`,
+                faqId: this.faqItem.id
+            };
+            push(changelogsRef, newChangelog).then(() => {
+                console.log('新增成功');
+                this.goBack();
+            });
         },
         goBack() {
             this.$router.push('/faq');

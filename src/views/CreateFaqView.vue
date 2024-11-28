@@ -41,10 +41,10 @@ interface FaqItem {
   links?: string
 }
 
-interface Changelog {,
+interface Changelog {
   date: string,
   uid: string,
-  faqId: number,
+  faqId: number | string,
   text: string
 }
 
