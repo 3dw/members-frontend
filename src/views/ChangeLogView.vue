@@ -1,11 +1,17 @@
 <template lang="pug">
 main.ui.container
   h1.ui.header 變更紀錄
-  .ui.stackable.cards(v-if="data.length > 0")
-    .card(v-for="item in data" :key="item.id")
-      .content
-        .header {{ item.text }}
-        .meta {{ item.date }}
+  table.ui.stackable.table(v-if="data.length > 0")
+    thead
+      tr
+        th 日期
+        th 更新內容
+        th 更新者
+    tbody
+      tr(v-for="item in data" :key="item.id")
+        td {{ item.date }}
+        td {{ item.text }}
+        td {{ users && users[item.uid] && users[item.uid].name || item.uid }}
 </template>
 
 <script lang="ts">
@@ -14,14 +20,20 @@ import { changelogsRef } from '@/firebase'
 import { onValue } from 'firebase/database'
 
 export default {
+  props: {
+    users: {
+      type: Object,
+      required: true,
+    },
+  },
   setup() {
     const data = ref([])
 
     onMounted(() => {
       onValue(changelogsRef, (snapshot) => {
-        const data = snapshot.val();
-        console.log(data);
-        data.value = Object.values(data);
+        const rawData = snapshot.val();
+        console.log(rawData);
+        data.value = Object.values(rawData);
       }, (error) => {
         console.error('讀取變更紀錄資料時出錯', error);
       });
