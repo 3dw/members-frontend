@@ -31,7 +31,7 @@ import { defineComponent, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { changelogsRef } from '@/firebase'
-import { onValue, set } from 'firebase/database'
+import { onValue, set, push } from 'firebase/database'
 
 interface FaqItem {
   id: string | number
@@ -58,7 +58,6 @@ export default defineComponent({
   },
   setup() {
     const route = useRoute()
-    const data = ref<Changelog[]>([])
     const faqItem = ref<FaqItem>({
       id: '',
       category: '',
@@ -69,10 +68,6 @@ export default defineComponent({
     const uploading = ref(false);
 
     onMounted(async () => {
-      onValue(changelogsRef, (snapshot) => {
-        data.value = snapshot.val()
-        console.log(data)
-      })
       try {
         const id = route.params.id
         const response = await axios.get(`https://members-backend.alearn13994229.workers.dev/api/Faq`)
@@ -142,7 +137,7 @@ export default defineComponent({
         text: `新增FAQ：${this.faqItem.question}`,
         faqId: this.faqItem.id
       }
-      set(changelogsRef, newChangelog).then(() => {
+      push(changelogsRef, newChangelog).then(() => {
         console.log('新增成功')
         this.goBack()
       })

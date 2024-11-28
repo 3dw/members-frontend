@@ -1,12 +1,11 @@
 <template lang="pug">
-main.ui.container)
+main.ui.container
   h1.ui.header 變更紀錄
   .ui.stackable.cards(v-if="data.length > 0")
     .card(v-for="item in data" :key="item.id")
       .content
-        .header {{ item.title }}
+        .header {{ item.text }}
         .meta {{ item.date }}
-        .description {{ item.description }}
 </template>
 
 <script lang="ts">
@@ -21,6 +20,7 @@ export default {
     onMounted(() => {
       onValue(changelogsRef, (snapshot) => {
         const data = snapshot.val();
+        console.log(data);
         data.value = Object.values(data);
       }, (error) => {
         console.error('讀取變更紀錄資料時出錯', error);

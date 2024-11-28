@@ -25,9 +25,9 @@ import { defineComponent, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import { changelogsRef } from '../firebase'
-import { onValue, set } from 'firebase/database'
+import { onValue, set, push } from 'firebase/database'
 
-interface Changelog {,
+interface Changelog {
   date: string,
   uid: string,
   faqId: number,
@@ -103,10 +103,10 @@ export default defineComponent({
       const changelog: Changelog = {
         date: new Date().toISOString(),
         uid: this.uid,
-        faqId: this.faqItem.id,
+        faqId: Number(this.faqItem.id),
         text: '問題：' + this.faqItem.question + '己修改回答為：' + this.faqItem.answer
       }
-      set(changelogsRef, changelog).then(() => {
+      push(changelogsRef, changelog).then(() => {
         console.log('更新成功')
         this.goBack()
       })
