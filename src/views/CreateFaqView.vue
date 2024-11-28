@@ -30,6 +30,8 @@ div.faq-container
 import { defineComponent, ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
+import { changelogsRef } from '@/firebase'
+import { onValue, set } from 'firebase/database'
 
 interface FaqItem {
   id: string | number
@@ -37,6 +39,13 @@ interface FaqItem {
   question: string
   answer: string
   links?: string
+}
+
+interface Changelog {
+  date: string,
+  text?: string,
+  uid: string,
+  href?: string
 }
 
 export default defineComponent({
@@ -49,6 +58,7 @@ export default defineComponent({
   },
   setup() {
     const route = useRoute()
+    const data = ref<Changelog[]>([])
     const faqItem = ref<FaqItem>({
       id: '',
       category: '',
@@ -59,6 +69,10 @@ export default defineComponent({
     const uploading = ref(false);
 
     onMounted(async () => {
+      onValue(changelogsRef, (snapshot) => {
+        data.value = snapshot.val()
+        console.log(data)
+      })
       try {
         const id = route.params.id
         const response = await axios.get(`https://members-backend.alearn13994229.workers.dev/api/Faq`)
@@ -98,6 +112,7 @@ export default defineComponent({
       }
       try {
         this.uploading = true
+
         await axios.post(
           `https://members-backend.alearn13994229.workers.dev/create/faq`,
           {
@@ -114,12 +129,20 @@ export default defineComponent({
           this.uploading = false
           console.error('新增FAQ失敗:', error)
           alert('上傳失敗')
+          return
         })
       } catch (error) {
         this.uploading = false
         console.error('新增FAQ失敗:', error)
         alert('上傳失敗')
+        return
       }
+      const newChangelog: Changelog = {
+        date: new Date().toISOString(),
+        uid: this.uid,
+        text: `新增FAQ：${this.faqItem.question}`
+      }
+      await set(changelogsRef, newChangelog)
     },
     goBack() {
       this.$router.push('/faq')
