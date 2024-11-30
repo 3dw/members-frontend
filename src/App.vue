@@ -49,9 +49,15 @@ header
   RouterLink.item(to='/create_faq', name="create-faq")
     i.plus.icon
     | 新增問答
+  RouterLink.item(to="/maps", name="maps")
+    i.map.icon
+    | 地圖
   RouterLink.item(to='/changelog', name="changelog")
     i.history.icon
     | 變更紀錄
+  RouterLink.item(to='/privacy-policy', name="privacy")
+    i.lock.icon
+    | 隱私權政策
   RouterLink.item.fat-only(to='/feedback', name="feedback")
     i.magic.icon
     | 回饋
