@@ -68,3 +68,6 @@ a, button {
   font-weight: bold;
 }
 
+.round.image {
+  border-radius: 50%;
+}

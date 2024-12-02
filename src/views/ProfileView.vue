@@ -43,6 +43,23 @@
           | 為必填欄位
         h4.ui.dividing.header 基本資料
         .field
+          label 大頭貼
+          .ui.center.aligned.segment
+            img.ui.centered.medium.round.image(
+              :src="root.photoURL || 'https://we.alearn.org.tw/logo-new.png'"
+              style="max-width: 200px;"
+            )
+            input(
+              type="file"
+              accept="image/*"
+              ref="photoInput"
+              style="display: none"
+              @change="handlePhotoUpload"
+            )
+            .ui.basic.button(@click="$refs.photoInput.click()")
+              i.upload.icon
+              | 上傳新大頭貼
+        .field
           label.required 稱呼
           input(type='text' v-model='root.name' placeholder="您希望別人如何稱呼您")
         .field(:class="{error: root.address && (root.latlngColumn == 'undefined,undefined' || root.latlngColumn == '36.778261,-119.4179324')}")
@@ -186,6 +203,7 @@ import { database } from '../firebase'
 import { set, get, ref, remove } from 'firebase/database'
 import 'leaflet/dist/leaflet.css';
 import * as L from 'leaflet';
+import Pica from 'pica'
 
 export default {
   name: 'MyFlag',
@@ -398,7 +416,7 @@ export default {
     updateFlag: function () {
       this.root.email = this.email || ''
       this.root.uid = this.uid || ''
-      this.root.photoURL = this.photoURL || ''
+      this.root.photoURL = this.root.photoURL || this.photoURL || ''
       this.root.lastUpdate = (new Date()).getTime()
 
       if (!this.emailVerified && this.root.login_method === 'email') {
@@ -452,6 +470,37 @@ export default {
     },
     loginGoogle: function () {
       this.$emit('loginGoogle')
+    },
+    async handlePhotoUpload(event) {
+      const file = event.target.files[0]
+      if (!file) return
+
+      // 建立 canvas 來調整圖片大小
+      const canvas = document.createElement('canvas')
+      // const ctx = canvas.getContext('2d')
+
+      // 讀取圖片
+      const img = new Image()
+      img.src = URL.createObjectURL(file)
+
+      await new Promise(resolve => {
+        img.onload = () => {
+          // 計算新的尺寸,保持比例
+          const width = 600
+          const height = (img.height * width) / img.width
+
+          canvas.width = width
+          canvas.height = height
+
+          // 使用 pica 調整大小
+          const pica = new Pica()
+          pica.resize(img, canvas).then(result => {
+            // 轉換為 base64
+            this.root.photoURL = result.toDataURL('image/jpeg')
+            resolve()
+          })
+        }
+      })
     }
   }
 }
