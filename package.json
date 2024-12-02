@@ -19,6 +19,7 @@
     "firebase": "^11.0.1",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
+    "pica": "^9.0.1",
     "pinia": "^2.2.4",
     "pug": "^3.0.3",
     "semantic-ui-css": "^2.5.0",
