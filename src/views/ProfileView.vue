@@ -92,7 +92,7 @@
               span(v-if='root.site2')
                 a(:href='root.site2', target='_blank')
                   img(:src="'https://www.google.com/s2/favicons?domain=' + root.site2", :title="root.site2", :alt="root.site2")
-                  | 測試連結
+                  | 測連結
 
         .two.fields
           .field
@@ -475,32 +475,76 @@ export default {
       const file = event.target.files[0]
       if (!file) return
 
-      // 建立 canvas 來調整圖片大小
-      const canvas = document.createElement('canvas')
-      // const ctx = canvas.getContext('2d')
+      // 檢查檔案類型
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif']
+      if (!validTypes.includes(file.type)) {
+        alert('請上傳 JPG、PNG 或 GIF 格式的圖片')
+        return
+      }
 
-      // 讀取圖片
-      const img = new Image()
-      img.src = URL.createObjectURL(file)
+      // 檢查檔案大小 (最大 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('圖片大小不能超過 5MB')
+        return
+      }
 
-      await new Promise(resolve => {
-        img.onload = () => {
-          // 計算新的尺寸,保持比例
-          const width = 600
-          const height = (img.height * width) / img.width
+      try {
+        // 建立 canvas 和臨時圖片元素
+        const canvas = document.createElement('canvas')
+        const img = new Image()
 
-          canvas.width = width
-          canvas.height = height
+        // 等待圖片完全載入
+        const imageLoadPromise = new Promise((resolve, reject) => {
+          img.onload = () => resolve()
+          img.onerror = () => reject(new Error('圖片載入失敗'))
+          img.src = URL.createObjectURL(file)
+        })
 
-          // 使用 pica 調整大小
-          const pica = new Pica()
-          pica.resize(img, canvas).then(result => {
-            // 轉換為 base64
-            this.root.photoURL = result.toDataURL('image/jpeg')
-            resolve()
-          })
+        await imageLoadPromise
+
+        // 計算新尺寸，保持比例
+        let width = 600
+        let height = (img.height * width) / img.width
+
+        // 如果高度超過 800，以高度為基準重新計算
+        if (height > 800) {
+          height = 800
+          width = (img.width * height) / img.height
         }
-      })
+
+        canvas.width = width
+        canvas.height = height
+
+        // 使用 pica 進行高品質縮放，啟用所有優化選項
+        const pica = new Pica({
+          features: ['js', 'wasm', 'cib'], // 啟用所有可用功能
+          idle: 2000 // 增加空閒時間以確保處理完整
+        })
+
+        const resizeResult = await pica.resize(img, canvas, {
+          alpha: true,
+          unsharpAmount: 160, // 增加銳利度
+          unsharpRadius: 0.8,
+          unsharpThreshold: 1,
+          quality: 3 // 最高品質設定
+        })
+
+        // 使用 pica 的內建優化器進行最終處理
+        const optimizedCanvas = await pica.toBlob(resizeResult, 'image/jpeg', 0.92)
+
+        // 轉換為 base64
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          this.root.photoURL = reader.result
+        }
+        reader.readAsDataURL(optimizedCanvas)
+
+        // 釋放資源
+        URL.revokeObjectURL(img.src)
+      } catch (error) {
+        console.error('圖片處理失敗:', error)
+        alert('圖片處理失敗，請重試')
+      }
     }
   }
 }
