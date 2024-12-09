@@ -75,8 +75,8 @@
           .header 網址連結
           .description
             ul
-              li
-                a(href="https://www.alearn.org" target="_blank" rel="noopener noreferrer") 官方網站
+              // li
+              //   a(href="https://www.alearn.org" target="_blank" rel="noopener noreferrer") 官方網站
               li
                 a(href="https://www.facebook.com/alearnTW" target="_blank" rel="noopener noreferrer") 臉書「自主學習促進會」專頁
               li
