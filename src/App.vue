@@ -9,6 +9,10 @@ header
       i.info.icon
       | 關於
       span.fat-only 我們
+    RouterLink.item(to="/doc")
+      i.book.icon
+      span.fat-only 本會
+      | 章程
     RouterLink.item(to="/faq")
       i.help.icon
       span.fat-only 常見
@@ -43,6 +47,9 @@ header
   RouterLink.item(to='/about', name="about")
     i.info.icon
     | 關於我們
+  RouterLink.item(to='/doc', name="doc")
+    i.book.icon
+    | 本會章程
   RouterLink.item(to='/faq', name="faq")
     i.help.icon
     | 常見問題
