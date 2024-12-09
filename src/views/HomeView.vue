@@ -2,6 +2,9 @@
   main.ui.container
     h1.ui.header 自主學習促進會
 
+    h2.ui.header 本會網站改版中，請點擊
+      a.text-underline(href="https://sites.google.com/view/autoalearn/%E9%A6%96%E9%A0%81") 這裡前往舊版網站。
+
     //- iframe(src="https://map.alearn.org.tw/embed/ai", width="100%", height="600px")
 
     //- 與AI對話
