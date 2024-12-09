@@ -79,3 +79,17 @@ a, button {
 p {
   font-size: 16px;
 }
+
+.padded {
+  padding: 1rem !important;
+}
+
+@media (min-width: 769px) {
+  .left-bordered {
+    border-left: 1px solid #ccc;
+  }
+
+  .right-bordered {
+    border-right: 1px solid #ccc;
+  }
+}

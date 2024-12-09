@@ -21,7 +21,7 @@ header
       i.plus.icon
       | 新增
       span.fat-only 問答
-    RouterLink.item.fat-only(to="/feedback")
+    RouterLink.item.fat-only(v-if="uid", to="/feedback")
       i.magic.icon
       | 回饋
     .right.menu
