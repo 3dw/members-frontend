@@ -26,7 +26,6 @@
           .left.aligned.ui.sub.header 以自學問答集為基礎，提供更即時的回答
         .ui.input
           input(
-            autofocus
             type="text"
             placeholder="問AI關於自學的任何問題..."
             v-model="message"
