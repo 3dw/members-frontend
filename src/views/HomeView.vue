@@ -1,36 +1,50 @@
 <template lang="pug">
   main.ui.container
-    h1.ui.header 自主學習促進會
+    //- h1.ui.header 自主學習促進會
 
-    h2.ui.header 本會網站改版中，請點擊
-      a.text-underline(href="https://sites.google.com/view/autoalearn/%E9%A6%96%E9%A0%81") 這裡前往舊版網站。
+    .ui.two.column.stackable.grid
+      .column
+        h2.ui.header 本會網站改版中，
+          br
+          | 請點擊
+          a.text-underline(href="https://sites.google.com/view/autoalearn/%E9%A6%96%E9%A0%81") 這裡前往舊版官方網站
+        img(src="../assets/9806.png", alt="愛心碼")
 
-    //- iframe(src="https://map.alearn.org.tw/embed/ai", width="100%", height="600px")
+        p 自主學習，就是學習自主。
 
-    //- 與AI對話
-    h2.left.aligned.ui.header 自學AI
-      .left.aligned.ui.sub.header 以自學問答集為基礎，提供更即時的回答
-    .ui.input
-      input(
-        autofocus
-        type="text"
-        placeholder="問AI關於自學的任何問題..."
-        v-model="message"
-        @keyup.enter="sendMessage"
-      )
-      button.ui.primary.button(@click="sendMessage") 送出
-    .result
-      p(v-if="result === '' && message !== '' && isLoading") 載入中，請稍候...
-      p(v-else-if="result !== ''") {{ parseResult(result) }}
-        br
-        br
-        | 您覺得這個回答怎麼樣呢？
-        button.ui.basic.green.button(@click="sendFeedback('good')")
-          i.thumbs.up.icon
-          | 很棒
-        button.ui.basic.red.button(@click="sendFeedback('bad')")
-          i.thumbs.down.icon
-          | 不佳
+        p 與他律到自主的過程，一般會經過解放散漫、自我中心、眼高手低和自主成熟這四個階段。
+
+        p 在解放散漫期需要安全感和健康的生活節奏、自我中心期需要明確界限、眼高手低期需要踏實的累積與創作。
+
+        p 這些需要成人有意識的提點和支持。
+
+        p 因此，本會致力於促進自主學習與教育的土壤。
+
+
+      .column
+        h2.left.aligned.ui.header 自學AI
+          .left.aligned.ui.sub.header 以自學問答集為基礎，提供更即時的回答
+        .ui.input
+          input(
+            autofocus
+            type="text"
+            placeholder="問AI關於自學的任何問題..."
+            v-model="message"
+            @keyup.enter="sendMessage"
+        )
+        button.ui.primary.button(@click="sendMessage") 送出
+        .result
+          p(v-if="result === '' && message !== '' && isLoading") 載入中，請稍候...
+          p(v-else-if="result !== ''") {{ parseResult(result) }}
+            br
+            br
+            | 您覺得這個回答怎麼樣呢？
+            button.ui.basic.green.button(@click="sendFeedback('good')")
+              i.thumbs.up.icon
+            | 很棒
+            button.ui.basic.red.button(@click="sendFeedback('bad')")
+              i.thumbs.down.icon
+              | 不佳
 
     .ui.divider
 
@@ -75,8 +89,8 @@
           .header 網址連結
           .description
             ul
-              // li
-              //   a(href="https://www.alearn.org" target="_blank" rel="noopener noreferrer") 官方網站
+              li
+                a(href="https://sites.google.com/view/autoalearn/%E9%A6%96%E9%A0%81" target="_blank" rel="noopener noreferrer") 舊版官方網站
               li
                 a(href="https://www.facebook.com/alearnTW" target="_blank" rel="noopener noreferrer") 臉書「自主學習促進會」專頁
               li

@@ -13,7 +13,7 @@ header
       i.help.icon
       span.fat-only 常見
       | 問題
-    RouterLink.item(to="/create_faq")
+    RouterLink.item(v-if="uid",to="/create_faq")
       i.plus.icon
       | 新增
       span.fat-only 問答
@@ -46,16 +46,16 @@ header
   RouterLink.item(to='/faq', name="faq")
     i.help.icon
     | 常見問題
-  RouterLink.item(to='/create_faq', name="create-faq")
+  RouterLink.item(v-if="uid", to='/create_faq', name="create-faq")
     i.plus.icon
     | 新增問答
-  RouterLink.item(to="/maps", name="maps")
+  RouterLink.item(v-if="uid", to="/maps", name="maps")
     i.map.icon
     | 地圖
-  RouterLink.item(to='/changelog', name="changelog")
+  RouterLink.item(v-if="uid", to='/changelog', name="changelog")
     i.history.icon
     | 變更紀錄
-  RouterLink.item(to='/privacy-policy', name="privacy")
+  RouterLink.item(v-if="uid", to='/privacy-policy', name="privacy")
     i.lock.icon
     | 隱私權政策
   RouterLink.item.fat-only(to='/feedback', name="feedback")

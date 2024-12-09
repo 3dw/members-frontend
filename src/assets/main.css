@@ -75,3 +75,7 @@ a, button {
 .round.image {
   border-radius: 50%;
 }
+
+p {
+  font-size: 16px;
+}
