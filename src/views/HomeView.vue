@@ -253,7 +253,15 @@ export default defineComponent({
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-attachment: fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+}
+
+@media (max-width: 768px) {
+  #main-column {
+    min-height: 200px;
+  }
 }
 
 #main-title {
