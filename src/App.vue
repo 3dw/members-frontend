@@ -9,7 +9,7 @@ header
       i.info.icon
       | 關於
       span.fat-only 我們
-    RouterLink.item(to="/doc")
+    // RouterLink.item(to="/doc")
       i.book.icon
       span.fat-only 本會
       | 章程

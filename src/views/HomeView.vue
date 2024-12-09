@@ -5,10 +5,10 @@
     .ui.two.column.stackable.grid
       .column
         h2.ui.header 本會網站改版中，
-          br
           | 請點擊
+          br.thin-only
           a.text-underline(href="https://sites.google.com/view/autoalearn/%E9%A6%96%E9%A0%81") 這裡前往舊版官方網站
-        img(src="../assets/9806.png", alt="愛心碼")
+        img#donate(src="../assets/9806.png", alt="愛心碼")
 
         p 自主學習，就是學習自主。
 
@@ -232,6 +232,12 @@ li {
 .ui.input {
   margin-bottom: 10px;
   min-width: 300px;
+}
+
+img#donate {
+  width: 100%;
+  max-width: 300px;
+  margin: 10px auto;
 }
 
 </style>
