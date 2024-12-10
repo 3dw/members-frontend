@@ -1,7 +1,7 @@
 <template lang="pug">
 main.ui.container
   h1.ui.header 本會簡介
-  .ui.segment.two.column.stackable.grid.container
+  .ui.segment.two.column.stackable.grid.container.padded
     .column.right-bordered
       h2.ui.header 理念
       p 「自主學習」是讓每一位學習者皆能參與自己的學習規劃、檢視、賦與意義，清明自覺的從事各項學習，以開發生命潛能。
@@ -102,6 +102,15 @@ export default {
     const arr: any[] = new Array();
     const visibleEmails = ref(arr);
 
+    const roleOrder = {
+      '理事長': 1,
+      '常務理事': 2,
+      '常務監事': 3,
+      '理事': 4,
+      '監事': 5,
+      '候補理事': 6
+    };
+
     onMounted(() => {
       onValue(projectsRef, (snapshot) => {
         const projectsData = snapshot.val();
@@ -112,7 +121,9 @@ export default {
 
       onValue(supervisorsRef, (snapshot) => {
         const supervisorsData = snapshot.val();
-        supervisors.value = Object.values(supervisorsData);
+        supervisors.value = Object.values(supervisorsData).sort((a, b) => {
+          return (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99);
+        });
       }, (error) => {
         console.error('讀取理監事資料時出錯', error);
       });
