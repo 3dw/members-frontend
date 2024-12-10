@@ -117,15 +117,27 @@
         .content
           .header 線上捐款
           .description
-            p 請掃描
             img#donate-qrcode(src="../assets/autolearn_donate_QRCode.png", alt="線上捐款")
-            p 或使用以下捐款帳戶：
-            br
-            | 台北富邦 士林分行（012）
-            br
-            | 帳號：30012-0000601
-            br
-            | 戶名：社團法人中華民國自主學習促進會
+
+            p 捐款流程：
+            ol
+              li 請掃描上方 QR Code 或使用以下帳戶進行捐款：
+                br
+                | 台北富邦 士林分行（012）
+                br
+                | 帳號：30012-0000601
+                br
+                | 戶名：社團法人中華民國自主學習促進會
+              li 完成捐款後，請將以下資訊寄至本會行政室：
+                br
+                a(href="mailto:alearn13994229@gmail.com") Email：alearn13994229@gmail.com
+                ul
+                  li 捐款人姓名
+                  li 聯絡電話
+                  li 通訊地址
+                  li 捐款金額
+                  li 匯款帳號後五碼
+              li 本會將開立捐款收據並寄回給您，可供節稅使用。
 
       //- 友站連結
       // .card
