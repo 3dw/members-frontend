@@ -65,12 +65,6 @@ function __VLS_template() {
     };
     let __VLS_directives;
     let __VLS_styleScopedClasses;
-    __VLS_styleScopedClasses['ui'];
-    __VLS_styleScopedClasses['container'];
-    __VLS_styleScopedClasses['ui'];
-    __VLS_styleScopedClasses['ui'];
-    __VLS_styleScopedClasses['ui'];
-    __VLS_styleScopedClasses['list'];
     // CSS variable injection 
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
@@ -86,4 +80,4 @@ function __VLS_template() {
 }
 ;
 let __VLS_self;
-//# sourceMappingURL=AboutView.vue.js.map
+//# sourceMappingURL=AboutView_backup20241210.vue.js.map

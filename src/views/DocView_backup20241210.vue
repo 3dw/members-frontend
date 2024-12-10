@@ -6,18 +6,18 @@
 
     <div class="ui basic segment">
       <h2 class="ui header">第一章 總則</h2>
+
       <p>第一條 本會名稱為「中華民國自主學習促進會」(以下簡稱本會)。</p>
+
       <p>第二條 本會為依法設立、非以營利為目的之社會團體。宗旨如下：</p>
-      <p>
-        為促進社會各界瞭解「自主學習」多元化教育理念，及對我國教育改革產生之深遠影響，
-        並尋求政府與民間之支持，發展具體可行的自主學習教育方案與制度，實踐推廣自主學習之教育型態，
-        為我國教育改革提供新方向、注入新活力。
-      </p>
+      <p>為促進社會各界瞭解「自主學習」多元化教育理念，及對我國教育改革產生之深遠影響，並尋求政府與民間之支持，發展具體可行的自主學習教育方案與制度，實踐推廣自主學習之教育型態，為我國教育改革提供新方向、注入新活力。</p>
+
       <p>第三條 本會以全國行政區域為組織區域。</p>
+
       <p>第四條 本會會址設於主管機關所在地區，並得報經主管機關核准設分支機構。</p>
-      <p>
-        前項分支機構組織簡則由理事會擬訂，報請主管機關核准後行之。會址及分支機構之地址於設置及變更時應函報主管機關核備。
-      </p>
+      <p>前項分支機構組織簡則由理事會擬訂，報請主管機關核准後行之。</p>
+      <p>會址及分支機構之地址於設置及變更時應函報主管機關核備。</p>
+
       <p>第五條 本會之任務如下：</p>
       <div class="ui ordered list">
         <div class="item">推廣自主學習教育理念。</div>
@@ -26,42 +26,36 @@
         <div class="item">促進自主學習教育交流。</div>
         <div class="item">其他符合本會宗旨之相關事項。</div>
       </div>
-      <p>
-        第六條 本會之主管機關為內政部。目的事業主管機關依章程所訂宗旨、任務主要為教育部，
-        其目的事業應受各該事業主管機關之指導、監督。
-      </p>
+
+      <p>第六條 本會之主管機關為內政部。目的事業主管機關依章程所訂宗旨、任務主要為教育部，其目的事業應受各該事業主管機關之指導、監督。</p>
     </div>
 
     <div class="ui basic segment">
       <h2 class="ui header">第二章 會員</h2>
+
       <p>第七條 本會會員申請資格如下：</p>
       <div class="ui ordered list">
-        <div class="item">
-          個人會員：凡贊同本會宗旨、年滿二十歲、具有行為能力，填具入會申請書，
-          經理事會通過，並繳納會費後，為個人會員。
-        </div>
-        <div class="item">
-          團體會員：凡贊同本會宗旨之公私立機構或團體，填具入會申請書，
-          經理事會通過，並繳納會費後，為團體會員。團體會員應推派代表一人，以行使會員權利。
-        </div>
+        <div class="item">個人會員：凡贊同本會宗旨、年滿二十歲、具有行為能力，填具入會申請書，經理事會通過，並繳納會費後，為個人會員。</div>
+        <div class="item">團體會員：凡贊同本會宗旨之公私立機構或團體，填具入會申請書，經理事會通過，並繳納會費後，為團體會員。團體會員應推派代表一人，以行使會員權利。</div>
       </div>
+
       <p>第八條 會員有表決權、選舉權、被選舉權與罷免權。每一會員為一權。</p>
+
       <p>第九條 會員有遵守本會章程、決議及繳納會費之義務。</p>
-      <p>
-        第十條 會員有違反法令、章程或不遵守會員大會決議時，得經理事會決議，予以警告或停權處分，
-        其危害團體情節重大者，得經會員大會決議予以除名。
-      </p>
+
+      <p>第十條 會員有違反法令、章程或不遵守會員大會決議時，得經理事會決議，予以警告或停權處分，其危害團體情節重大者，得經會員大會決議予以除名。</p>
+
       <p>第十一條 會員喪失會員資格或經會員大會決議除名者，即為出會。</p>
+
       <p>第十二條 會員得以書面敘明理由向本會聲明退會。</p>
     </div>
 
     <div class="ui basic segment">
       <h2 class="ui header">第三章 組織及職權</h2>
+
       <p>第十三條 本會以會員大會為最高權力機構。</p>
-      <p>
-        會員人數超過三百人以上時得分區比例選出會員代表，再召開會員代表大會，行使會員大會職權。
-        會員代表任期兩年，其名額及選舉辦法由理事會擬訂，報請主管機關核備後行之。
-      </p>
+      <p>會員人數超過三百人以上時得分區比例選出會員代表，再召開會員代表大會，行使會員大會職權。會員代表任期兩年，其名額及選舉辦法由理事會擬訂，報請主管機關核備後行之。</p>
+
       <p>第十四條 會員大會之職權如下：</p>
       <div class="ui ordered list">
         <div class="item">訂定與變更章程。</div>
@@ -73,6 +67,8 @@
         <div class="item">議決本會之解散。</div>
         <div class="item">議決與會員權利義務有關之其他重大事項。</div>
       </div>
+
+      <!-- 繼續其他條文... -->
     </div>
 
     <div class="ui basic segment">
@@ -113,82 +109,43 @@
       <p>第二十七條 本章程經會員大會通過，報經主管機關核備後施行，變更時亦同。</p>
     </div>
 
-
-    <div class="ui basic right aligned segment footer">
+    <div class="ui basic right aligned segment">
       <p>本章程經本會90年3月30日第一屆第一次會員大會通過。</p>
       <p>報經內政部90年8月9日台(90)內社字第9065471號函准予備查。</p>
-      <p>
-        本章程經本會94年9月23日會員大會通過修正，除第十五條理監事會人數更易自第三屆理監事會改選時生效外，
-        其餘條文自修正日起實施。
-      </p>
+      <p>本章程經本會94年9月23日會員大會通過修正，除第十五條理監事會人數更易自第三屆理監事會改選時生效外，其餘條文自修正日起實施。</p>
       <p>本章程修正案報經內政部94年10月19日台內內社字第0940039035號函准予備查。</p>
     </div>
   </div>
 </template>
 
+<script setup lang="ts">
+// 如果需要添加互動功能可以在這裡實現
+</script>
+
 <style scoped>
 .main-title {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #4CAF50;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-  margin: 2rem 0;
-  text-align: center;
-}
-
-.ui.container {
-  background: #f9f9f9;
-  border-radius: 15px;
-  padding: 2rem;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  margin: 2em 0 1em !important;
 }
 
 .ui.container p {
   line-height: 1.8;
-  margin-bottom: 1.5rem;
-  color: #333;
+  margin-bottom: 1em;
 }
 
 .ui.header {
-  color: #388E3C;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-  text-transform: uppercase;
+  margin-bottom: 1.5em;
 }
 
 .ui.basic.segment {
-  padding: 2rem 0;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.ui.basic.segment:last-of-type {
-  border-bottom: none;
+  padding: 2em 0;
 }
 
 .ui.ordered.list {
-  padding-left: 2rem;
-  margin: 1rem 0;
+  margin: 1em 0 1em 2em;
 }
 
 .ui.ordered.list .item {
-  color: #555;
+  margin-bottom: 0.5em;
   line-height: 1.6;
-  margin-bottom: 0.5rem;
-  position: relative;
-}
-
-.ui.ordered.list .item::before {
-  content: "•";
-  position: absolute;
-  left: -1.5rem;
-  color: #4CAF50;
-  font-size: 1.2rem;
-  line-height: 1;
-}
-
-.footer {
-  font-size: 0.9rem;
-  color: #757575;
-  text-align: right;
 }
 </style>
