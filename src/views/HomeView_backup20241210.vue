@@ -254,145 +254,76 @@ export default defineComponent({
 </script>
 
 <style scoped>
+
 #main-column {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 300px;
-  background: linear-gradient(135deg, #4CAF50 0%, #81C784 100%);
+  background-color: #f0f0f0;
   background-image: url('../assets/group.jpg');
-
-  border-radius: 15px;
-  color: #fff;
-  text-align: center;
-  padding: 20px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
 }
 
 @media (max-width: 768px) {
   #main-column {
     min-height: 200px;
-    padding: 10px;
   }
 }
 
 #main-title {
   font-size: 3rem;
-  font-weight: bold;
   color: #fff;
-  text-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  animation: fadeInDown 1.2s ease-out;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 @media (max-width: 768px) {
   #main-title {
-    font-size: 2.2rem;
+    font-size: 2rem;
   }
 }
 
-.column.right-bordered {
-  border-right: 2px solid rgba(255, 255, 255, 0.5);
-  padding-right: 20px;
-}
-
-a.text-underline {
-  color: #66BB6A;
-  font-weight: 600;
-  text-decoration: underline;
-  transition: all 0.3s ease;
-}
-
-a.text-underline:hover {
-  color: #388E3C;
-  text-decoration: none;
-}
-
-.ui.input input {
-  border: 2px solid #4CAF50;
-  border-radius: 10px;
-  padding: 10px;
-  width: 100%;
-  box-sizing: border-box;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-}
-
-.ui.input input:focus {
-  border-color: #81C784;
-  outline: none;
-  box-shadow: 0 0 8px rgba(129, 199, 132, 0.5);
-}
-
-button.ui.primary.button {
-  background: linear-gradient(135deg, #4CAF50 0%, #81C784 100%);
-  color: white;
-  font-weight: bold;
-  padding: 10px 20px;
-  border-radius: 10px;
-  transition: all 0.3s ease;
-}
-
-button.ui.primary.button:hover {
-  background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
-  transform: scale(1.05);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-}
-
-.card {
-  background: #fff;
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-}
-
-.card .header {
-  background: #66BB6A;
-  color: white;
-  font-weight: bold;
-  padding: 15px;
-  text-align: center;
-  font-size: 1.25rem;
-}
-
-.card .description {
-  padding: 15px;
-  color: #333;
-  line-height: 1.6;
-}
-
-img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
+li {
+  margin-bottom: 10px;
 }
 
 .result {
-  margin-top: 20px;
-  color: #333;
-  font-size: 1rem;
-  line-height: 1.6;
+  margin-top: 10px;
+  white-space: pre-wrap;
 }
 
-.ui.divider {
-  margin: 30px 0;
-  border-top: 2px solid rgba(0, 0, 0, 0.1);
+.ui.input {
+  margin-bottom: 10px;
+  min-width: 300px;
 }
 
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+img#main {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  margin: 10px auto;
+  border-radius: 10px;
+}
+
+img#donate {
+  display: block;
+  margin: 10px auto;
+  width: 100%;
+  max-width: 300px;
+  border-radius: 10px;
+}
+
+img#donate-qrcode {
+  display: block;
+  margin: 10px auto;
+  width: 100%;
+  max-width: 170px !important;
+  border-radius: 10px;
 }
 
 </style>

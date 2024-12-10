@@ -103,17 +103,6 @@ function __VLS_template() {
     };
     let __VLS_directives;
     let __VLS_styleScopedClasses;
-    __VLS_styleScopedClasses['text-underline'];
-    __VLS_styleScopedClasses['ui'];
-    __VLS_styleScopedClasses['input'];
-    __VLS_styleScopedClasses['ui'];
-    __VLS_styleScopedClasses['ui'];
-    __VLS_styleScopedClasses['primary'];
-    __VLS_styleScopedClasses['button'];
-    __VLS_styleScopedClasses['card'];
-    __VLS_styleScopedClasses['card'];
-    __VLS_styleScopedClasses['card'];
-    __VLS_styleScopedClasses['ui'];
     // CSS variable injection 
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
@@ -129,4 +118,4 @@ function __VLS_template() {
 }
 ;
 let __VLS_self;
-//# sourceMappingURL=HomeView.vue.js.map
+//# sourceMappingURL=HomeView_backup20241210.vue.js.map
