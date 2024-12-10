@@ -12,7 +12,7 @@ main.ui.container
 
       p 在實踐中，也證明了互為主體的同理與討論、嚴格但不威權的界限清楚，能幫助小孩從他律轉為自律。
 
-      p 在學習上，幫助小孩瞭解自己的學習優勢與風格、如何檢查自己會不會、以及各學科在人類文明中的意義，比起為考試而讀書，印象會深刻、更能活用、也更長久。更重要的是，覺得學習有意義，也有趣味。
+      p 在學習上，幫助小孩瞭解自己的學習優勢與風格、如何檢查自己會不會、以及各學科在人類文明中的意義，比起為考試而讀書，印象會深刻、更能活用、也更長久。更重要的���覺得學習有意義，也有趣味。
 
       h2.ui.header 任務
       p 本會任務如下：
@@ -36,7 +36,7 @@ main.ui.container
       p 為延續自主學習的經驗與知識，當時的親、師、生結合學術界的專家學者，於2001年3月30日召開會議籌設「中華民國自主學習促進會」，同年8月9日經內政部核准生效。
 
       h3 自主培力學園(2008-2010)
-      p 針對體制內拒學、懼學和想自學的青少年，以一年的時間，透過全日制的團體學習，來瞭解自己，重建學習興趣和習慣。
+      p 針對體制內拒學、懼學和想自學的青少年，以一年時��，透過全日制的團體學習，來瞭解自己，重建學習興趣和習慣。
 
       h3 獨立教育工作者社群(2009-)
       p 運用累積的經驗開設學習團體，陪伴自學家庭；傳承教育經驗給新夥伴，開發自學教材；與相關友會合作，開拓台灣自學資源。
@@ -93,12 +93,18 @@ import { onMounted, ref } from 'vue'
 import { database, projectsRef, supervisorsRef } from '@/firebase'
 import { onValue } from 'firebase/database'
 
+interface Supervisor {
+  role: string;
+  fullname: string;
+  email: string;
+}
+
 export default {
   setup() {
     const data = ref([])
 
     const projects = ref([]);
-    const supervisors = ref([]);
+    const supervisors = ref<Supervisor[]>([]);
     const arr: any[] = new Array();
     const visibleEmails = ref(arr);
 
@@ -121,9 +127,8 @@ export default {
 
       onValue(supervisorsRef, (snapshot) => {
         const supervisorsData = snapshot.val();
-        supervisors.value = Object.values(supervisorsData).sort((a: { role: string }, b: { role: string }) => {
-          return (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99);
-        });
+        supervisors.value = Object.values(supervisorsData) as Supervisor[];
+        supervisors.value.sort((a, b) => (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99));
       }, (error) => {
         console.error('讀取理監事資料時出錯', error);
       });
@@ -141,7 +146,11 @@ export default {
       this.$emit('toggleLogin');
     },
     toggleEmail(email: string) {
-      this.visibleEmails.includes(email) ? this.visibleEmails.splice(this.visibleEmails.indexOf(email), 1) : this.visibleEmails.push(email);
+      if (this.visibleEmails.includes(email)) {
+        this.visibleEmails.splice(this.visibleEmails.indexOf(email), 1);
+      } else {
+        this.visibleEmails.push(email);
+      }
     },
   },
 }
