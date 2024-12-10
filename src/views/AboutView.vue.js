@@ -8,6 +8,14 @@ export default (await import('vue')).defineComponent({
         const supervisors = ref([]);
         const arr = new Array();
         const visibleEmails = ref(arr);
+        const roleOrder = {
+            '理事長': 1,
+            '常務理事': 2,
+            '常務監事': 3,
+            '理事': 4,
+            '監事': 5,
+            '候補理事': 6
+        };
         onMounted(() => {
             onValue(projectsRef, (snapshot) => {
                 const projectsData = snapshot.val();
@@ -18,6 +26,7 @@ export default (await import('vue')).defineComponent({
             onValue(supervisorsRef, (snapshot) => {
                 const supervisorsData = snapshot.val();
                 supervisors.value = Object.values(supervisorsData);
+                supervisors.value.sort((a, b) => (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99));
             }, (error) => {
                 console.error('讀取理監事資料時出錯', error);
             });
@@ -34,7 +43,12 @@ export default (await import('vue')).defineComponent({
             this.$emit('toggleLogin');
         },
         toggleEmail(email) {
-            this.visibleEmails.includes(email) ? this.visibleEmails.splice(this.visibleEmails.indexOf(email), 1) : this.visibleEmails.push(email);
+            if (this.visibleEmails.includes(email)) {
+                this.visibleEmails.splice(this.visibleEmails.indexOf(email), 1);
+            }
+            else {
+                this.visibleEmails.push(email);
+            }
         },
     },
 });
