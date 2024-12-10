@@ -84,6 +84,10 @@ p {
   padding: 1rem !important;
 }
 
+.fluid {
+  width: 100%;
+}
+
 @media (min-width: 769px) {
   .left-bordered {
     border-left: 1px solid #ccc;

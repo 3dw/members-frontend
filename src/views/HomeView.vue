@@ -26,14 +26,14 @@
         img#main(src="../assets/main.png", alt="logo")
         h2.left.aligned.ui.header 自學AI
           .left.aligned.ui.sub.header 以自學問答集為基礎，提供更即時的回答
-        .ui.input
-          input(
+        .ui.fluid.input
+          input#input-message(
             type="text"
             placeholder="問AI關於自學的任何問題..."
             v-model="message"
             @keyup.enter="sendMessage"
         )
-        button.ui.primary.button(@click="sendMessage") 送出
+          button.ui.primary.button#send-button(@click="sendMessage") 送出
         .result
           p(v-if="result === '' && message !== '' && isLoading") 載入中，請稍候...
           p(v-else-if="result !== ''") {{ parseResult(result) }}
@@ -284,6 +284,12 @@ export default defineComponent({
   animation: fadeInDown 1.2s ease-out;
 }
 
+img#main {
+  max-width: 320px;
+  display: block;
+  margin: 0 auto;
+}
+
 @media (max-width: 768px) {
   #main-title {
     font-size: 2.2rem;
@@ -307,32 +313,57 @@ a.text-underline:hover {
   text-decoration: none;
 }
 
-.ui.input input {
-  border: 2px solid #4CAF50;
-  border-radius: 10px;
+.ui.input {
+  display: flex;
+  flex-direction: row;
+}
+
+@media (max-width: 768px) {
+  .ui.input {
+    flex-direction: column;
+  }
+}
+
+.ui.input input#input-message {
+  width: calc(100% - 40px) !important;
+  border: 1px solid #4CAF50;
+  border-radius: 10px 0 0 10px;
   padding: 10px;
-  width: 100%;
   box-sizing: border-box;
   font-size: 1rem;
   transition: all 0.3s ease;
 }
 
-.ui.input input:focus {
+@media (max-width: 768px) {
+  .ui.input input#input-message {
+    width: 100% !important;
+    border-radius: 10px 10px 0 0;
+  }
+}
+
+.ui.input input#input-message:focus {
   border-color: #81C784;
   outline: none;
   box-shadow: 0 0 8px rgba(129, 199, 132, 0.5);
 }
 
-button.ui.primary.button {
+button.ui.primary.button#send-button {
   background: linear-gradient(135deg, #4CAF50 0%, #81C784 100%);
   color: white;
   font-weight: bold;
   padding: 10px 20px;
-  border-radius: 10px;
+  border-radius: 0 10px 10px 0;
   transition: all 0.3s ease;
 }
 
-button.ui.primary.button:hover {
+@media (max-width: 768px) {
+  button.ui.primary.button#send-button {
+    border-radius: 0 0 10px 10px;
+    width: 100%;
+  }
+}
+
+button.ui.primary.button#send-button:hover {
   background: linear-gradient(135deg, #66BB6A 0%, #4CAF50 100%);
   transform: scale(1.05);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
@@ -340,7 +371,7 @@ button.ui.primary.button:hover {
 
 .card {
   background: #fff;
-  border-radius: 15px;
+  border-radius: 15px !important;
   overflow: hidden;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -352,16 +383,25 @@ button.ui.primary.button:hover {
 }
 
 .card .header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background: #66BB6A;
   color: white;
   font-weight: bold;
   padding: 15px;
   text-align: center;
   font-size: 1.25rem;
+  border-radius: 15px 15px 0 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 .card .description {
   padding: 15px;
+  padding-top: 40px;
   color: #333;
   line-height: 1.6;
 }
