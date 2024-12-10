@@ -222,7 +222,7 @@ export default defineComponent({
                     this.users = data;
                     if (this.uid && this.users && this.users[this.uid]) {
                         this.user = { ...this.users[this.uid], providerData: pvdata };
-                        console.log(this.user.photoURL);
+                        // console.log(this.user.photoURL);
                         if (this.user.photoURL && this.user.photoURL != 'undefined') {
                             this.photoURL = this.user.photoURL;
                         }
