@@ -121,7 +121,7 @@ export default {
 
       onValue(supervisorsRef, (snapshot) => {
         const supervisorsData = snapshot.val();
-        supervisors.value = Object.values(supervisorsData).sort((a, b) => {
+        supervisors.value = Object.values(supervisorsData).sort((a: { role: string }, b: { role: string }) => {
           return (roleOrder[a.role] || 99) - (roleOrder[b.role] || 99);
         });
       }, (error) => {
