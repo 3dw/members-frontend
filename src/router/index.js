@@ -14,6 +14,11 @@ const router = createRouter({
             component: () => import('../views/DocView.vue')
         },
         {
+            path: '/join-us',
+            name: 'JoinUsView',
+            component: () => import('../views/JoinUsView.vue')
+        },
+        {
             path: '/changelog',
             name: 'ChangeLogView',
             component: () => import('../views/ChangeLogView.vue')

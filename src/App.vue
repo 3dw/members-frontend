@@ -50,6 +50,9 @@ header
   RouterLink.item(to='/doc', name="doc")
     i.book.icon
     | 本會章程
+  RouterLink.item(to='/join-us', name="join-us")
+    i.user.icon
+    | 入會申請
   RouterLink.item(to='/faq', name="faq")
     i.help.icon
     | 常見問題
