@@ -107,6 +107,15 @@ function __VLS_template() {
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['input'];
     __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['input'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['input'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['input'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['primary'];
+    __VLS_styleScopedClasses['button'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['primary'];
     __VLS_styleScopedClasses['button'];
