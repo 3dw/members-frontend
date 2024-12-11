@@ -238,7 +238,7 @@ export default {
         });
     },
     addProject() {
-      const id = this.projects && this.projects.length > 0 ? this.projects[this.projects.length - 1].id : null;
+      const id = this.projects.length;
       set(dbRef(database, `projects/${id}`), {
         id: id,
         full_name: this.newProjectName,
