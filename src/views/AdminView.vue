@@ -129,7 +129,7 @@ main.ui.segment.container(v-if = "uid && user && user.isAdmin")
 import axios from 'axios'
 import { onMounted, ref } from 'vue'
 import { supervisorsRef, projectsRef, database } from '@/firebase'
-import { onValue, set, push, ref as dbRef, remove } from 'firebase/database'
+import { onValue, set, ref as dbRef, remove } from 'firebase/database'
 
 
 interface Supervisor {
@@ -210,7 +210,13 @@ export default {
   },
   methods: {
     addSupervisor(name: string, role: string, email: string) {
-      push(supervisorsRef, { name, role, email });
+      const id = this.supervisors && this.supervisors.length > 0 ? this.supervisors[this.supervisors.length - 1].id : null;
+      set(dbRef(database, `supervisors/${id}`), {
+        id: id,
+        fullname: name,
+        role,
+        email,
+      });
     },
     listMembers() {
       const password = window.prompt('請輸入密碼')
@@ -230,7 +236,9 @@ export default {
         });
     },
     addProject() {
-      push(projectsRef, {
+      const id = this.projects && this.projects.length > 0 ? this.projects[this.projects.length - 1].id : null;
+      set(dbRef(database, `projects/${id}`), {
+        id: id,
         full_name: this.newProjectName,
         main_category: this.newProjectMainCategory,
         maintainer: this.newProjectMaintainer,
@@ -249,6 +257,7 @@ export default {
     },
     updateProject(project: Project) {
       set(dbRef(database, `projects/${project.id}`), {
+        id: project.id,
         full_name: this.newProjectName,
         main_category: this.newProjectMainCategory,
         maintainer: this.newProjectMaintainer,
@@ -281,6 +290,7 @@ export default {
     },
     updateSupervisor(supervisor: Supervisor) {
       set(dbRef(database, `supervisors/${supervisor.id}`), {
+        id: supervisor.id,
         fullname: this.newName,
         role: this.newRole,
         email: this.newEmail,
