@@ -291,6 +291,7 @@ export default defineComponent({
 }
 
 img#main {
+  width: 100%;
   max-width: 320px;
   display: block;
   margin: 0 auto;
@@ -439,6 +440,11 @@ img {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+img#donate-qrcode {
+  display: block;
+  margin: 0 auto;
 }
 
 </style>
