@@ -26,27 +26,26 @@ main.ui.segment.container(v-if = "uid && user && user.isAdmin")
   .ui.segment(v-if="action === '理監事會'")
     h2.ui.header 理監事會
 
-    .ui.celled.compact.table
-      table
-        thead
-          tr
-            th 姓名
-            th 職位
-            th 電子郵件
-            th 動作
-        tbody
-          tr(v-for="supervisor in supervisors")
-            td {{ supervisor.fullname }}
-            td {{ supervisor.role }}
-            td {{ supervisor.email }}
-            td
-              .ui.vertical.buttons
-                button.ui.basic.primary.button(@click="editSupervisor(supervisor)")
-                  i.edit.icon
-                  | 編輯
-                button.ui.basic.red.button(@click="deleteSupervisor(supervisor)")
-                  i.trash.icon
-                  | 刪除
+    table.ui.celled.compact.table
+      thead
+        tr
+          th 姓名
+          th 職位
+          th 電子郵件
+          th 動作
+      tbody
+        tr(v-for="supervisor in supervisors")
+          td {{ supervisor.fullname }}
+          td {{ supervisor.role }}
+          td {{ supervisor.email }}
+          td
+            .ui.vertical.buttons
+              button.ui.basic.primary.button(@click="editSupervisor(supervisor)")
+                i.edit.icon
+                | 編輯
+              button.ui.basic.red.button(@click="deleteSupervisor(supervisor)")
+                i.trash.icon
+                | 刪除
     .ui.form
       .ui.field
         label 姓名
@@ -131,7 +130,7 @@ main.ui.segment.container(v-if = "uid && user && user.isAdmin")
 import axios from 'axios'
 import { onMounted, ref } from 'vue'
 import { supervisorsRef, projectsRef, database } from '@/firebase'
-import { onValue, set, ref as dbRef, remove } from 'firebase/database'
+import { onValue, set, ref as dbRef } from 'firebase/database'
 
 
 interface Supervisor {
@@ -162,22 +161,22 @@ export default {
     },
   },
   setup() {
-    const supervisors = ref([])
+    const supervisors = ref<Supervisor[]>([])
     const action = ref('理事會')
     const newName = ref('')
     const newRole = ref('')
     const newEmail = ref('')
     const members = ref([])
     const password = ref('')
-    const projects = ref([])
+    const projects = ref<Project[]>([])
     const newProjectName = ref('')
     const newProjectMainCategory = ref('')
     const newProjectMaintainer = ref('')
     const newProjectMaintainerEmail = ref('')
     const newProjectDescription = ref('')
     const editMode = ref(false)
-    const currentProject = ref({})
-    const currentSupervisor = ref({})
+    const currentProject = ref<Project | {}>({})
+    const currentSupervisor = ref<Supervisor | {}>({})
     onMounted(() => {
         onValue(supervisorsRef, (snapshot) => {
             const rawData = snapshot.val();
@@ -275,7 +274,10 @@ export default {
     },
     deleteProject(project: Project) {
       if (window.confirm('確定要刪除嗎？')) {
-        remove(dbRef(database, `projects/${project.id}`)).then(() => {
+        const newProjects = this.projects.filter((p) => {
+          return p.id !== project.id
+        })
+        set(projectsRef, newProjects).then(() => {
           window.alert('刪除成功');
         }).catch(error => {
         console.error('刪除失敗', error);
@@ -299,7 +301,15 @@ export default {
       });
     },
     deleteSupervisor(supervisor: Supervisor) {
-      remove(dbRef(database, `supervisors/${supervisor.id}`));
+      const newSupervisors = this.supervisors.filter((s) => {
+        return s.id !== supervisor.id
+      })
+      set(supervisorsRef, newSupervisors).then(() => {
+        window.alert('刪除成功')
+      }).catch(error => {
+        console.error('刪除失敗', error);
+        window.alert('刪除失敗');
+      });
     },
   },
 }
