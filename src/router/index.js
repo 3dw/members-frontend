@@ -72,13 +72,13 @@ const router = createRouter({
             component: () => import('../views/AboutView_backup20241210.vue')
         },
         {
-          path: '/404',
-          name: '404Error',
-          component: () => import('../views/404ErrorView.vue')
+            path: '/404',
+            name: '404Error',
+            component: () => import('../views/404ErrorView.vue')
         },
         {
-          path: '/:pathMatch(.*)*',
-          redirect: '/404'
+            path: '/:pathMatch(.*)*',
+            redirect: '/404'
         }
     ]
 });
