@@ -3,14 +3,14 @@ main.ui.container
   h1.ui.header 入會程序
   .ui.segment
 
-    h3.ui.header 入會流程
+    h2.ui.header 入會流程
     .ui.ordered.list
       .item 繳交「入會費1000元」加「第一年之常年會費1000元」。共2000元。
       .item 填妥入會申請書（線上版亦可）。
       .item 依本會章程，需有現有會員介紹。並經理監事會同意後，方可加入。
       .item 第一次入會者須出席本次年度會員大會，時間地點另行通知，通常辦在四月的週末（六日）
 
-    h3.ui.header 繳款方式
+    h2.ui.header 繳款方式
     .ui.list
       .item
         i.building.icon
@@ -23,7 +23,7 @@ main.ui.container
         .content 戶名：社團法人中華民國自主學習促進會
 
   .ui.segment
-    h2.ui.header 入會申請表
+    h2.ui.center.aligned.fluid.flex.flex-center.header 入會申請表
     iframe(
       src="https://docs.google.com/forms/d/e/1FAIpQLSe0k6L3aWd5-VIL3-_MFWZ2R2oxVQaoUZONvENaxM_9XoS7Tw/viewform?embedded=true"
       width="100%"

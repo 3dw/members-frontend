@@ -7,6 +7,19 @@
   font-weight: normal;
 }
 
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  justify-content: center;
+  align-items: center;
+}
+
+.center.aligned {
+  text-align: center !important;
+}
+
 a,
 .green {
   text-decoration: none;
@@ -28,6 +41,10 @@ a,
 @media (max-width: 768px) {
   .fat-only {
     display: none !important;
+  }
+  .ui.segment {
+    padding-left: .6rem !important;
+    padding-right: .6rem !important;
   }
 }
 
