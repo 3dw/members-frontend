@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
 import { supervisorsRef, projectsRef, database } from '@/firebase';
-import { onValue, set, ref as dbRef, remove } from 'firebase/database';
+import { onValue, set, ref as dbRef } from 'firebase/database';
 export default (await import('vue')).defineComponent({
     props: {
         uid: {
@@ -125,7 +125,10 @@ export default (await import('vue')).defineComponent({
         },
         deleteProject(project) {
             if (window.confirm('確定要刪除嗎？')) {
-                remove(dbRef(database, `projects/${project.id}`)).then(() => {
+                const newProjects = this.projects.filter((p) => {
+                    return p.id !== project.id;
+                });
+                set(projectsRef, newProjects).then(() => {
                     window.alert('刪除成功');
                 }).catch(error => {
                     console.error('刪除失敗', error);
@@ -149,7 +152,15 @@ export default (await import('vue')).defineComponent({
             });
         },
         deleteSupervisor(supervisor) {
-            remove(dbRef(database, `supervisors/${supervisor.id}`));
+            const newSupervisors = this.supervisors.filter((s) => {
+                return s.id !== supervisor.id;
+            });
+            set(supervisorsRef, newSupervisors).then(() => {
+                window.alert('刪除成功');
+            }).catch(error => {
+                console.error('刪除失敗', error);
+                window.alert('刪除失敗');
+            });
         },
     },
 });
