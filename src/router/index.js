@@ -70,6 +70,15 @@ const router = createRouter({
             // this generates a separate chunk (About.[hash].js) for this route
             // which is lazy-loaded when the route is visited.
             component: () => import('../views/AboutView_backup20241210.vue')
+        },
+        {
+          path: '/404',
+          name: '404Error',
+          component: () => import('../views/404ErrorView.vue')
+        },
+        {
+          path: '/:pathMatch(.*)*',
+          redirect: '/404'
         }
     ]
 });
