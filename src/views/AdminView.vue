@@ -123,6 +123,8 @@ main.ui.segment.container(v-if = "uid && user && user.isAdmin")
         i.save.icon(v-else)
         span(v-if="!editMode") 新增
         span(v-else) 更新
+.ui.segment(v-else)
+  h2.ui.header 請先登入管理員帳號
 </template>
 
 <script lang="ts">
@@ -210,7 +212,7 @@ export default {
   },
   methods: {
     addSupervisor(name: string, role: string, email: string) {
-      const id = this.supervisors && this.supervisors.length > 0 ? this.supervisors[this.supervisors.length - 1].id : null;
+      const id = this.supervisors.length;
       set(dbRef(database, `supervisors/${id}`), {
         id: id,
         fullname: name,
