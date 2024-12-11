@@ -261,6 +261,12 @@ export default defineComponent({
   min-height: 300px;
   background: linear-gradient(135deg, #4CAF50 0%, #81C784 100%);
   background-image: url('../assets/group.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
 
   border-radius: 15px;
   color: #fff;
