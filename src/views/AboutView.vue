@@ -1,6 +1,6 @@
 <template lang="pug">
   main.ui.container
-    h1.ui.header 本會簡介
+    h1.ui.header 自主學習促進會簡介
     .ui.segment.two.column.stackable.grid.container.padded
       .column.right-bordered
         h2.ui.header 理念
@@ -24,7 +24,7 @@
 
 
       .column
-        h2 本會簡史
+        h2.ui.header 本會簡史
         p 教育實踐之路，從不滿意體制的一群大人小孩開始。
 
         h3 種籽親子實驗小學(1994-)
@@ -37,7 +37,7 @@
         p 為延續自主學習的經驗與知識，當時的親、師、生結合學術界的專家學者，於2001年3月30日召開會議籌設「中華民國自主學習促進會」，同年8月9日經內政部核准生效。
 
         h3 自主培力學園(2008-2010)
-        p 針對體制內拒學、懼學和想自學的青少年，以一年時間，透過全日制的團體學習，來瞭解自己，重建學習興趣和習慣。
+        p 針對體制內拒學、懼學和想自學的青少年，以一年的時間，透過全日制的團體學習，來瞭解自己，重建學習興趣和習慣。
 
         h3 獨立教育工作者社群(2009-)
         p 運用累積的經驗開設學習團體，陪伴自學家庭；傳承教育經驗給新夥伴，開發自學教材；與相關友會合作，開拓台灣自學資源。
@@ -222,5 +222,6 @@ th, td {
 .description {
   white-space: pre-wrap;
   min-width: 200px;
+  max-width: 400px;
 }
 </style>
