@@ -12,7 +12,7 @@ const router = createRouter({
     {
       path: '/podcast',
       name: 'padcast',
-      component: () => import('../views/PodCastView.vue')
+      component: () => import('../views/PodcastView.vue')
     },
     {
       path: '/admin',
