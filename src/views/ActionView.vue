@@ -18,7 +18,7 @@ main.ui.segment.container
       p 不是所有孩子都適合學校教育。
       p 想想孩子的就學經驗，有些人可能順利，有些人在填鴨，切齊或評比競爭制度之下，過得很辛苦。
       p 社經地位高的家庭，較有能力讓孩子自學，或參加各式各樣的實驗教育團體或機構。
-      p 但社經地位低家庭孩子，即使想自學，第一個面對的就是費用問題。
+      p 但社經地位低家庭的孩子，即使想自學，第一個面對的就是費用問題。
       p 無力付擔只能忍耐，直到學校畢業，或是拒學甚至中輟。
       p 每個孩子都應受到照顧，同等重要。
       p 希望國家執政者，有勇氣幫助這些相對弱勢的孩子，同樣寶貝孩子，捍衛他們的教育選擇權。
@@ -35,7 +35,7 @@ main.ui.segment.container
       .ui.raised.segment
         h4.ui.header 讓各種社經背景家庭參與自學機會平等
         p 選擇自學不是一個輕易的決定。首先家長要有能力規劃自學計畫送實驗教育審議會審議通過，還要有足夠的文化和經濟資本來執行審議會通過的自學計畫，部分雙薪家庭至少要有一位從全職改成兼職工作，嚴重影響其家庭收入。
-        p 即令孩子參加團體或機構實驗教育，少了政府每年公立中小學每生20萬元補助，家中即便多一位月入5萬的全職工作者，只要有兩個孩子選擇非學校型態實驗教育，基本上就捉襟見肘了，單親家庭更不待言。
+        p 即令孩子參加團體或機構實驗教育，少了政府每年公立中小學每生20萬元補助，家中即便多一位月入5萬的全職工作者，���要有兩個孩子選擇非學校型態實驗教育，基本上就捉襟見肘了，單親家庭更不待言。
         p 難怪目前主要只有文化和經濟資本雙高的家庭易於自學，但一旦政府全面補助，各種社經背景的家庭都有機會平等自學。
 
       .ui.raised.segment
@@ -90,12 +90,39 @@ main.ui.segment.container
               .content
                 a(:href="'mailto:' + legislator.email") {{ legislator.email }}
 
+  h2.ui.header 在社群媒體上分享
+  .ui.center.aligned.segment
+    button.ui.facebook.button(@click="shareToFB")
+      i.facebook.icon
+      | 分享到 Facebook
+    button.ui.twitter.button(@click="shareToTwitter")
+      i.twitter.icon
+      | 分享到 Twitter
+    button.ui.line.green.button#line(@click="shareToLine")
+      i.line.icon#line-icon L
+      | 分享到 LINE
 
 </template>
 
 <script lang="ts">
 export default {
   setup() {
+    const url = 'https://www.alearn.org.tw/action'
+    const title = '請協助捍衛每個孩子選擇自學的權利'
+    const description = '只有補助自學，弱勢家庭的孩子才有足夠的機會參與實驗教育'
+
+    const shareToFB = () => {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`)
+    }
+
+    const shareToTwitter = () => {
+      window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`)
+    }
+
+    const shareToLine = () => {
+      window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`)
+    }
+
     const legislators = [
       {
         name: '民主進步黨團',
@@ -183,7 +210,10 @@ export default {
     ]
 
     return {
-      legislators
+      legislators,
+      shareToFB,
+      shareToTwitter,
+      shareToLine
     }
   }
 }
@@ -202,5 +232,18 @@ h4.ui.header, p {
 
 .label {
   font-size: 18px !important;
+}
+
+.ui.button {
+  margin: 0.5em;
+}
+
+.ui.line.button {
+  background-color: #00b900;
+  color: white !important;
+}
+
+#line, #line-icon {
+  color: white !important;
 }
 </style>
