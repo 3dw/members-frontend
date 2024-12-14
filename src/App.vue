@@ -57,6 +57,9 @@ header
   RouterLink.item(to='/podcast', name="podcast")
     i.vedio.play.icon
     | 影音短講
+  RouterLink.item(to='/action', name="action")
+    i.users.icon
+    | 修法行動
   RouterLink.item(to='/doc', name="doc")
     i.book.icon
     | 本會章程

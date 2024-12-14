@@ -2,6 +2,14 @@
   main.ui.container
     //- h1.ui.header 自主學習促進會
 
+    .ui.warning.message
+      .header 請協助捍衛每個孩子選擇自學的權利
+      p 只有補助自學，弱勢家庭的孩子才有足夠的機會參與實驗教育
+        RouterLink.item(to='/action', name="action")
+          i.users.icon
+          | 瞭解修法焦點
+          i.chevron.right.icon
+
     .ui.two.column.stackable.segment.padded.grid
       .sixteen.wide.center.aligned.column#main-column
         h1.ui.header#main-title 自主學習促進會
@@ -10,6 +18,7 @@
           | 請點擊
           br.thin-only
           a.text-underline(href="https://sites.google.com/view/autoalearn/%E9%A6%96%E9%A0%81") 這裡前往舊版官方網站
+
         img#donate(src="../assets/9806.png", alt="愛心碼")
 
         p 自主學習，就是學習自主。

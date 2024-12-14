@@ -9,6 +9,11 @@ const router = createRouter({
             component: HomeView
         },
         {
+            path: '/action',
+            name: 'action',
+            component: () => import('../views/ActionView.vue')
+        },
+        {
             path: '/podcast',
             name: 'padcast',
             component: () => import('../views/PodcastView.vue')
