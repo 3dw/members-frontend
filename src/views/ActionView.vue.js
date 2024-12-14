@@ -1,5 +1,17 @@
 export default (await import('vue')).defineComponent({
     setup() {
+        const url = 'https://www.alearn.org.tw/action';
+        const title = '請協助捍衛每個孩子選擇自學的權利';
+        const description = '只有補助自學，弱勢家庭的孩子才有足夠的機會參與實驗教育';
+        const shareToFB = () => {
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`);
+        };
+        const shareToTwitter = () => {
+            window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}&text=${encodeURIComponent(title)}`);
+        };
+        const shareToLine = () => {
+            window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`);
+        };
         const legislators = [
             {
                 name: '民主進步黨團',
@@ -86,7 +98,10 @@ export default (await import('vue')).defineComponent({
             }
         ];
         return {
-            legislators
+            legislators,
+            shareToFB,
+            shareToTwitter,
+            shareToLine
         };
     }
 });
@@ -106,6 +121,9 @@ function __VLS_template() {
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['cards'];
     __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['button'];
     // CSS variable injection 
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
