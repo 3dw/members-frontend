@@ -105,6 +105,7 @@ function __VLS_template() {
     let __VLS_styleScopedClasses;
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['cards'];
+    __VLS_styleScopedClasses['ui'];
     // CSS variable injection 
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
