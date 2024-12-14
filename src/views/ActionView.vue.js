@@ -25,7 +25,8 @@ export default (await import('vue')).defineComponent({
             },
             {
                 name: '范雲',
-                tel: '02-2358-6056、0988-807139',
+                tel: '02-2358-6056',
+                mobile: '0988-807139',
                 fax: '02-2358-6060'
             },
             {
