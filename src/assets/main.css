@@ -46,6 +46,9 @@ a,
     padding-left: .6rem !important;
     padding-right: .6rem !important;
   }
+  .ui.menu .item {
+    padding: 0.62rem !important;
+  }
 }
 
 .small-spacer {

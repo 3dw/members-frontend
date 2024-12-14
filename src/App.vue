@@ -13,6 +13,10 @@ header
       i.book.icon
       span.fat-only 本會
       | 章程
+    RouterLink.item(to='/podcast', name="podcast")
+      i.vedio.play.icon
+      | 影音
+      span.fat-only 短講
     RouterLink.item(to="/faq")
       i.help.icon
       span.fat-only 常見
@@ -50,6 +54,9 @@ header
   RouterLink.item(to='/about', name="about")
     i.info.icon
     | 關於我們
+  RouterLink.item(to='/podcast', name="podcast")
+    i.vedio.play.icon
+    | 影音短講
   RouterLink.item(to='/doc', name="doc")
     i.book.icon
     | 本會章程
