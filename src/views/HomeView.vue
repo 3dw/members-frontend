@@ -2,10 +2,10 @@
   main.ui.container
     //- h1.ui.header 自主學習促進會
 
-    .ui.warning.message
+    .ui.warning.message#action-message
       .header 請協助捍衛每個孩子選擇自學的權利
       p 只有補助自學，弱勢家庭的孩子才有足夠的機會參與實驗教育
-        RouterLink.item(to='/action', name="action")
+        RouterLink#action-link(to='/action', name="action")
           i.users.icon
           | 瞭解修法焦點
           i.chevron.right.icon
@@ -455,6 +455,18 @@ img#donate-qrcode {
   display: block;
   margin: 0 auto;
 }
+
+#action-message {
+  position: relative;
+  padding-bottom: 2.6em;
+}
+
+#action-link {
+  position: absolute;
+  bottom: .5em;
+  right: 1em;
+}
+
 
 </style>
 
