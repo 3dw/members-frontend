@@ -70,6 +70,11 @@ main.ui.segment.container
     li 中華民國教育基本法保障家庭的「教育選擇權」 。
     li 國中小是「義務教育」，自學已是「體制內合法申請」，受到政府審議監督，理當和在校生一樣享有政府補助的教育經費。
     li 只有補助自學，弱勢家庭的孩子才有足夠的機會參與實驗教育。
+  br
+  p
+    a(href="https://docs.google.com/document/d/162z3-C-D3qWGVuBXZ-nbcgJV4u9sCMMyit_dn_XAKIg/edit?usp=sharing", target="_blank", rel="noopener noreferrer")
+      i.file.icon
+      | 參考信件範本
 
   h2.ui.center.aligned.header 立法委員聯絡資訊
   .ui.cards
@@ -142,74 +147,82 @@ export default {
       },
       {
         name: '范雲',
+        party: '民進黨',
         tel: '02-2358-6056',
         mobile: '0988-807139',
         fax: '02-2358-6060'
       },
       {
         name: '張其祿',
+        party: '民眾黨',
         tel: '02-2358-6391',
         fax: '02-2358-6395'
       },
       {
         name: '陳培瑜',
+        party: '民進黨',
         tel: '02-2358-8221',
         fax: '02-2358-8225'
       },
       {
         name: '張廖萬堅',
+        party: '民進黨',
         tel: '02-2358-8282',
         fax: '02-2358-8285'
       },
       {
         name: '吳思瑤',
+        party: '民進黨',
         tel: '02-2358-8131',
         fax: '02-2358-8135'
       },
       {
         name: '林宜瑾',
+        party: '民進黨',
         tel: '02-2358-8316',
         fax: '02-2358-8320'
       },
       {
         name: '高金素梅',
+        party: '無黨籍',
         tel: '02-2358-6051',
         fax: '02-2358-6055'
       },
       {
         name: '陳秀寶',
+        party: '民進黨',
         tel: '02-2358-6881',
         fax: '02-2358-6140'
       },
       {
-        name: '黃國書',
-        tel: '02-2358-6846',
-        fax: '02-2358-6850'
-      },
-      {
         name: '萬美玲',
+        party: '國民黨',
         tel: '02-2358-6156',
         fax: '02-2358-6160',
         email: 'idea.power@msa.hinet.net'
       },
       {
         name: '鄭正鈐',
+        party: '國民黨',
         tel: '02-2358-8121',
         fax: '02-2358-8125'
       },
       {
         name: '鄭麗文',
+        party: '國民黨',
         tel: '02-2358-6866',
         fax: '02-2358-6870'
       },
       {
         name: '陳靜敏',
+        party: '民進黨',
         tel: '02-2358-8181',
         fax: '02-2358-8185',
         email: 'ly11208b@ly.gov.tw'
       },
       {
         name: '王婉諭',
+        party: '時代力量',
         tel: '02-2358-6376',
         fax: '02-2358-6380',
         email: 'wanyu.claire@gmail.com'
