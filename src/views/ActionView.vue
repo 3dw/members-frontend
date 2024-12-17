@@ -65,18 +65,18 @@ main.ui.segment.container
     | 請一起關切法案
     .sub.header 讓各種社經背景家庭參與自學機會平等
 
-  p 民主需要公民的一起關切，請致電或Email教育及文化委員會的立法委員，關切「向下延伸補助國中小自學生」實行細則的擬定進展，並說明為何這項法案對台灣教育的進步致關重要：
+  p 民主需要公民的一起關切，請致電教育及文化委員會的立法委員，關切「向下延伸補助國中小自學生」實行細則的擬定進展，並說明為何這項法案對台灣教育的進步致關重要：
   ol
     li 中華民國教育基本法保障家庭的「教育選擇權」 。
     li 國中小是「義務教育」，自學已是「體制內合法申請」，受到政府審議監督，理當和在校生一樣享有政府補助的教育經費。
     li 只有補助自學，弱勢家庭的孩子才有足夠的機會參與實驗教育。
-  br
-  p
-    a(href="https://docs.google.com/document/d/162z3-C-D3qWGVuBXZ-nbcgJV4u9sCMMyit_dn_XAKIg/edit?usp=sharing", target="_blank", rel="noopener noreferrer")
-      i.file.icon
-      | 參考信件範本
+  //br
+  // p
+  //  a(href="https://docs.google.com/document/d/162z3-C-D3qWGVuBXZ-nbcgJV4u9sCMMyit_dn_XAKIg/edit?usp=sharing", target="_blank", rel="noopener noreferrer")
+  //  i.file.icon
+  //  | 參考信件範本
 
-  h2.ui.center.aligned.header 立法委員聯絡資訊
+  h2.ui.center.aligned.header 教育及文化委員會-第11屆第2會期委員聯絡資訊
   .ui.cards
     .card(v-for="legislator in legislators")
       .content
@@ -136,45 +136,28 @@ export default {
 
     const legislators = [
       {
-        name: '民主進步黨團',
-        party: '民進黨',
-        fax: '02-2358-5797'
-      },
-      {
-        name: '中國國民黨團',
-        party: '國民黨',
-        fax: '02-2358-5681, 02-2358-5692'
-      },
-      {
-        name: '范雲',
+        name: '范雲(召集委員)',
         party: '民進黨',
         tel: '02-2358-6056',
-        mobile: '0988-807139',
         fax: '02-2358-6060'
       },
       {
-        name: '張其祿',
-        party: '民眾黨',
-        tel: '02-2358-6391',
-        fax: '02-2358-6395'
+        name: '萬美玲(召集委員)',
+        party: '國民黨',
+        tel: '02-2358-6156',
+        fax: '02-2358-6160'
       },
       {
-        name: '陳培瑜',
+        name: '吳沛憶',
         party: '民進黨',
-        tel: '02-2358-8221',
-        fax: '02-2358-8225'
+        tel: '02-2358-6166',
+        fax: '02-2358-6170'
       },
       {
-        name: '張廖萬堅',
-        party: '民進黨',
-        tel: '02-2358-8282',
-        fax: '02-2358-8285'
-      },
-      {
-        name: '吳思瑤',
-        party: '民進黨',
-        tel: '02-2358-8131',
-        fax: '02-2358-8135'
+        name: '吳春城',
+        party: '台灣民眾黨',
+        tel: '02-2358-8116',
+        fax: '02-2358-8120'
       },
       {
         name: '林宜瑾',
@@ -183,49 +166,64 @@ export default {
         fax: '02-2358-8320'
       },
       {
-        name: '高金素梅',
-        party: '無黨籍',
-        tel: '02-2358-6051',
-        fax: '02-2358-6055'
+        name: '林倩綺',
+        party: '國民黨',
+        tel: '02-2358-6377',
+        fax: '02-2358-6380'
       },
       {
-        name: '陳秀寶',
+        name: '柯志恩',
+        party: '國民黨',
+        tel: '02-2358-6876',
+        fax: '02-2358-6880'
+      },
+      {
+        name: '洪孟楷',
+        party: '國民黨',
+        tel: '02-2358-6811',
+        fax: '02-2358-6815'
+      },
+      {
+        name: '張雅琳',
+        party: '民進黨',
+        tel: '02-2358-8111',
+        fax: '02-2358-8115'
+      },
+      {
+        name: '郭昱晴',
+        party: '民進黨',
+        tel: '02-2358-6686',
+        fax: '02-2358-6690'
+      },
+      {
+        name: '陳秀寳',
         party: '民進黨',
         tel: '02-2358-6881',
         fax: '02-2358-6140'
       },
       {
-        name: '萬美玲',
-        party: '國民黨',
-        tel: '02-2358-6156',
-        fax: '02-2358-6160',
-        email: 'idea.power@msa.hinet.net'
-      },
-      {
-        name: '鄭正鈐',
-        party: '國民黨',
-        tel: '02-2358-8121',
-        fax: '02-2358-8125'
-      },
-      {
-        name: '鄭麗文',
-        party: '國民黨',
-        tel: '02-2358-6866',
-        fax: '02-2358-6870'
-      },
-      {
-        name: '陳靜敏',
+        name: '陳培瑜',
         party: '民進黨',
-        tel: '02-2358-8181',
-        fax: '02-2358-8185',
-        email: 'ly11208b@ly.gov.tw'
+        tel: '02-2358-8221',
+        fax: '02-2358-8225'
       },
       {
-        name: '王婉諭',
-        party: '時代力量',
-        tel: '02-2358-6376',
-        fax: '02-2358-6380',
-        email: 'wanyu.claire@gmail.com'
+        name: '葉元之',
+        party: '國民黨',
+        tel: '02-2358-6766',
+        fax: '02-2358-6905'
+      },
+      {
+        name: '葛如鈞',
+        party: '國民黨',
+        tel: '02-2358-6126',
+        fax: '02-2358-6130'
+      },
+      {
+        name: '羅廷瑋',
+        party: '國民黨',
+        tel: '02-2358-6116',
+        fax: '02-2358-6355'
       }
     ]
 
