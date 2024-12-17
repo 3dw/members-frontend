@@ -147,6 +147,12 @@ export default (await import('vue')).defineComponent({
                 message: message || '請繼續接力關注此案'
             });
         };
+        // 計算每位委員被打電話的次數
+        const getCallCount = (legislatorName) => {
+            const count = actions.value.filter(action => action.name !== 'test' &&
+                action.legislator === legislatorName).length;
+            return Math.min(Math.round((count / 100) * 100), 100);
+        };
         return {
             url,
             title,
@@ -157,7 +163,8 @@ export default (await import('vue')).defineComponent({
             shareToLine,
             actions,
             todayActions,
-            logPhoneCall
+            logPhoneCall,
+            getCallCount,
         };
     }
 });
@@ -181,6 +188,11 @@ function __VLS_template() {
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['button'];
     __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['card'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['progress'];
     // CSS variable injection 
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
