@@ -77,10 +77,14 @@ main.ui.segment.container
   //  | 參考信件範本
 
   h2.ui.center.aligned.header 教育及文化委員會-第11屆第2會期委員聯絡資訊
+    .sub.header 資料來源：
+      a(href="https://www.ly.gov.tw/Pages/Detail.aspx?nodeid=55089&pid=243430", target="_blank", rel="noopener noreferrer") 立法院全球資訊網
   .ui.cards
     .card(v-for="legislator in legislators")
       .content
-        .header {{ legislator.name }}
+        .header
+          i.user.icon
+          | {{ legislator.name }}
         .meta {{ legislator.party }}
         .description
           .ui.list
@@ -101,6 +105,30 @@ main.ui.segment.container
               .content
                 a(:href="'mailto:' + legislator.email") {{ legislator.email }}
 
+        .ui.divider
+
+        p 打電話給{{ legislator.name }}委員後，請在下方按鈕留下記錄吧！
+
+        .extra.content
+          button.ui.basic.green.button(@click="logPhoneCall(legislator)")
+            i.phone.icon
+            | 我剛打電話給{{ legislator.name }}委員了
+
+  .ui.segment#action-record
+    h2.ui.header
+      i.history.icon
+      | 最新行動記錄
+    .ui.warning.message(v-if="actions.filter(action => action.name != 'test').length === 0")
+      | 目前還沒有任何行動記錄，成為第一個行動的人吧！
+    .ui.warning.message(v-else-if="todayActions.filter(action => action.name != 'test').length === 0")
+      | 今天還沒有任何行動記錄，成為今天第一個行動的人吧！
+    .ui.feed
+      .event(v-for="action in actions.filter(action => action.name != 'test')")
+        .content
+          .summary {{ action.datetime }}: {{ action.name }} 打了一通電話給 {{ action.legislator }}
+          .meta {{ action.message }}
+
+
   h2.ui.header 在社群媒體上分享
   .ui.center.aligned.segment
     button.ui.facebook.button(@click="shareToFB")
@@ -112,10 +140,20 @@ main.ui.segment.container
     button.ui.line.green.button#line(@click="shareToLine")
       i.line.icon#line-icon L
       | 分享到 LINE
-
 </template>
 
 <script lang="ts">
+import { ref, onMounted, computed } from 'vue'
+import { actionsRef } from '@/firebase'
+import { push, onValue } from 'firebase/database'
+
+interface Action {
+  datetime: string;
+  name: string;
+  legislator: string;
+  message: string;
+}
+
 export default {
   setup() {
     const url = 'https://www.alearn.org.tw/action'
@@ -227,11 +265,62 @@ export default {
       }
     ]
 
+    const actions = ref<Action[]>([])
+
+    // 新增 computed property 來計算今日行動
+    const todayActions = computed(() => {
+      const today = new Date()
+      return actions.value.filter(action => {
+        console.log(action.datetime)
+        console.log(action.datetime.split(' ')[0])
+        const actionDate = new Date(action.datetime.split(' ')[0])
+        console.log(actionDate)
+        console.log(today)
+
+        return actionDate.getFullYear() === today.getFullYear() &&
+               actionDate.getMonth() === today.getMonth() &&
+               actionDate.getDate() === today.getDate()
+      })
+    })
+
+    // 監聽資料變化
+    onMounted(() => {
+      onValue(actionsRef, (snapshot) => {
+        const data = snapshot.val()
+        if (data) {
+          actions.value = Object.values(data) as Action[]
+          console.log(actions.value)
+        }
+      })
+    })
+
+    // 記錄打電話行動
+    const logPhoneCall = (legislator) => {
+      const userName = prompt('請問您的大名或是暱稱?')
+      if (!userName) return
+
+      const message = prompt('請問您的心得感想?(可不填)')
+
+      const now = new Date()
+      push(actionsRef, {
+        datetime: now.toLocaleString('zh-TW'),
+        name: userName,
+        legislator: legislator.name,
+        message: message || '請繼續接力關注此案'
+      })
+    }
+
     return {
+      url,
+      title,
+      description,
       legislators,
       shareToFB,
       shareToTwitter,
-      shareToLine
+      shareToLine,
+      actions,
+      todayActions,
+      logPhoneCall
     }
   }
 }
@@ -263,5 +352,14 @@ h4.ui.header, p {
 
 #line, #line-icon {
   color: white !important;
+}
+
+.ui.feed {
+  margin: 2em 0;
+}
+
+#action-record {
+  max-height: 600px;
+  overflow-y: auto;
 }
 </style>

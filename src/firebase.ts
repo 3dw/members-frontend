@@ -31,3 +31,4 @@ export const projectsRef = ref(database, 'projects');
 export const supervisorsRef = ref(database, 'supervisors');
 export const usersRef = ref(database, 'users');
 export const changelogsRef = ref(database, 'changelogs');
+export const actionsRef = ref(database, 'actions');
