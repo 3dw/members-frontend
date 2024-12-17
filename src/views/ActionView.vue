@@ -89,6 +89,12 @@ main.ui.segment.container
       a(href="https://www.ly.gov.tw/Pages/Detail.aspx?nodeid=55089&pid=243430", target="_blank", rel="noopener noreferrer") 立法院全球資訊網
   .ui.cards
     .card(v-for="legislator in legislators")
+      .ui.progress.green(
+        :data-percent="getCallCount(legislator.name)",
+        :class="{ active: getCallCount(legislator.name) > 0 }"
+      )
+        .bar
+          .progress {{ getCallCount(legislator.name) }}%
       .content
         .header
           i.user.icon
@@ -319,6 +325,15 @@ export default {
       })
     }
 
+    // 計算每位委員被打電話的次數
+    const getCallCount = (legislatorName: string) => {
+      const count = actions.value.filter(action =>
+        action.name !== 'test' &&
+        action.legislator === legislatorName
+      ).length
+      return Math.min(Math.round((count / 100) * 100), 100)
+    }
+
     return {
       url,
       title,
@@ -329,7 +344,8 @@ export default {
       shareToLine,
       actions,
       todayActions,
-      logPhoneCall
+      logPhoneCall,
+      getCallCount,
     }
   }
 }
@@ -370,5 +386,14 @@ h4.ui.header, p {
 #action-record {
   max-height: 600px;
   overflow-y: auto;
+}
+
+.ui.progress {
+  margin: 0;
+  border-radius: 0.28571429rem 0.28571429rem 0 0;
+}
+
+.ui.card .ui.progress:first-child {
+  margin: 0;
 }
 </style>
