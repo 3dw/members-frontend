@@ -8,13 +8,13 @@ main.ui.segment.container
     a(href="https://join.gov.tw/idea/detail/cd1f42dd-f8ce-40f1-b63e-a4be079a0473") 「向下延伸補助國中小自學生，落實不同社經背景家庭參與實驗教育之機會平等」線上連署
     | 並成功得到5354位網友具名連署，通過連署門檻，而實行細則在立法院遲遲未訂，致使目前國中小非學校型態實驗教育家庭仍未得到政府補助。
   p 延伸閱讀：
-    .ui.bulleted.list
-      .item
-        a(href="https://ws.tycg.gov.tw/Download.ashx?u=LzAwMS9VcGxvYWQvNzQvUmVsRmlsZS8xMTk0MS83NjcxNjIvMDkt5qGD5ZyS5biC6KiT57e0LeWFkuerpeasiuWIqeWFrOe0hOWPiuWcsOaWueazleimj%2BaqouimluewoeS7iy5wZGY%3D&n=MDkt5qGD5ZyS5biC6KiT57e0LeWFkuerpeasiuWIqeWFrOe0hOWPiuWcsOaWueazleimj%2BaqouimluewoeS7iy5wZGY%3D", target="_blank", rel="noopener noreferrer") 《聯合國兒童權利公約簡介》
-      .item
-        a(href="https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=H0070059&flno=30", target="_blank", rel="noopener noreferrer") 《高級中等以下教育階段非學校型態實驗教育實施條例》
-      .item
-        a(href="https://www.cy.gov.tw/AP_Home/Op_Upload/eDoc/%E5%87%BA%E7%89%88%E5%93%81/109/1090000191010900991p.pdf", target="_blank", rel="noopener noreferrer") 《我國實驗教育的實施現況與未來發展調查通案性案件調查研究報告》
+  .ui.bulleted.list
+    .item
+      a(href="https://ws.tycg.gov.tw/Download.ashx?u=LzAwMS9VcGxvYWQvNzQvUmVsRmlsZS8xMTk0MS83NjcxNjIvMDkt5qGD5ZyS5biC6KiT57e0LeWFkuerpeasiuWIqeWFrOe0hOWPiuWcsOaWueazleimj%2BaqouimluewoeS7iy5wZGY%3D&n=MDkt5qGD5ZyS5biC6KiT57e0LeWFkuerpeasiuWIqeWFrOe0hOWPiuWcsOaWueazleimj%2BaqouimluewoeS7iy5wZGY%3D", target="_blank", rel="noopener noreferrer") 《聯合國兒童權利公約簡介》
+    .item
+      a(href="https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=H0070059&flno=30", target="_blank", rel="noopener noreferrer") 《高級中等以下教育階段非學校型態實驗教育實施條例》
+    .item
+      a(href="https://www.cy.gov.tw/AP_Home/Op_Upload/eDoc/%E5%87%BA%E7%89%88%E5%93%81/109/1090000191010900991p.pdf", target="_blank", rel="noopener noreferrer") 《我國實驗教育的實施現況與未來發展調查通案性案件調查研究報告》
 
   h2.ui.header
     i.edit.icon
