@@ -1,3 +1,6 @@
+import { ref, onMounted, computed } from 'vue';
+import { actionsRef } from '@/firebase';
+import { push, onValue } from 'firebase/database';
 export default (await import('vue')).defineComponent({
     setup() {
         const url = 'https://www.alearn.org.tw/action';
@@ -104,11 +107,56 @@ export default (await import('vue')).defineComponent({
                 fax: '02-2358-6355'
             }
         ];
+        const actions = ref([]);
+        // 新增 computed property 來計算今日行動
+        const todayActions = computed(() => {
+            const today = new Date();
+            return actions.value.filter(action => {
+                console.log(action.datetime);
+                console.log(action.datetime.split(' ')[0]);
+                const actionDate = new Date(action.datetime.split(' ')[0]);
+                console.log(actionDate);
+                console.log(today);
+                return actionDate.getFullYear() === today.getFullYear() &&
+                    actionDate.getMonth() === today.getMonth() &&
+                    actionDate.getDate() === today.getDate();
+            });
+        });
+        // 監聽資料變化
+        onMounted(() => {
+            onValue(actionsRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    actions.value = Object.values(data);
+                    console.log(actions.value);
+                }
+            });
+        });
+        // 記錄打電話行動
+        const logPhoneCall = (legislator) => {
+            const userName = prompt('請問您的大名或是暱稱?');
+            if (!userName)
+                return;
+            const message = prompt('請問您的心得感想?(可不填)');
+            const now = new Date();
+            push(actionsRef, {
+                datetime: now.toLocaleString('zh-TW'),
+                name: userName,
+                legislator: legislator.name,
+                message: message || '請繼續接力關注此案'
+            });
+        };
         return {
+            url,
+            title,
+            description,
             legislators,
             shareToFB,
             shareToTwitter,
-            shareToLine
+            shareToLine,
+            actions,
+            todayActions,
+            logPhoneCall
         };
     }
 });
@@ -131,6 +179,7 @@ function __VLS_template() {
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['button'];
+    __VLS_styleScopedClasses['ui'];
     // CSS variable injection 
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
