@@ -176,6 +176,7 @@ export default {
       {
         name: '范雲(召集委員)',
         party: '民進黨',
+        email: 'vote4fanyun@gmail.com',
         tel: '02-2358-6056',
         fax: '02-2358-6060'
       },
