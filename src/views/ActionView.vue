@@ -3,6 +3,9 @@ main.ui.segment.container
   .ui.warning.message
     .header 請協助捍衛每個孩子選擇自學的權利
     p 只有補助自學，弱勢家庭的孩子才有足夠的機會參與實驗教育
+    a(href="#legislators")
+      i.phone.icon
+      | 打電話給教育及文化委員會的立法委員
 
   p 背景：2023年，自主學習促進會發起
     a(href="https://join.gov.tw/idea/detail/cd1f42dd-f8ce-40f1-b63e-a4be079a0473") 「向下延伸補助國中小自學生，落實不同社經背景家庭參與實驗教育之機會平等」線上連署
@@ -84,7 +87,7 @@ main.ui.segment.container
   //  i.file.icon
   //  | 參考信件範本
 
-  h2.ui.center.aligned.header 教育及文化委員會-第11屆第2會期委員聯絡資訊
+  h2.ui.center.aligned.header#legislators 教育及文化委員會-第11屆第2會期委員聯絡資訊
     .sub.header 資料來源：
       a(href="https://www.ly.gov.tw/Pages/Detail.aspx?nodeid=55089&pid=243430", target="_blank", rel="noopener noreferrer") 立法院全球資訊網
   .ui.cards
