@@ -5,7 +5,8 @@ main.ui.segment.container
     p 只有補助自學，弱勢家庭的孩子才有足夠的機會參與實驗教育
     a(href="#legislators")
       i.phone.icon
-      | 打電話給教育及文化委員會委員
+      i.mail.icon
+      | 致電與Email給教育及文化委員會委員
 
   p 背景：2023年，自主學習促進會發起
     a(href="https://join.gov.tw/idea/detail/cd1f42dd-f8ce-40f1-b63e-a4be079a0473") 「向下延伸補助國中小自學生，落實不同社經背景家庭參與實驗教育之機會平等」線上連署
@@ -81,16 +82,23 @@ main.ui.segment.container
     li 中華民國教育基本法保障家庭的「教育選擇權」 。
     li 國中小是「義務教育」，自學已是「體制內合法申請」，受到政府審議監督，理當和在校生一樣享有政府補助的教育經費。
     li 只有補助自學，弱勢家庭的孩子才有足夠的機會參與實驗教育。
-  //br
-  // p
-  //  a(href="https://docs.google.com/document/d/162z3-C-D3qWGVuBXZ-nbcgJV4u9sCMMyit_dn_XAKIg/edit?usp=sharing", target="_blank", rel="noopener noreferrer")
-  //  i.file.icon
-  //  | 參考信件範本
-
+  br
+  .ui.two.column.grid
+    .column
+      p
+        a(href="https://docs.google.com/document/d/162z3-C-D3qWGVuBXZ-nbcgJV4u9sCMMyit_dn_XAKIg/edit?usp=sharing", target="_blank", rel="noopener noreferrer")
+          i.file.icon
+          | 參考信件範本
+    .column
+      p
+        a(href="https://docs.google.com/document/d/1Sx_OKbRynNYsUI-ryj7qKiUd1h_z-W9zOins7sIwhQM/edit?usp=sharing", target="_blank", rel="noopener noreferrer")
+          i.file.icon
+          | 參考電話溝通指南
+  br
   h2.ui.center.aligned.header#legislators 教育及文化委員會-第11屆第2會期委員聯絡資訊
     .sub.header 資料來源：
       a(href="https://www.ly.gov.tw/Pages/Detail.aspx?nodeid=55089&pid=243430", target="_blank", rel="noopener noreferrer") 立法院全球資訊網
-  .ui.cards
+  .ui.four.doubling.stackable.cards
     .card(v-for="legislator in legislators")
       .ui.progress.green(
         :data-percent="getCallCount(legislator.name)",
@@ -124,12 +132,20 @@ main.ui.segment.container
 
         .ui.divider
 
-        p 打電話給{{ legislator.name }}委員後，請在下方按鈕留下記錄吧！
+        p 發信或打電話給{{ legislator.name }}委員後，請在下方按鈕留下記錄吧！
 
         .extra.content
-          button.ui.basic.green.button(@click="logPhoneCall(legislator)")
-            i.phone.icon
-            | 我剛打電話給{{ legislator.name }}委員了
+          .ui.vertical.buttons(style="display: flex; margin: 0 auto;")
+            button.ui.basic.blue.button(v-if="legislator.email", @click="logEmail(legislator)")
+              i.mail.icon
+              | 我剛寄信給
+              br
+              | {{ legislator.name }}委員了
+            button.ui.basic.green.button(@click="logPhoneCall(legislator)")
+              i.phone.icon
+              | 我剛打電話給
+              br
+              | {{ legislator.name }}委員了
 
   .ui.segment#action-record
     h2.ui.header
@@ -142,7 +158,10 @@ main.ui.segment.container
     .ui.feed
       .event(v-for="action in actions.filter(action => action.name != 'test')")
         .content
-          .summary {{ action.datetime }}: {{ action.name }} 打了一通電話給 {{ action.legislator }}
+          .summary {{ action.datetime }}: {{ action.name }}
+            span(v-if="action.action === 'phone' || !action.action") 打了一通電話給
+            span(v-else-if="action.action === 'email'") 寄了一封信給
+            | {{ action.legislator }}
           .meta {{ action.message }}
 
 
@@ -322,6 +341,21 @@ export default {
       const now = new Date()
       push(actionsRef, {
         datetime: now.toLocaleString('zh-TW'),
+        action: 'phone',
+        name: userName,
+        legislator: legislator.name,
+        message: message || '請繼續接力關注此案'
+      })
+    }
+
+    const logEmail = (legislator) => {
+      const userName = prompt('請問您的大名或是暱稱?')
+      if (!userName) return
+      const message = prompt('請問您的心得感想?(可不填)')
+      const now = new Date()
+      push(actionsRef, {
+        datetime: now.toLocaleString('zh-TW'),
+        action: 'email',
         name: userName,
         legislator: legislator.name,
         message: message || '請繼續接力關注此案'
