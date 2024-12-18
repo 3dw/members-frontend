@@ -156,12 +156,13 @@ main.ui.segment.container
     .ui.warning.message(v-else-if="todayActions.filter(action => action.name != 'test').length === 0")
       | 今天還沒有任何行動記錄，成為今天第一個行動的人吧！
     .ui.feed
-      .event(v-for="action in actions.filter(action => action.name != 'test')")
+      .event(v-for="action in actions.filter(action => action.name != 'test').slice(0, 10).reverse()")
         .content
           .summary {{ action.datetime }}: {{ action.name }}
             span(v-if="action.action === 'phone' || !action.action") 打了一通電話給
             span(v-else-if="action.action === 'email'") 寄了一封信給
             | {{ action.legislator }}
+            | 委員
           .meta {{ action.message }}
 
 
