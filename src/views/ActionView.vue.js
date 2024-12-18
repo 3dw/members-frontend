@@ -142,6 +142,21 @@ export default (await import('vue')).defineComponent({
             const now = new Date();
             push(actionsRef, {
                 datetime: now.toLocaleString('zh-TW'),
+                action: 'phone',
+                name: userName,
+                legislator: legislator.name,
+                message: message || '請繼續接力關注此案'
+            });
+        };
+        const logEmail = (legislator) => {
+            const userName = prompt('請問您的大名或是暱稱?');
+            if (!userName)
+                return;
+            const message = prompt('請問您的心得感想?(可不填)');
+            const now = new Date();
+            push(actionsRef, {
+                datetime: now.toLocaleString('zh-TW'),
+                action: 'email',
                 name: userName,
                 legislator: legislator.name,
                 message: message || '請繼續接力關注此案'
