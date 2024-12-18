@@ -182,6 +182,7 @@ export default (await import('vue')).defineComponent({
             actions,
             todayActions,
             logPhoneCall,
+            logEmail,
             getCallCount,
         };
     }
