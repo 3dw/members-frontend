@@ -385,6 +385,7 @@ export default {
       actions,
       todayActions,
       logPhoneCall,
+      logEmail,
       getCallCount,
     }
   }
