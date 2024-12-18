@@ -132,7 +132,10 @@ main.ui.segment.container
 
         .ui.divider
 
-        p 發信或打電話給{{ legislator.name }}委員後，請在下方按鈕留下記錄吧！
+        p
+          span(v-if="legislator.email") 發信或
+          span 打電話給
+          | {{ legislator.name }}委員後，請在下方按鈕留下記錄吧！
 
         .extra.content
           .ui.vertical.buttons(style="display: flex; margin: 0 auto;")
