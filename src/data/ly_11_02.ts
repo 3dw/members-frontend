@@ -10,7 +10,8 @@ export const legislators = [
     name: '萬美玲(召集委員)',
     party: '國民黨',
     tel: '02-2358-6156',
-    fax: '02-2358-6160'
+    fax: '02-2358-6160',
+    email: 'idea.power@msa.hinet.net'
   },
   {
     name: '吳沛憶',
