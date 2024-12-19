@@ -7,6 +7,10 @@
   font-weight: normal;
 }
 
+.no-border {
+   border: none;
+}
+
 .flex {
   display: flex;
 }

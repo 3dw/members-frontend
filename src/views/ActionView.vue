@@ -115,6 +115,16 @@ main.ui.segment.container
   h2.ui.center.aligned.header#legislators 教育及文化委員會-第11屆第2會期委員聯絡資訊
     .sub.header 資料來源：
       a(href="https://www.ly.gov.tw/Pages/Detail.aspx?nodeid=55089&pid=243430", target="_blank", rel="noopener noreferrer") 立法院全球資訊網
+      | 及各委員臉書
+      button.ui.basic.green.button(@click="showDetails = true", v-if="!showDetails")
+        | 展開
+        i.arrow.down.icon
+      button.ui.basic.green.button(@click="showDetails = false", v-else)
+        | 收合
+        i.arrow.up.icon
+      .ui.bulleted.list(v-show="showDetails")
+        .ui.item(v-for="legislator in legislators")
+          a(v-if="legislator.facebook", href="legislator.facebook", target="_blank", rel="noopener noreferrer" ) {{legislator.name}} 臉書
   .ui.four.doubling.stackable.cards
     .card(v-for="legislator in legislators")
       .ui.progress.green(
@@ -134,7 +144,6 @@ main.ui.segment.container
               i.phone.icon
               .content
                 a(:href="'tel:' + legislator.tel") {{ legislator.tel }}
-            .item(v-if="legislator.fax")
             .item(v-if="legislator.mobile")
               i.phone.icon
               .content
@@ -146,6 +155,10 @@ main.ui.segment.container
               i.mail.icon
               .content
                 a(:href="'mailto:' + legislator.email") {{ legislator.email }}
+            .item(v-if="legislator.facebook")
+              i.facebook.icon
+              .content
+                a(href="legislator.facebook", target="_blank", rel="noopener noreferrer" ) {{legislator.name}}臉書
 
         .ui.divider
 
@@ -217,6 +230,7 @@ export default {
     const url = 'https://www.alearn.org.tw/action'
     const title = '請協助捍衛每個孩子選擇自學的權利'
     const description = '只有補助自學，弱勢家庭的孩子才有足夠的機會參與實驗教育'
+    
 
     const shareToFB = () => {
       window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`)
@@ -233,6 +247,8 @@ export default {
 
 
     const actions = ref<Action[]>([])
+
+    const showDetails = ref(false)
 
     // 新增 computed property 來計算今日行動
     const todayActions = computed(() => {
@@ -341,6 +357,7 @@ export default {
       title,
       description,
       legislators,
+      showDetails,
       shareToFB,
       shareToTwitter,
       shareToLine,

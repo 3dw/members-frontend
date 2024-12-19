@@ -4,35 +4,37 @@ export const legislators = [
     party: '民進黨',
     email: 'vote4fanyun@gmail.com',
     tel: '02-2358-6056',
-    fax: '02-2358-6060'
+    fax: '02-2358-6060',
+    facebook: 'https://www.facebook.com/daan4fanyun'
   },
   {
     name: '萬美玲(召集委員)',
     party: '國民黨',
     tel: '02-2358-6156',
     fax: '02-2358-6160',
-    email: 'idea.power@msa.hinet.net'
+    email: 'idea.power@msa.hinet.net',
+    facebook: 'https://www.facebook.com/wanmeiling.tw'
   },
   {
     name: '吳沛憶',
     party: '民進黨',
     tel: '02-2358-6166',
     fax: '02-2358-6170',
-    //email: 'tbslyc@gmail.com'
+    facebook: 'https://www.facebook.com/Pay1Pay1'
   },
   {
     name: '吳春城',
     party: '台灣民眾黨',
     tel: '02-2358-8116',
     fax: '02-2358-8120',
-    email: 'askme@brain.com.tw'
+    facebook: 'https://www.facebook.com/profile.php?id=61552302703348',
+    email: 'strong.generation101@gmail.com'
   },
   {
     name: '林宜瑾',
     party: '民進黨',
     tel: '02-2358-8316',
     fax: '02-2358-8320',
-    // email: 'tbslyc@gmail.com'
   },
   {
     name: '林倩綺',
