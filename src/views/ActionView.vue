@@ -8,6 +8,13 @@ main.ui.segment.container
       i.mail.icon
       | 致電與Email給教育及文化委員會委員
 
+  .ui.warning.message(v-if="todayActions.filter(action => action.name != 'test').length === 0")
+    | 今天還沒有任何行動記錄，成為今天第一個行動的人吧！
+    a(href="#legislators")
+      i.phone.icon
+      i.mail.icon
+      | 立即致電或Email
+
   p 背景：2023年，自主學習促進會發起
     a(href="https://join.gov.tw/idea/detail/cd1f42dd-f8ce-40f1-b63e-a4be079a0473") 「向下延伸補助國中小自學生，落實不同社經背景家庭參與實驗教育之機會平等」線上連署
     | 並成功得到5354位網友具名連署，通過連署門檻，而實行細則在立法院遲遲未訂，致使目前國中小非學校型態實驗教育家庭仍未得到政府補助。
