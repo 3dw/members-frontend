@@ -76,6 +76,35 @@ export default (await import('vue')).defineComponent({
                 action.legislator === legislatorName).length;
             return Math.min(Math.round((count / 100) * 100), 100);
         };
+        // 新增每週統計
+        const weeklyStats = computed(() => {
+            const stats = {};
+            const today = new Date();
+            // 初始化過去7天的數據
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                stats[date.toISOString().split('T')[0]] = 0;
+            }
+            // 統計行動數據
+            actions.value.forEach(action => {
+                if (action.name === 'test')
+                    return;
+                // 解析 "2024/12/19 下午9:39:21" 格式的日期
+                const [datePart] = action.datetime.split(' ');
+                const [year, month, day] = datePart.split('/');
+                const actionDateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                if (stats[actionDateStr] !== undefined) {
+                    stats[actionDateStr]++;
+                }
+            });
+            return stats;
+        });
+        // 格式化日期顯示
+        const formatDate = (dateStr) => {
+            const date = new Date(dateStr);
+            return `${date.getMonth() + 1}/${date.getDate()}`;
+        };
         return {
             url,
             title,
@@ -89,6 +118,8 @@ export default (await import('vue')).defineComponent({
             logPhoneCall,
             logEmail,
             getCallCount,
+            weeklyStats,
+            formatDate,
         };
     }
 });
@@ -117,6 +148,10 @@ function __VLS_template() {
     __VLS_styleScopedClasses['card'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['progress'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['tiny'];
+    __VLS_styleScopedClasses['statistics'];
     // CSS variable injection 
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
