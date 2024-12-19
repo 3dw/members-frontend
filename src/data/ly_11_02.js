@@ -17,7 +17,7 @@ export const legislators = [
         party: '民進黨',
         tel: '02-2358-6166',
         fax: '02-2358-6170',
-        email: 'tbslyc@gmail.com'
+        // email: 'tbslyc@gmail.com'
     },
     {
         name: '吳春城',
@@ -31,7 +31,7 @@ export const legislators = [
         party: '民進黨',
         tel: '02-2358-8316',
         fax: '02-2358-8320',
-        email: 'tbslyc@gmail.com'
+        // email: 'tbslyc@gmail.com'
     },
     {
         name: '林倩綺',
