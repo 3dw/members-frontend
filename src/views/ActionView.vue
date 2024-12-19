@@ -8,6 +8,16 @@ main.ui.segment.container
       i.mail.icon
       | 致電與Email給教育及文化委員會委員
 
+  .ui.success.message
+    .header 過去7天行動統計
+    .ui.tiny.statistics
+      .statistic(v-for="(count, date) in weeklyStats")
+        .value {{ count }}
+        .label {{ formatDate(date) }}
+    a(href="#action-record")
+      | 查看行動記錄
+      i.arrow.down.icon
+
   .ui.warning.message(v-if="todayActions.filter(action => action.name != 'test').length === 0")
     | 今天還沒有任何行動記錄，成為今天第一個行動的人吧！
     a(href="#legislators")
@@ -291,6 +301,41 @@ export default {
       return Math.min(Math.round((count / 100) * 100), 100)
     }
 
+    // 新增每週統計
+    const weeklyStats = computed(() => {
+      const stats = {}
+      const today = new Date()
+
+      // 初始化過去7天的數據
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(today)
+        date.setDate(date.getDate() - i)
+        stats[date.toISOString().split('T')[0]] = 0
+      }
+
+      // 統計行動數據
+      actions.value.forEach(action => {
+        if (action.name === 'test') return
+
+        // 解析 "2024/12/19 下午9:39:21" 格式的日期
+        const [datePart] = action.datetime.split(' ')
+        const [year, month, day] = datePart.split('/')
+        const actionDateStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+
+        if (stats[actionDateStr] !== undefined) {
+          stats[actionDateStr]++
+        }
+      })
+
+      return stats
+    })
+
+    // 格式化日期顯示
+    const formatDate = (dateStr: string) => {
+      const date = new Date(dateStr)
+      return `${date.getMonth() + 1}/${date.getDate()}`
+    }
+
     return {
       url,
       title,
@@ -304,6 +349,8 @@ export default {
       logPhoneCall,
       logEmail,
       getCallCount,
+      weeklyStats,
+      formatDate,
     }
   }
 }
@@ -353,5 +400,16 @@ h4.ui.header, p {
 
 .ui.card .ui.progress:first-child {
   margin: 0;
+}
+
+.ui.tiny.statistics {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin: 1em 0;
+}
+
+.ui.tiny.statistics .statistic {
+  margin: 0.5em !important;
 }
 </style>
