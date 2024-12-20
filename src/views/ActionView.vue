@@ -129,7 +129,7 @@ main.ui.segment.container
         i.arrow.up.icon
       .ui.bulleted.list(v-show="showDetails")
         .ui.item(v-for="legislator in legislators")
-          a(v-if="legislator.facebook", href="legislator.facebook", target="_blank", rel="noopener noreferrer" ) {{legislator.name}} 臉書
+          a(v-if="legislator.facebook", :href="legislator.facebook", target="_blank", rel="noopener noreferrer" ) {{legislator.name}} 臉書
   .ui.four.doubling.stackable.cards
     .card(v-for="legislator in legislators")
       .ui.progress.green(
@@ -163,7 +163,7 @@ main.ui.segment.container
             .item(v-if="legislator.facebook")
               i.facebook.icon
               .content
-                a(href="legislator.facebook", target="_blank", rel="noopener noreferrer" ) {{legislator.name}}臉書
+                a(:href="legislator.facebook", target="_blank", rel="noopener noreferrer" ) {{legislator.name}}臉書
 
         .ui.divider
 
