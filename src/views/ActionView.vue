@@ -100,16 +100,21 @@ main.ui.segment.container
     li 國中小是「義務教育」，自學已是「體制內合法申請」，受到政府審議監督，理當和在校生一樣享有政府補助的教育經費。
     li 只有補助自學，弱勢家庭的孩子才有足夠的機會參與實驗教育。
   br
-  .ui.two.column.grid
+  .ui.three.column.grid
+    .column
+      p
+        a(href="https://docs.google.com/document/d/11VLONUCj3kJ6S9poD9LrSZL4Oqe7_nO1RzoS9oOhYcc/edit?tab=t.0", target="_blank", rel="noopener noreferrer")
+          i.facebook.icon
+          | 參考臉書私訊範本
     .column
       p
         a(href="https://docs.google.com/document/d/162z3-C-D3qWGVuBXZ-nbcgJV4u9sCMMyit_dn_XAKIg/edit?usp=sharing", target="_blank", rel="noopener noreferrer")
-          i.file.icon
+          i.mail.icon
           | 參考信件範本
     .column
       p
         a(href="https://docs.google.com/document/d/1Sx_OKbRynNYsUI-ryj7qKiUd1h_z-W9zOins7sIwhQM/edit?usp=sharing", target="_blank", rel="noopener noreferrer")
-          i.file.icon
+          i.phone.icon
           | 參考電話溝通指南
   br
   h2.ui.center.aligned.header#legislators 教育及文化委員會-第11屆第2會期委員聯絡資訊
