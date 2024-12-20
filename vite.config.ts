@@ -86,12 +86,15 @@ export default defineConfig({
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/members-backend\.alearn13994229\.workers\.dev\/api\./i,
-            handler: 'NetworkFirst',
+            handler: 'StaleWhileRevalidate',
             options: {
               cacheName: 'api-cache',
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
               }
             }
           }
