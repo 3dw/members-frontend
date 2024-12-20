@@ -205,6 +205,7 @@ main.ui.segment.container
           .summary {{ action.datetime }}: {{ action.name }}
             span(v-if="action.action === 'phone' || !action.action") 打了一通電話給
             span(v-else-if="action.action === 'email'") 寄了一封信給
+            span(v-else-if="action.action === 'facebook'") 在臉書上發了一則訊息給
             | {{ action.legislator }}
             | 委員
           .meta {{ action.message }}
