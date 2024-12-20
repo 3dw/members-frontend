@@ -17,6 +17,7 @@ export default (await import('vue')).defineComponent({
             window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`);
         };
         const actions = ref([]);
+        const showDetails = ref(false);
         // 新增 computed property 來計算今日行動
         const todayActions = computed(() => {
             const today = new Date();
@@ -70,6 +71,20 @@ export default (await import('vue')).defineComponent({
                 message: message || '請繼續接力關注此案'
             });
         };
+        const logFacebook = (legislator) => {
+            const userName = prompt('請問您的大名或是暱稱?');
+            if (!userName)
+                return;
+            const message = prompt('請問您的心得感想?(可不填)');
+            const now = new Date();
+            push(actionsRef, {
+                datetime: now.toLocaleString('zh-TW'),
+                action: 'facebook',
+                name: userName,
+                legislator: legislator.name,
+                message: message || '請繼續接力關注此案'
+            });
+        };
         // 計算每位委員被打電話的次數
         const getCallCount = (legislatorName) => {
             const count = actions.value.filter(action => action.name !== 'test' &&
@@ -110,6 +125,7 @@ export default (await import('vue')).defineComponent({
             title,
             description,
             legislators,
+            showDetails,
             shareToFB,
             shareToTwitter,
             shareToLine,
@@ -117,6 +133,7 @@ export default (await import('vue')).defineComponent({
             todayActions,
             logPhoneCall,
             logEmail,
+            logFacebook,
             getCallCount,
             weeklyStats,
             formatDate,
