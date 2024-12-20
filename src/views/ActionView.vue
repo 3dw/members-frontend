@@ -6,6 +6,7 @@ main.ui.segment.container
     a(href="#legislators")
       i.phone.icon
       i.mail.icon
+      i.facebook.icon
       | 致電,Email,Facebook給教育及文化委員會委員
 
   .ui.success.message
@@ -23,6 +24,7 @@ main.ui.segment.container
     a(href="#legislators")
       i.phone.icon
       i.mail.icon
+      i.facebook.icon
       | 立即致電,Email,Facebook給委員
 
   p 背景：2023年，自主學習促進會發起
