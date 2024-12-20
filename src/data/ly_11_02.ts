@@ -35,65 +35,80 @@ export const legislators = [
     party: '民進黨',
     tel: '02-2358-8316',
     fax: '02-2358-8320',
+    facebook: 'https://www.facebook.com/ichin0825'
   },
   {
     name: '林倩綺',
     party: '國民黨',
     tel: '02-2358-6377',
-    fax: '02-2358-6380'
+    fax: '02-2358-6380',
+    facebook: 'https://www.facebook.com/cclinchienchi'
   },
   {
     name: '柯志恩',
     party: '國民黨',
     tel: '02-2358-6876',
-    fax: '02-2358-6880'
+    fax: '02-2358-6880',
+    email: 'ly11176a@ly.gov.tw',
+    facebook: 'https://www.facebook.com/@KoChihEn'
   },
   {
     name: '洪孟楷',
     party: '國民黨',
     tel: '02-2358-6811',
-    fax: '02-2358-6815'
+    fax: '02-2358-6815',
+    facebook: 'https://www.facebook.com/MongKaiHUNG'
   },
   {
     name: '張雅琳',
     party: '民進黨',
     tel: '02-2358-8111',
-    fax: '02-2358-8115'
+    fax: '02-2358-8115',
+    facebook: 'https://www.facebook.com/profile.php?id=61554365875345'
   },
   {
     name: '郭昱晴',
     party: '民進黨',
     tel: '02-2358-6686',
-    fax: '02-2358-6690'
+    fax: '02-2358-6690',
+    email: 'kuoyuching0505@gmail.com',
+    facebook: 'https://www.facebook.com/jeankuo329'
   },
   {
     name: '陳秀寳',
     party: '民進黨',
     tel: '02-2358-6881',
-    fax: '02-2358-6140'
+    fax: '02-2358-6140',
+    email: 'candywin9@gmail.com',
+    facebook: 'https://www.facebook.com/showpowerchen'
   },
   {
     name: '陳培瑜',
     party: '民進黨',
     tel: '02-2358-8221',
-    fax: '02-2358-8225'
+    fax: '02-2358-8225',
+    facebook: 'https://www.facebook.com/peiyu901'
   },
   {
     name: '葉元之',
     party: '國民黨',
     tel: '02-2358-6766',
-    fax: '02-2358-6905'
+    fax: '02-2358-6905',
+    facebook: 'https://www.facebook.com/yeh.seafood'
   },
   {
     name: '葛如鈞',
     party: '國民黨',
     tel: '02-2358-6126',
-    fax: '02-2358-6130'
+    fax: '02-2358-6130',
+    facebook: 'https://www.facebook.com/@Dr.JuChunKO'
   },
   {
     name: '羅廷瑋',
     party: '國民黨',
     tel: '02-2358-6116',
-    fax: '02-2358-6355'
+    fax: '02-2358-6355',
+    email: 'a22602727@gmail.com',
+    facebook: 'https://www.facebook.com/taichunglolo'
   }
 ]

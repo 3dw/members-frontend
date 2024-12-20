@@ -6,7 +6,7 @@ main.ui.segment.container
     a(href="#legislators")
       i.phone.icon
       i.mail.icon
-      | 致電與Email給教育及文化委員會委員
+      | 致電,Email,Facebook給教育及文化委員會委員
 
   .ui.success.message
     .header 過去7天行動統計
@@ -23,7 +23,7 @@ main.ui.segment.container
     a(href="#legislators")
       i.phone.icon
       i.mail.icon
-      | 立即致電或Email
+      | 立即致電,Email,Facebook給委員
 
   p 背景：2023年，自主學習促進會發起
     a(href="https://join.gov.tw/idea/detail/cd1f42dd-f8ce-40f1-b63e-a4be079a0473") 「向下延伸補助國中小自學生，落實不同社經背景家庭參與實驗教育之機會平等」線上連署
@@ -169,12 +169,18 @@ main.ui.segment.container
 
         .extra.content
           .ui.vertical.buttons(style="display: flex; margin: 0 auto;")
-            button.ui.basic.blue.button(v-if="legislator.email", @click="logEmail(legislator)")
+            button.ui.basic.blue.button(v-if="legislator.facebook", @click="logFacebook(legislator)")
+              i.facebook.icon
+              | 我剛在臉書上發訊息給
+              br
+              | {{ legislator.name }}委員了
+
+            button.ui.basic.green.button(v-if="legislator.email", @click="logEmail(legislator)")
               i.mail.icon
               | 我剛寄信給
               br
               | {{ legislator.name }}委員了
-            button.ui.basic.green.button(@click="logPhoneCall(legislator)")
+            button.ui.basic.orange.button(@click="logPhoneCall(legislator)")
               i.phone.icon
               | 我剛打電話給
               br
@@ -230,7 +236,7 @@ export default {
     const url = 'https://www.alearn.org.tw/action'
     const title = '請協助捍衛每個孩子選擇自學的權利'
     const description = '只有補助自學，弱勢家庭的孩子才有足夠的機會參與實驗教育'
-    
+
 
     const shareToFB = () => {
       window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`)
@@ -308,6 +314,20 @@ export default {
       })
     }
 
+    const logFacebook = (legislator) => {
+      const userName = prompt('請問您的大名或是暱稱?')
+      if (!userName) return
+      const message = prompt('請問您的心得感想?(可不填)')
+      const now = new Date()
+      push(actionsRef, {
+        datetime: now.toLocaleString('zh-TW'),
+        action: 'facebook',
+        name: userName,
+        legislator: legislator.name,
+        message: message || '請繼續接力關注此案'
+      })
+    }
+
     // 計算每位委員被打電話的次數
     const getCallCount = (legislatorName: string) => {
       const count = actions.value.filter(action =>
@@ -365,6 +385,7 @@ export default {
       todayActions,
       logPhoneCall,
       logEmail,
+      logFacebook,
       getCallCount,
       weeklyStats,
       formatDate,
