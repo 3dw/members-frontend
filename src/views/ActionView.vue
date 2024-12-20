@@ -171,27 +171,17 @@ main.ui.segment.container
 
         p
           span(v-if="legislator.email") 發信或
-          span 打電話給
-          | {{ legislator.name }}委員後，請在下方按鈕留下記錄吧！
+          span(v-if="legislator.facebook") 在發訊息或
+          span 打電話後，請在下方按鈕留下記錄吧！
 
         .extra.content
           .ui.vertical.buttons(style="display: flex; margin: 0 auto;")
-            button.ui.basic.blue.button(v-if="legislator.facebook", @click="logFacebook(legislator)")
-              i.facebook.icon
-              | 我剛在臉書上發訊息給
-              br
-              | {{ legislator.name }}委員了
 
-            button.ui.basic.green.button(v-if="legislator.email", @click="logEmail(legislator)")
-              i.mail.icon
-              | 我剛寄信給
+            a.ui.basic.green.button(href="#action-record-form", @click="myLegislator = legislator.name")
+              i.user.icon
+              | 我剛聯給了
               br
-              | {{ legislator.name }}委員了
-            button.ui.basic.orange.button(@click="logPhoneCall(legislator)")
-              i.phone.icon
-              | 我剛打電話給
-              br
-              | {{ legislator.name }}委員了
+              | {{ legislator.name }}委員
 
   .ui.segment#action-record
     h2.ui.header
@@ -201,6 +191,33 @@ main.ui.segment.container
       | 目前還沒有任何行動記錄，成為第一個行動的人吧！
     .ui.warning.message(v-else-if="todayActions.filter(action => action.name != 'test').length === 0")
       | 今天還沒有任何行動記錄，成為今天第一個行動的人吧！
+
+    .ui.form#action-record-form
+      br
+      br
+      .ui.field
+        .red.star
+        label 請問您聯絡了哪一位委員
+        select.ui.dropdown(v-model="myLegislator")
+            option(v-for="legislator in legislators" :value="legislator.name") {{ legislator.name }}
+      .ui.two.stackable.fields
+        .ui.field
+          .red.star
+          label 請問您的大名或是暱稱?
+          input(type="text", v-model="userName")
+        .ui.field
+          .red.star
+          label 您聯絡的方式
+          select.ui.dropdown(v-model="method")
+            option(v-for="method in methods" :value="method") {{ method }}
+      .ui.field
+        label 請問您的心得感想?(可不填)
+        textarea(v-model="message", rows="3", placeholder="請在此輸入您的心得感想")
+      .ui.buttons
+        button.ui.primary.button(@click="logAction")
+          i.save.icon
+          | 記錄行動
+
     .ui.feed
       .event(v-for="action in actions.filter(action => action.name != 'test').slice(0, 10).reverse()")
         .content
@@ -285,7 +302,11 @@ export default {
       window.open(`https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}`)
     }
 
-
+    const methods = ['電話', 'Email', 'Facebook']
+    const userName = ref('')
+    const myLegislator = ref('')
+    const method = ref('Facebook')
+    const message = ref('')
 
     const actions = ref<Action[]>([])
 
@@ -317,6 +338,43 @@ export default {
         }
       })
     })
+
+    // 記錄行動
+    const logAction = () => {
+      console.log(myLegislator.value)
+      console.log(userName.value)
+      console.log(method.value)
+      console.log(message.value)
+      if (!myLegislator.value || !userName.value || !method.value) {
+        window.alert('請填寫完整表單')
+        return
+      }
+      const now = new Date()
+
+      // 將方法轉換為小寫
+      let myMethod;
+      if (method.value === '電話') {
+        myMethod = 'phone'
+      } else if (method.value === 'Email') {
+        myMethod = 'email'
+      } else if (method.value === 'Facebook') {
+        myMethod = 'facebook'
+      }
+
+      push(actionsRef, {
+        datetime: now.toLocaleString('zh-TW'),
+        name: userName.value,
+        legislator: myLegislator.value,
+        action: myMethod,
+        message: message.value || '請繼續接力關注此案'
+      }).then(() => {
+        window.alert('行動記錄已成功保存')
+      }).catch((error) => {
+        window.alert('行動記錄保存失敗: ' + error.message)
+      })
+
+      return
+    }
 
     // 記錄打電話行動
     const logPhoneCall = (legislator) => {
@@ -449,6 +507,11 @@ export default {
     }
 
     return {
+      userName,
+      myLegislator,
+      method,
+      methods,
+      message,
       url,
       title,
       description,
@@ -459,6 +522,7 @@ export default {
       shareToLine,
       actions,
       todayActions,
+      logAction,
       logPhoneCall,
       logEmail,
       logFacebook,
@@ -541,5 +605,17 @@ h4.ui.header, p {
 
 .ui.success.message {
   margin-top: 1em;
+}
+
+.red.star {
+  display: inline-block;
+  position: relative;
+  top: 1em;
+  left: -.5em;
+  color: red;
+}
+
+.red.star::after {
+  content: ' *';
 }
 </style>
