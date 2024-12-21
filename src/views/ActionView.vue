@@ -217,6 +217,9 @@ main.ui.segment.container
         button.ui.primary.button(@click="logAction")
           i.save.icon
           | 記錄行動
+        button.ui.basic.purple.button(@click="downloadAction")
+          i.download.icon
+          | 下載行動記錄
 
     .ui.feed
       .event(v-for="action in actions.filter(action => action.name != 'test').reverse()")
@@ -376,51 +379,6 @@ export default {
       return
     }
 
-    // 記錄打電話行動
-    const logPhoneCall = (legislator) => {
-      const userName = prompt('請問您的大名或是暱稱?')
-      if (!userName) return
-
-      const message = prompt('請問您的心得感想?(可不填)')
-
-      const now = new Date()
-      push(actionsRef, {
-        datetime: now.toLocaleString('zh-TW'),
-        action: 'phone',
-        name: userName,
-        legislator: legislator.name,
-        message: message || '請繼續接力關注此案'
-      })
-    }
-
-    const logEmail = (legislator) => {
-      const userName = prompt('請問您的大名或是暱稱?')
-      if (!userName) return
-      const message = prompt('請問您的心得感想?(可不填)')
-      const now = new Date()
-      push(actionsRef, {
-        datetime: now.toLocaleString('zh-TW'),
-        action: 'email',
-        name: userName,
-        legislator: legislator.name,
-        message: message || '請繼續接力關注此案'
-      })
-    }
-
-    const logFacebook = (legislator) => {
-      const userName = prompt('請問您的大名或是暱稱?')
-      if (!userName) return
-      const message = prompt('請問您的心得感想?(可不填)')
-      const now = new Date()
-      push(actionsRef, {
-        datetime: now.toLocaleString('zh-TW'),
-        action: 'facebook',
-        name: userName,
-        legislator: legislator.name,
-        message: message || '請繼續接力關注此案'
-      })
-    }
-
     // 計算每位委員被打電話的次數
     const getCallCount = (legislatorName: string) => {
       const count = actions.value.filter(action =>
@@ -480,6 +438,21 @@ export default {
       }
     }
 
+    // 下載行動記錄, 以JSON格式
+    const downloadAction = () => {
+      // 排版一下，至少要有換行
+      let jsonString = JSON.stringify(actions.value)
+        .replace(/,/g, '\n,')
+        .replace(/\}\s+,/g, '},')
+        .replace(/,\{/g, ',\n{');
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'action_record.json';
+      a.click();
+    }
+
     const toggleMessageTemplate = (templateType: string) => {
       switch(templateType) {
         case 'facebook':
@@ -495,15 +468,7 @@ export default {
     }
 
     const resetMessage = () => {
-      messageTemplate1.value = `親愛的委員您好,
-
-我是關心教育的公民。想請您關注「向下延伸補助國中小自學生」實行細則的擬定進展。
-
-依據教育基本法,家庭擁有教育選擇權。自學已是體制內合法的教育方式,理應和在校生一樣享有政府補助。
-
-只有補助自學,弱勢家庭的孩子才有足夠的機會參與實驗教育。懇請您支持這項攸關教育平等的法案。
-
-謝謝您的關注。`
+      messageTemplate1.value = messageTemplate
     }
 
     return {
@@ -523,9 +488,6 @@ export default {
       actions,
       todayActions,
       logAction,
-      logPhoneCall,
-      logEmail,
-      logFacebook,
       getCallCount,
       weeklyStats,
       formatDate,
@@ -535,7 +497,8 @@ export default {
       messagePhoneTemplate1, // 訊息範本
       copyMessage,
       resetMessage,
-      toggleMessageTemplate
+      toggleMessageTemplate,
+      downloadAction
     }
   }
 }
@@ -558,6 +521,11 @@ h4.ui.header, p {
 
 .ui.button {
   margin: 0.5em;
+}
+
+.ui.buttons .ui.button {
+  margin-left: 0;
+  margin-right: 0;
 }
 
 .ui.line.button {
