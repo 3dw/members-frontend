@@ -219,7 +219,7 @@ main.ui.segment.container
           | 記錄行動
 
     .ui.feed
-      .event(v-for="action in actions.filter(action => action.name != 'test').slice(0, 10).reverse()")
+      .event(v-for="action in actions.filter(action => action.name != 'test').reverse()")
         .content
           .summary {{ action.datetime }}: {{ action.name }}
             span(v-if="action.action === 'phone' || !action.action") 打了一通電話給
