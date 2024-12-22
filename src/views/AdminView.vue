@@ -298,6 +298,12 @@ export default {
         fullname: this.newName,
         role: this.newRole,
         email: this.newEmail,
+      }).then(() => {
+        window.alert('更新成功');
+        this.editMode = false;
+      }).catch(error => {
+        console.error('更新失敗', error);
+        window.alert('更新失敗');
       });
     },
     deleteSupervisor(supervisor: Supervisor) {
