@@ -63,6 +63,9 @@ header
   RouterLink.item(to='/doc', name="doc")
     i.book.icon
     | 本會章程
+  RouterLink.item(to='/yearly_report', name="doc")
+    i.file.icon
+    | 年度工作報告
   RouterLink.item(to='/join-us', name="join-us")
     i.user.icon
     | 入會申請
