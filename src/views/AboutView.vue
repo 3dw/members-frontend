@@ -48,6 +48,12 @@
         h3 跨社群連結的促進會(2019-)
         p 108課綱後，加上COVID-19的影響，線上教育及跨社群連結蓬勃發展。本會持續與其他單位合作、培育新血師資、建立網路平台、推動修法爭取自學生的合理補助。
 
+        .ui.divider
+
+        router-link(to="/history")
+          i.history.icon
+          | 自學修法及本會歷史
+
     h1.ui.header 理監事名單
     .ui.two.stackable.cards(v-if="supervisors.length")
       .card(v-for="supervisor in supervisors" :key="supervisor.email")

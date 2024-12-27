@@ -72,6 +72,9 @@ header
   RouterLink.item(to='/doc', name="doc")
     i.book.icon
     | 本會章程
+  RouterLink.item(to='/history', name="history")
+    i.history.icon
+    | 自學修法及本會歷史
   RouterLink.item(to='/join-us', name="join-us")
     i.user.icon
     | 入會申請
