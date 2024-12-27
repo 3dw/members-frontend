@@ -7,8 +7,7 @@ header
       i.home.icon
     RouterLink.item(to="/about")
       i.info.icon
-      | 關於
-      span.fat-only 我們
+      span.fat-only 關於我們
     // RouterLink.item(to="/doc")
       i.book.icon
       span.fat-only 本會
@@ -17,6 +16,10 @@ header
       i.vedio.play.icon
       | 影音
       span.fat-only 短講
+    RouterLink.item(to="/books")
+      i.book.icon
+      span.fat-only 本會
+      | 出版品
     RouterLink.item(to="/faq")
       i.help.icon
       span.fat-only 常見
@@ -57,15 +60,18 @@ header
   RouterLink.item(to='/podcast', name="podcast")
     i.vedio.play.icon
     | 影音短講
+  RouterLink.item(to='/books', name="books")
+    i.book.icon
+    | 本會出版品
   RouterLink.item(to='/action', name="action")
     i.users.icon
     | 修法行動
-  RouterLink.item(to='/doc', name="doc")
-    i.book.icon
-    | 本會章程
   RouterLink.item(to='/yearly_report', name="doc")
     i.file.icon
     | 年度工作報告
+  RouterLink.item(to='/doc', name="doc")
+    i.book.icon
+    | 本會章程
   RouterLink.item(to='/join-us', name="join-us")
     i.user.icon
     | 入會申請

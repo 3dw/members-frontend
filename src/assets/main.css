@@ -108,6 +108,10 @@ p, .ui.list .item, li {
   padding: 1rem !important;
 }
 
+.no-margin {
+  margin: 0 !important;
+}
+
 .fluid {
   width: 100%;
 }
