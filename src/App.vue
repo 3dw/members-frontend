@@ -18,17 +18,19 @@ header
       span.fat-only 短講
     RouterLink.item(to="/books")
       i.book.icon
-      span.fat-only 本會
       | 出版品
     RouterLink.item(to="/faq")
       i.help.icon
       span.fat-only 常見
       | 問題
+    RouterLink.item(v-if="!uid", to="/history")
+      i.history.icon
+      | 歷史
     RouterLink.item(v-if="uid",to="/create_faq")
       i.plus.icon
       | 新增
       span.fat-only 問答
-    RouterLink.item.fat-only(v-if="uid", to="/feedback")
+    //RouterLink.item.fat-only(v-if="uid", to="/feedback")
       i.magic.icon
       | 回饋
     .right.menu
