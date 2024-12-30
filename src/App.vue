@@ -132,9 +132,9 @@ import { getAuth, EmailAuthProvider,
     browserLocalPersistence, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendEmailVerification,
     inMemoryPersistence
  } from 'firebase/auth'
- import { app, usersRef, database } from './firebase'; // 導入Firebase相關配置和參考
+import { app, usersRef, database } from './firebase'; // 導入Firebase相關配置和參考
 
- import InApp from 'detect-inapp'; // 導入InApp以偵測瀏覽器內部環境
+import InApp from 'detect-inapp'; // 導入InApp以偵測瀏覽器內部環境
 import Login from './components/Login.vue'
 
 const inApp = new InApp(window.navigator.userAgent);
