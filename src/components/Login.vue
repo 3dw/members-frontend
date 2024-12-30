@@ -72,7 +72,7 @@ export default defineComponent({
     };
 
     const validateEmail = async (email: string): Promise<boolean> => {
-      const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+(\.[a-zA-Z]{2,})+$/;
       const re2 = /@alearn.org.tw$/;
 
       if (re.test(String(email).toLowerCase()) && re2.test(String(email).toLowerCase())) {
