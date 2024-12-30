@@ -30,7 +30,7 @@ export default defineComponent({
             emit('toggleLogin');
         };
         const validateEmail = async (email) => {
-            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
             const re2 = /@alearn.org.tw$/;
             if (re.test(String(email).toLowerCase()) && re2.test(String(email).toLowerCase())) {
                 return true;
