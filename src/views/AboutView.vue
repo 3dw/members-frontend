@@ -180,6 +180,15 @@
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
+@media screen and (max-width: 768px) {
+  .ui.container {
+    padding: 1rem;
+  }
+  .card {
+    margin: 0 !important;
+  }
+}
+
 .ui.container p {
   line-height: 1.8;
   margin-bottom: 1.5rem;
@@ -196,6 +205,15 @@
 .right-bordered {
   border-right: 2px solid rgba(0, 0, 0, 0.1);
   padding-right: 2rem;
+}
+
+@media screen and (max-width: 768px) {
+  .right-bordered {
+    border-right: none;
+    padding-right: 0;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+    padding-bottom: 1rem;
+  }
 }
 
 ul.ui.list {
