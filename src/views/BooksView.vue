@@ -47,14 +47,14 @@ main.ui.container#books-container
         | 請E-MAIL至
         a(href="mailto:alearn13994229@gmail.com") alearn13994229@gmail.com
         |  告知以下訊息：
-        .ui.ordered.list
-            .item.no-margin 已轉帳或即將轉帳
-            .item.no-margin 書名
-            .item.no-margin 本數
-            .item.no-margin 總金額
-            .item.no-margin 寄送地址
-            .item.no-margin 收件人
-            .item.no-margin 匯款者姓名（或轉帳帳號後三碼）
+      .ui.ordered.list
+        .item.no-margin 已轉帳或即將轉帳
+        .item.no-margin 書名
+        .item.no-margin 本數
+        .item.no-margin 總金額
+        .item.no-margin 寄送地址
+        .item.no-margin 收件人
+        .item.no-margin 匯款者姓名（或轉帳帳號後三碼）
       p 行政室核對無誤後，回信給您並以郵局掛號寄書。
 
 
