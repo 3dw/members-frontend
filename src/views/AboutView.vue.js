@@ -68,6 +68,9 @@ function __VLS_template() {
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['container'];
     __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['container'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['right-bordered'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['list'];

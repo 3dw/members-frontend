@@ -31,6 +31,13 @@ export default defineComponent({
             center: [23.5330, 121.0654]
         };
     },
+    watch: {
+        // 監聽路由變化
+        '$route'() {
+            // 路由變化時關閉側邊欄
+            this.sidebarVisible = false;
+        }
+    },
     mounted() {
         const vm = this;
         auth.onAuthStateChanged((user) => {
