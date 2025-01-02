@@ -56,4 +56,24 @@ export default {
 .history-content {
   margin-bottom: 2rem;
 }
+
+:deep(.p-timeline-event-opposite) {
+  text-align: left;
+}
+
+:deep(.p-timeline-event-content) {
+  text-align: left !important;
+}
+
+@media screen and (max-width: 768px) {
+
+  :deep(.timeline-content) {
+    padding: 0.38rem;
+    margin: 0 !important;
+  }
+
+  .timeline-content .ui.button {
+    padding: 0.5rem !important;
+  }
+}
 </style>
