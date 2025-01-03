@@ -10,13 +10,17 @@ main.ui.container#friend-sites-container
         .content {{ section.title }}
       .ui.relaxed.divided.list
         .item(v-for="site in section.sites" :key="site.url")
-          i.linkify.icon
+          img.ui.avatar.image(v-if="site.image" :src="site.image" :alt="site.name")
+          i.linkify.icon(v-else)
           .content
             a(:href="site.url" target="_blank", rel="noopener noreferrer") {{ site.name }}
 
 </template>
 
 <script lang="ts">
+import khanAcademyLogo from '@/assets/friendly_sites/可汗學院.png'
+import freeMathLogo from '@/assets/friendly_sites/自由數學.png'
+
 export default {
   name: 'FriendSitesView',
   data() {
@@ -26,19 +30,19 @@ export default {
           title: '實驗教育',
           icon: 'graduation cap icon',
           sites: [
-            { name: '保障教育選擇權聯盟', url: 'https://homeschool.tw/' },
-            { name: '星河計畫-自學生經驗匯流', url: 'https://galacticproject.notion.site/d7477db76ecd4ff3b453a39ba21d97ef' },
-            { name: '島島阿學', url: 'https://www.daoedu.tw/' },
-            { name: '零時小學校', url: 'https://sch001.g0v.tw/' }
+            { name: '保障教育選擇權聯盟', url: 'https://homeschool.tw/', image: null },
+            { name: '星河計畫-自學生經驗匯流', url: 'https://galacticproject.notion.site/d7477db76ecd4ff3b453a39ba21d97ef', image: null },
+            { name: '島島阿學', url: 'https://www.daoedu.tw/', image: null },
+            { name: '零時小學校', url: 'https://sch001.g0v.tw/', image: null }
           ]
         },
         {
           title: '公益學習平台',
           icon: 'book icon',
           sites: [
-            { name: '自由數學', url: 'https://math.alearn.org.tw/' },
-            { name: '維基百科', url: 'https://zh.wikipedia.org/' },
-            { name: '可汗學院 Khan Academy', url: 'https://www.khanacademy.org/' }
+            { name: '自由數學', url: 'https://math.alearn.org.tw/', image: freeMathLogo },
+            { name: '維基百科', url: 'https://zh.wikipedia.org/', image: null },
+            { name: '可汗學院 Khan Academy', url: 'https://www.khanacademy.org/', image: khanAcademyLogo }
           ]
         }
       ]
@@ -74,5 +78,12 @@ export default {
   .ui.segment {
     padding: 1rem;
   }
+}
+
+.ui.avatar.image {
+  width: 65px;
+  height: auto;
+  margin-right: 0.5rem;
+  object-fit: contain;
 }
 </style>
