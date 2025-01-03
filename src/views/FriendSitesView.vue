@@ -37,6 +37,7 @@ export default {
           icon: 'book icon',
           sites: [
             { name: '自由數學', url: 'https://math.alearn.org.tw/' },
+            { name: '維基百科', url: 'https://zh.wikipedia.org/' },
             { name: '可汗學院 Khan Academy', url: 'https://www.khanacademy.org/' }
           ]
         }
