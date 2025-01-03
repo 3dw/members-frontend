@@ -95,6 +95,9 @@ header
   RouterLink.item(v-if="uid", to='/privacy-policy', name="privacy")
     i.lock.icon
     | 隱私權政策
+  RouterLink.item(to='/friend-sites', name="friend-sites")
+    i.linkify.icon
+    | 友站連結
   RouterLink.item.fat-only(to='/feedback', name="feedback")
     i.magic.icon
     | 回饋
