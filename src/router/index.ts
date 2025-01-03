@@ -50,6 +50,11 @@ const router = createRouter({
       component: () => import('../views/JoinUsView.vue')
     },
     {
+      path: '/friend-sites',
+      name: 'FriendSitesView',
+      component: () => import('../views/FriendSitesView.vue')
+    },
+    {
       path: '/changelog',
       name: 'ChangeLogView',
       component: () => import('../views/ChangeLogView.vue')
