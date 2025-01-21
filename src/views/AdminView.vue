@@ -9,7 +9,7 @@ main.ui.segment.container(v-if = "uid && user && user.isAdmin")
   .ui.segment(v-if="action === '會員管理'")
     h2.ui.header 會員管理
     .ui.segment
-      button.ui.basic.primary.button(@click="listMembers")
+      button.ui.basic.primary.button(@click="listMembers(null)")
         i.users.icon
         | 列出所有會員
 
@@ -18,10 +18,25 @@ main.ui.segment.container(v-if = "uid && user && user.isAdmin")
         tr
           th 姓名
           th 電子郵件
+          th 動作
       tbody
         tr(v-for="member in members")
           td {{ member.fullname }}
           td {{ member.email }}
+          td
+            .ui.vertical.buttons
+              button.ui.basic.red.button(@click="deleteUser(member.email)")
+                i.trash.icon
+                | 刪除
+        tr
+          td
+            input(type="text" v-model="newUserFullname" placeholder="請輸入姓名")
+          td
+            input(type="text" v-model="newUserEmail" placeholder="請輸入電子郵件")
+          td
+            button.ui.basic.green.button(@click="addUser")
+              i.user.add.icon
+              | 新增
 
   .ui.segment(v-if="action === '理監事會'")
     h2.ui.header 理監事會
@@ -131,6 +146,7 @@ import axios from 'axios'
 import { onMounted, ref } from 'vue'
 import { supervisorsRef, projectsRef, database } from '@/firebase'
 import { onValue, set, ref as dbRef } from 'firebase/database'
+import { getAdditionalUserInfo } from 'firebase/auth'
 
 
 interface Supervisor {
@@ -177,6 +193,8 @@ export default {
     const editMode = ref(false)
     const currentProject = ref<Project | {}>({})
     const currentSupervisor = ref<Supervisor | {}>({})
+    const newUserFullname = ref('')
+    const newUserEmail = ref('')
     onMounted(() => {
         onValue(supervisorsRef, (snapshot) => {
             const rawData = snapshot.val();
@@ -207,6 +225,8 @@ export default {
       editMode,
       currentProject,
       currentSupervisor,
+      newUserFullname,
+      newUserEmail,
     };
   },
   methods: {
@@ -219,15 +239,20 @@ export default {
         email,
       });
     },
-    listMembers() {
-      const password = window.prompt('請輸入密碼')
-      if (!password) {
+    listMembers(savedPassword?: string) {
+      console.log(savedPassword)
+      const passwordToUse = savedPassword || window.prompt('請輸入密碼')
+      if (!passwordToUse) {
         return
+      }
+
+      if (!savedPassword) {
+        this.password = passwordToUse
       }
 
       axios.post('https://members-backend.alearn13994229.workers.dev/get_user_list', {
         uid: this.uid,
-        password: password,
+        password: passwordToUse,
       })
         .then(response => {
           this.members = response.data;
@@ -235,6 +260,58 @@ export default {
         .catch(error => {
           console.error('讀取會員資料時出錯', error);
         });
+    },
+    addUser() {
+      const fullname = this.newUserFullname
+      const email = this.newUserEmail
+
+      const password = window.prompt('請輸入密碼')
+      if (!password) {
+        return
+      }
+
+      axios.post('https://members-backend.alearn13994229.workers.dev/add_user', {
+        uid: this.uid,
+        password: password,
+        fullname: fullname,
+        email: email,
+      })
+      .then(response => {
+        if (response.status === 200) {
+          window.alert('新增成功')
+          this.listMembers(this.password)
+        } else {
+          window.alert('新增失敗')
+        }
+      })
+      .catch(error => {
+        console.error('新增會員資料時出錯', error);
+      });
+    },
+    deleteUser(email: string) {
+      const password = window.prompt('請輸入密碼')
+      if (!password) {
+        return
+      }
+
+      if (window.confirm('確定要刪除嗎？')) {
+        axios.post('https://members-backend.alearn13994229.workers.dev/delete_user', {
+          uid: this.uid,
+          password: password,
+          email: email,
+        })
+        .then(response => {
+          if (response.status === 200) {
+            window.alert('刪除成功')
+            this.listMembers(this.password)
+          } else {
+            window.alert('刪除失敗')
+          }
+        })
+        .catch(error => {
+          console.error('刪除會員資料時出錯', error);
+        });
+      }
     },
     addProject() {
       const id = this.projects.length;
