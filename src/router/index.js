@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
+import { app } from '../firebase';
+import { getAuth } from 'firebase/auth';
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
@@ -36,7 +38,10 @@ const router = createRouter({
         {
             path: '/admin',
             name: 'AdminView',
-            component: () => import('../views/AdminView.vue')
+            component: () => import('../views/AdminView.vue'),
+            meta: {
+                requiresAuth: true
+            }
         },
         {
             path: '/doc',
@@ -116,6 +121,18 @@ const router = createRouter({
             redirect: '/404'
         }
     ]
+});
+router.beforeEach((to, from, next) => {
+    const auth = getAuth(app);
+    const user = auth.currentUser;
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        if (!user) {
+            next('/');
+        }
+        else {
+            next();
+        }
+    }
 });
 export default router;
 //# sourceMappingURL=index.js.map

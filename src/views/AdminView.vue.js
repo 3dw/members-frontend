@@ -30,6 +30,8 @@ export default (await import('vue')).defineComponent({
         const editMode = ref(false);
         const currentProject = ref({});
         const currentSupervisor = ref({});
+        const newUserFullname = ref('');
+        const newUserEmail = ref('');
         onMounted(() => {
             onValue(supervisorsRef, (snapshot) => {
                 const rawData = snapshot.val();
@@ -59,6 +61,8 @@ export default (await import('vue')).defineComponent({
             editMode,
             currentProject,
             currentSupervisor,
+            newUserFullname,
+            newUserEmail,
         };
     },
     methods: {
@@ -71,14 +75,18 @@ export default (await import('vue')).defineComponent({
                 email,
             });
         },
-        listMembers() {
-            const password = window.prompt('請輸入密碼');
-            if (!password) {
+        listMembers(savedPassword) {
+            console.log(savedPassword);
+            const passwordToUse = savedPassword || window.prompt('請輸入密碼');
+            if (!passwordToUse) {
                 return;
+            }
+            if (!savedPassword) {
+                this.password = passwordToUse;
             }
             axios.post('https://members-backend.alearn13994229.workers.dev/get_user_list', {
                 uid: this.uid,
-                password: password,
+                password: passwordToUse,
             })
                 .then(response => {
                 this.members = response.data;
@@ -86,6 +94,57 @@ export default (await import('vue')).defineComponent({
                 .catch(error => {
                 console.error('讀取會員資料時出錯', error);
             });
+        },
+        addUser() {
+            const fullname = this.newUserFullname;
+            const email = this.newUserEmail;
+            const password = window.prompt('請輸入密碼');
+            if (!password) {
+                return;
+            }
+            axios.post('https://members-backend.alearn13994229.workers.dev/add_user', {
+                uid: this.uid,
+                password: password,
+                fullname: fullname,
+                email: email,
+            })
+                .then(response => {
+                if (response.status === 200) {
+                    window.alert('新增成功');
+                    this.listMembers(this.password);
+                }
+                else {
+                    window.alert('新增失敗');
+                }
+            })
+                .catch(error => {
+                console.error('新增會員資料時出錯', error);
+            });
+        },
+        deleteUser(email) {
+            const password = window.prompt('請輸入密碼');
+            if (!password) {
+                return;
+            }
+            if (window.confirm('確定要刪除嗎？')) {
+                axios.post('https://members-backend.alearn13994229.workers.dev/delete_user', {
+                    uid: this.uid,
+                    password: password,
+                    email: email,
+                })
+                    .then(response => {
+                    if (response.status === 200) {
+                        window.alert('刪除成功');
+                        this.listMembers(this.password);
+                    }
+                    else {
+                        window.alert('刪除失敗');
+                    }
+                })
+                    .catch(error => {
+                    console.error('刪除會員資料時出錯', error);
+                });
+            }
         },
         addProject() {
             const id = this.projects.length;
