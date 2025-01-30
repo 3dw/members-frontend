@@ -19,6 +19,17 @@ export default defineComponent({
         const message = ref('');
         const result = ref('');
         onMounted(() => {
+            // 檢查網址是否包含 #donate-online
+            console.log(window.location.hash);
+            if (window.location.hash === '#donate-online') {
+                // 使用 setTimeout 確保 DOM 已完全載入
+                setTimeout(() => {
+                    const element = document.getElementById('donate-online');
+                    if (element) {
+                        element.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }, 100);
+            }
             onValue(projectsRef, (snapshot) => {
                 const projectsData = snapshot.val();
                 projects.value = Object.values(projectsData);
