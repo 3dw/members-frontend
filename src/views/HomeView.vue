@@ -122,7 +122,7 @@
             p 愛心碼取為「9806」，是因為最初成立的契機，在於1998~2006年的「台北市自主學習（中學六年一貫）實驗計畫」，本會第一代會員多是計畫中的親師生及關注計畫的學者賢達，別具意義。
             p 邀請並歡迎大家未來在開立電子發票的商家購物時，可主動向店員要求使用愛心碼，說出捐贈碼9806，或出示條碼即可。發票若中獎，將會自動捐入本會！
             img#donate(src="../assets/9806.png", alt="愛心碼")
-      .card
+      .card#donate-online
         .content
           .header 線上捐款
           .description
@@ -190,7 +190,20 @@ export default defineComponent({
     const visibleEmails = ref(arr);
     const message = ref('');
     const result = ref('');
+
     onMounted(() => {
+      // 檢查網址是否包含 #donate-online
+      console.log(window.location.hash);
+      if (window.location.hash === '#donate-online') {
+        // 使用 setTimeout 確保 DOM 已完全載入
+        setTimeout(() => {
+          const element = document.getElementById('donate-online');
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+      }
+
       onValue(projectsRef, (snapshot) => {
         const projectsData = snapshot.val();
         projects.value = Object.values(projectsData);
