@@ -19,9 +19,9 @@ header
     RouterLink.item(to="/books")
       i.book.icon
       | 出版品
-    RouterLink.item(to="/faq")
+    RouterLink.item.fat-only(to="/faq")
       i.help.icon
-      span.fat-only 常見
+      span 常見
       | 問題
     RouterLink.item(v-if="!uid", to="/history")
       i.history.icon
