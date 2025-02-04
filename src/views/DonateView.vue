@@ -128,6 +128,7 @@ export default {
       .then(response => response.json())
       .then(data => {
         if (data.orderId) {
+          window.open('https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5', '_blank'); // 開啟綠界金流頁面 - 測試版
           this.listenToOrderStatus(data.orderId);
         } else {
           alert('捐贈失敗，請改為其他方式捐贈');
