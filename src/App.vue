@@ -101,6 +101,9 @@ header
   RouterLink.item.fat-only(to='/feedback', name="feedback")
     i.magic.icon
     | 回饋
+  a.item(href="https://sites.google.com/view/autoalearn/%E9%A6%96%E9%A0%81", target="_blank", rel="noopener noreferrer")
+    i.linkify.icon
+    | 舊版網站
 .ui.sidebar.bg(:class="{'hidden': !sidebarVisible}", @click="toggleSidebar")
 .ui.container
   RouterView(

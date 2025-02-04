@@ -13,12 +13,8 @@
     .ui.two.column.stackable.segment.padded.grid
       .sixteen.wide.center.aligned.column#main-column
         h1.ui.header#main-title 自主學習促進會
-      .column.right-bordered
-        h2.ui.header 本會網站改版中，
-          | 請點擊
-          br.thin-only
-          a.text-underline(href="https://sites.google.com/view/autoalearn/%E9%A6%96%E9%A0%81") 這裡前往舊版官方網站
 
+      .column
         img#donate(src="../assets/9806.png", alt="愛心碼")
 
         p 自主學習，就是學習自主。
