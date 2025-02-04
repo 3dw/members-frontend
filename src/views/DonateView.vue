@@ -19,37 +19,16 @@
           <div class="compact field">
             <label>選擇捐贈金額</label>
             <select v-model="selectedAmount" @change="clearCustomAmount">
-            <option value="500">新台幣500元</option>
-            <option value="1000">新台幣1000元</option>
-            <option value="2000">新台幣2000元</option>
-            <option value="custom">自訂金額</option>
+              <option value="500">新台幣500元</option>
+              <option value="1000">新台幣1000元</option>
+              <option value="2000">新台幣2000元</option>
+              <option value="custom">自訂金額</option>
             </select>
           </div>
           <div class="field" v-if="selectedAmount === 'custom'">
             <label>自訂金額：新台幣</label>
             <input type="number" v-model.number="customAmount" min="500" placeholder="輸入金額" />
           </div>
-        </div>
-        <div class="field">
-          <label>信用卡號</label>
-          <div class="card-inputs">
-            <input type="text" ref="cardNumber1" v-model="cardNumber1" maxlength="4" @input="moveToNext($event, 'cardNumber2')" placeholder="XXXX" />
-            <input type="text" ref="cardNumber2" v-model="cardNumber2" maxlength="4" @input="moveToNext($event, 'cardNumber3')" placeholder="XXXX" />
-            <input type="text" ref="cardNumber3" v-model="cardNumber3" maxlength="4" @input="moveToNext($event, 'cardNumber4')" placeholder="XXXX" />
-            <input type="text" ref="cardNumber4" v-model="cardNumber4" maxlength="4" placeholder="XXXX" @input="moveToNext($event, 'expiryMonth')"/>
-          </div>
-        </div>
-        <div class="field">
-          <label>有效日期</label>
-          <div class="expiry-inputs">
-            <input type="text" ref="expiryMonth" v-model="expiryMonth" maxlength="2" placeholder="MM" @input="moveToNextExpiry($event, 'expiryYear')" />
-            <span>/</span>
-            <input type="text" ref="expiryYear" v-model="expiryYear" maxlength="2" placeholder="YY" @input="moveToNextExpiry($event, 'securityCode')" />
-          </div>
-        </div>
-        <div class="field">
-          <label>安全碼</label>
-          <input ref="securityCode" type="password" autocomplete="off" v-model="securityCode" placeholder="CVV" maxlength="3" />
         </div>
 
         <button type="submit" class="ui basic green large button">
@@ -103,20 +82,17 @@
 </template>
 
 <script lang="ts">
+import { getFirestore, doc, onSnapshot, Unsubscribe } from 'firebase/firestore';
+import { app } from '../firebase';
+
 export default {
   data() {
     return {
       selectedAmount: '500',
       customAmount: 500,
-      cardNumber1: '',
-      cardNumber2: '',
-      cardNumber3: '',
-      cardNumber4: '',
-      expiryMonth: '',
-      expiryYear: '',
-      securityCode: '',
       mode: 'donate-by-card',
       modes: ['donate-by-card', 'donate-by-qrcode', 'donate-by-bank-transfer', 'donate-by-code'],
+      unsubscribe: (() => {}) as Unsubscribe | null,
     };
   },
   methods: {
@@ -136,28 +112,12 @@ export default {
         this.customAmount = 500;
       }
     },
-    moveToNext(event: Event, nextField: string) {
-      if ((event.target as HTMLInputElement).value.length === 4) {
-        (this.$refs[nextField] as HTMLInputElement).focus();
-      }
-    },
-    moveToNextExpiry(event: Event, nextField: string) {
-      if ((event.target as HTMLInputElement).value.length === 2) {
-        (this.$refs[nextField] as HTMLInputElement).focus();
-      }
-    },
     submitDonation() {
-      const amount = this.selectedAmount === 'custom' ? this.customAmount : this.selectedAmount;
-      const cardNumber = `${this.cardNumber1}${this.cardNumber2}${this.cardNumber3}${this.cardNumber4}`;
-      const expiryDate = `${this.expiryMonth}/${this.expiryYear}`;
+      const amount = this.selectedAmount === 'custom' ? this.customAmount : parseInt(this.selectedAmount);
       const donationData = {
         amount: amount,
-        cardNumber: cardNumber,
-        expiryDate: expiryDate,
-        securityCode: this.securityCode,
       };
-      console.log(donationData)
-      // 發送 POST 請求到後端
+
       fetch('https://members-backend.alearn13994229.workers.dev/donate', {
         method: 'POST',
         headers: {
@@ -167,17 +127,48 @@ export default {
       })
       .then(response => response.json())
       .then(data => {
-        if (data.success) {
-          alert('捐贈成功，謝謝您的捐贈')
+        if (data.orderId) {
+          this.listenToOrderStatus(data.orderId);
         } else {
-          alert('捐贈失敗，請改為其他方式捐贈')
+          alert('捐贈失敗，請改為其他方式捐贈');
         }
       })
       .catch((error) => {
-        alert('捐贈失敗，請改為其他方式捐贈')
+        alert('捐贈失敗，請改為其他方式捐贈');
         console.error('Error:', error);
       });
     },
+    listenToOrderStatus(orderId: string) {
+      const db = getFirestore(app);
+      const orderRef = doc(db, 'donations', orderId);
+
+      this.unsubscribe = onSnapshot(orderRef, (doc) => {
+        const data = doc.data();
+        if (data) {
+          switch (data.status) {
+            case 'completed':
+              alert('捐贈成功，謝謝您的捐贈');
+              this.unsubscribe?.();
+              break;
+            case 'pending':
+              console.log('捐贈處理中，請稍後再查詢');
+              this.unsubscribe?.();
+              break;
+            case 'failed':
+              alert('捐贈失敗，請改為其他方式捐贈');
+              this.unsubscribe?.();
+              break;
+          }
+        }
+      });
+
+      setTimeout(() => {
+        this.unsubscribe?.();
+      }, 5 * 60 * 1000);
+    },
+  },
+  beforeUnmount() {
+    this.unsubscribe?.();
   },
 };
 </script>
