@@ -151,6 +151,10 @@ export default {
               alert('捐贈成功，謝謝您的捐贈');
               this.unsubscribe?.();
               break;
+            case 'simulated':
+              alert('此為模擬捐贈，並未實際捐贈');
+              this.unsubscribe?.();
+              break;
             case 'pending':
               console.log('捐贈處理中，請稍後再查詢');
               this.unsubscribe?.();
