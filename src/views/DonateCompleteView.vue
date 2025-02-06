@@ -56,8 +56,11 @@ export default {
           `https://members-backend.alearn13994229.workers.dev/check_donation_status/${orderId}`
         );
         const data = await response.json();
+        console.log(data);
         if (data && data.status) {
           this.status = data.status;
+        } else {
+          this.status = 'pending';
         }
       } catch (error) {
         console.error('檢查捐款狀態時發生錯誤:', error);
@@ -70,6 +73,11 @@ export default {
       // 每10秒檢查一次
       this.pollingInterval = setInterval(() => {
         this.checkDonationStatus(orderId);
+        if (this.status === 'success' || this.status === 'failed' || this.status === 'simulated') {
+          if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+          }
+        }
       }, 10000);
 
       // 5分鐘後停止輪詢

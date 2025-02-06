@@ -14,9 +14,10 @@ const router = createRouter({
             component: () => import('../views/DonateView.vue')
         },
         {
-            path: '/donate_complete',
-            name: 'DonateCompleteView',
-            component: () => import('../views/DonateCompleteView.vue'),
+          path: '/donate_complete/:merchantTradeNo',
+          name: 'DonateCompleteView',
+          component: () => import('../views/DonateCompleteView.vue'),
+          props: true
         },
         {
             path: '/books',

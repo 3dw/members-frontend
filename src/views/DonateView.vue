@@ -13,7 +13,7 @@
       </div>
     </h2>
 
-    <form v-if="mode === 'donate-by-card'" method="post" action="https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5" target="_blank">
+    <form v-if="mode === 'donate-by-card'" method="post" action="https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5">
       <div class="ui form">
         <div class="ui two stackable fields">
           <div class="compact field">
