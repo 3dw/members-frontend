@@ -34,43 +34,56 @@
 </template>
 
 <script lang="ts">
-import { getFirestore, doc, onSnapshot, Unsubscribe } from 'firebase/firestore';
-import { app } from '../firebase';
 
 export default {
   data() {
     return {
       status: 'pending',
       merchantTradeNo: '',
-      unsubscribe: null as Unsubscribe | null,
+      pollingInterval: null as ReturnType<typeof setInterval> | null,
     };
   },
   mounted() {
     this.merchantTradeNo = this.$route.params.merchantTradeNo as string || '';
     if (this.merchantTradeNo) {
-      this.listenToOrderStatus(this.merchantTradeNo);
+      this.startPolling(this.merchantTradeNo);
     }
   },
   methods: {
-    listenToOrderStatus(orderId: string) {
-      const db = getFirestore(app);
-      const orderRef = doc(db, 'donations', orderId);
-
-      this.unsubscribe = onSnapshot(orderRef, (doc) => {
-        const data = doc.data();
-        if (data) {
+    async checkDonationStatus(orderId: string) {
+      try {
+        const response = await fetch(
+          `https://members-backend.alearn13994229.workers.dev/check_donation_status/${orderId}`
+        );
+        const data = await response.json();
+        if (data && data.status) {
           this.status = data.status;
         }
-      });
+      } catch (error) {
+        console.error('檢查捐款狀態時發生錯誤:', error);
+      }
+    },
+    startPolling(orderId: string) {
+      // 立即檢查一次
+      this.checkDonationStatus(orderId);
 
-      // 5分鐘後停止監聽
+      // 每10秒檢查一次
+      this.pollingInterval = setInterval(() => {
+        this.checkDonationStatus(orderId);
+      }, 10000);
+
+      // 5分鐘後停止輪詢
       setTimeout(() => {
-        this.unsubscribe?.();
+        if (this.pollingInterval) {
+          clearInterval(this.pollingInterval);
+        }
       }, 5 * 60 * 1000);
     }
   },
   beforeUnmount() {
-    this.unsubscribe?.();
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
   }
 };
 </script>

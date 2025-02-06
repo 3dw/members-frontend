@@ -97,8 +97,6 @@
 </template>
 
 <script lang="ts">
-import { getFirestore, doc, onSnapshot, Unsubscribe } from 'firebase/firestore';
-import { app } from '../firebase';
 
 export default {
   data() {
@@ -107,7 +105,6 @@ export default {
       customAmount: 500,
       mode: 'donate-by-card',
       modes: ['donate-by-card', 'donate-by-qrcode', 'donate-by-bank-transfer', 'donate-by-code'],
-      unsubscribe: (() => {}) as Unsubscribe | null,
       merchantID: '3002607',
       returnURL: 'https://members-backend.alearn13994229.workers.dev/donation_callback',
       checkMacValue: '',
@@ -163,38 +160,6 @@ export default {
         this.customAmount = 500;
       }
     },
-    listenToOrderStatus(orderId: string) {
-      const db = getFirestore(app);
-      const orderRef = doc(db, 'donations', orderId);
-
-      this.unsubscribe = onSnapshot(orderRef, (doc) => {
-        const data = doc.data();
-        if (data) {
-          switch (data.status) {
-            case 'completed':
-              alert('捐贈成功，謝謝您的捐贈');
-              this.unsubscribe?.();
-              break;
-            case 'simulated':
-              alert('此為模擬捐贈，並未實際捐贈');
-              this.unsubscribe?.();
-              break;
-            case 'pending':
-              console.log('捐贈處理中，請稍後再查詢');
-              this.unsubscribe?.();
-              break;
-            case 'failed':
-              alert('捐贈失敗，請改為其他方式捐贈');
-              this.unsubscribe?.();
-              break;
-          }
-        }
-      });
-
-      setTimeout(() => {
-        this.unsubscribe?.();
-      }, 5 * 60 * 1000);
-    },
     async generateCheckMacValue() {
       const params = {
         MerchantID: this.merchantID,
@@ -247,9 +212,6 @@ export default {
           .join('');
       });
     }
-  },
-  beforeUnmount() {
-    this.unsubscribe?.();
   },
 };
 </script>
