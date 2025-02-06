@@ -1,37 +1,49 @@
-import { getFirestore, doc, onSnapshot } from 'firebase/firestore';
-import { app } from '../firebase';
 export default (await import('vue')).defineComponent({
     data() {
         return {
             status: 'pending',
             merchantTradeNo: '',
-            unsubscribe: null,
+            pollingInterval: null,
         };
     },
     mounted() {
         this.merchantTradeNo = this.$route.params.merchantTradeNo || '';
         if (this.merchantTradeNo) {
-            this.listenToOrderStatus(this.merchantTradeNo);
+            this.startPolling(this.merchantTradeNo);
         }
     },
     methods: {
-        listenToOrderStatus(orderId) {
-            const db = getFirestore(app);
-            const orderRef = doc(db, 'donations', orderId);
-            this.unsubscribe = onSnapshot(orderRef, (doc) => {
-                const data = doc.data();
-                if (data) {
+        async checkDonationStatus(orderId) {
+            try {
+                const response = await fetch(`https://members-backend.alearn13994229.workers.dev/check_donation_status/${orderId}`);
+                const data = await response.json();
+                if (data && data.status) {
                     this.status = data.status;
                 }
-            });
-            // 5分鐘後停止監聽
+            }
+            catch (error) {
+                console.error('檢查捐款狀態時發生錯誤:', error);
+            }
+        },
+        startPolling(orderId) {
+            // 立即檢查一次
+            this.checkDonationStatus(orderId);
+            // 每10秒檢查一次
+            this.pollingInterval = setInterval(() => {
+                this.checkDonationStatus(orderId);
+            }, 10000);
+            // 5分鐘後停止輪詢
             setTimeout(() => {
-                this.unsubscribe?.();
+                if (this.pollingInterval) {
+                    clearInterval(this.pollingInterval);
+                }
             }, 5 * 60 * 1000);
         }
     },
     beforeUnmount() {
-        this.unsubscribe?.();
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+        }
     }
 });
 ;
