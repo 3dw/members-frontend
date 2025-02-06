@@ -130,14 +130,14 @@ export default {
       returnURL: 'https://members-backend.alearn13994229.workers.dev/donation_callback',
       checkMacValue: '',
       clientBackURL: window.location.origin + '/donate',
-      orderResultURL: '',
+     // orderResultURL: '',
       status: '',
       showDonationStatus: false,
       pollingInterval: null as ReturnType<typeof setInterval> | null,
     };
   },
   async mounted() {
-    this.orderResultURL = window.location.origin + '/donate_complete/' + this.merchantTradeNo;
+//    this.orderResultURL = window.location.origin + '/donate_complete/' + this.merchantTradeNo;
     this.checkMacValue = await this.generateCheckMacValue();
 
     // 檢查 URL 是否包含訂單編號
