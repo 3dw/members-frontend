@@ -84,6 +84,7 @@
 <script lang="ts">
 import { getFirestore, doc, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { app } from '../firebase';
+import axios from 'axios';
 
 export default {
   data() {
@@ -114,30 +115,33 @@ export default {
     },
     submitDonation() {
       const amount = this.selectedAmount === 'custom' ? this.customAmount : parseInt(this.selectedAmount);
+
+      // 驗證金額
+      if (isNaN(amount) || amount < 500) {
+        alert('請輸入有效的捐贈金額（最少500元）');
+        return;
+      }
+
       const donationData = {
-        amount: amount,
+        amount: amount
       };
 
-      fetch('https://members-backend.alearn13994229.workers.dev/donate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(donationData),
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.orderId) {
-          // 跳轉到綠界金流頁面 - 測試版
-          window.location.href = 'https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5';
-          // this.listenToOrderStatus(data.orderId);
-        } else {
-          alert('捐贈失敗，請改為其他方式捐贈');
+      console.log('準備送出捐款請求：', donationData); // 加入除錯用訊息
+
+      axios.post('https://members-backend.alearn13994229.workers.dev/donate', donationData)
+      .then(response => {
+        if (response.status !== 200) {
+          throw new Error('伺服器回應異常');
         }
+        return response.data;
+      })
+      .then(data => {
+        // 在新視窗中開啟付款頁面
+        window.open(data, '_blank');
       })
       .catch((error) => {
+        console.error('捐款處理錯誤:', error);
         alert('捐贈失敗，請改為其他方式捐贈');
-        console.error('Error:', error);
       });
     },
     listenToOrderStatus(orderId: string) {
