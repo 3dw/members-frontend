@@ -23,7 +23,7 @@
 
     <h2 class="ui header">
       <span><i class="dollar icon"></i></span>
-      <span v-if="mode === 'donate-by-card'">信用卡小額捐贈</span>
+      <span v-if="mode === 'donate-by-card' && devMode">信用卡小額捐贈</span>
       <span v-else-if="mode === 'donate-by-qrcode'">QR Code掃碼捐贈</span>
       <span v-else-if="mode === 'donate-by-bank-transfer'">銀行匯款捐贈</span>
       <span v-else-if="mode === 'donate-by-code'">愛心碼捐贈</span>
@@ -100,8 +100,14 @@
     </div>
 
     <div class="ui divider" v-if="mode !== 'donate-by-code'"></div>
-    <div class="ui segment" v-if="mode !== 'donate-by-code'">
-      <h3>完成捐款後，請將以下資訊寄至本會行政室：
+    <div class="fluid segment" v-if="mode !== 'donate-by-code'">
+      <h3>完成捐款後，請填寫下表，讓本會知道您的捐款資訊：</h3>
+
+      <iframe
+        src="https://docs.google.com/forms/d/e/1FAIpQLSeUlMQeS4ztSkZ48GhytbQapT7TG-iBNB31YTWHVVT6XceGhQ/viewform?embedded=true"
+        width="100%" height="3185" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
+    </div>
+      <!-- <h3>完成捐款後，請將以下資訊寄至本會行政室：
         <a href="mailto:alearn13994229@gmail.com">Email：alearn13994229@gmail.com</a>
       </h3>
       <ul>
@@ -113,18 +119,25 @@
         <li>指定支持的專案（可略）</li>
       </ul>
       <p>本會將開立捐款收據並寄回給您，可供節稅使用。</p>
-    </div>
+    </div>-->
   </div>
 </template>
 
 <script lang="ts">
 
 export default {
+  props: {
+    devMode: {
+      type: Boolean,
+      required: true,
+      default: false
+    }
+  },
   data() {
     return {
       selectedAmount: '500',
       customAmount: 500,
-      mode: 'donate-by-card',
+      mode: 'donate-by-bank-transfer',
       modes: ['donate-by-card', 'donate-by-qrcode', 'donate-by-bank-transfer', 'donate-by-code'],
       merchantID: '3002607',
       returnURL: 'https://members-backend.alearn13994229.workers.dev/donation_callback',
@@ -178,7 +191,7 @@ export default {
   methods: {
     parse(mode: string) {
       if (mode === 'donate-by-card') {
-        return '信用卡小額捐贈'
+        return '信用卡捐贈(測試中，尚無法使用)'
       } else if (mode === 'donate-by-bank-transfer') {
         return '銀行匯款捐贈'
       } else if (mode === 'donate-by-qrcode') {

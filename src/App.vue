@@ -23,7 +23,7 @@ header
       i.help.icon
       span 常見
       | 問題
-    // RouterLink.item(v-if="devMode", to="/donate")
+    RouterLink.item(v-if="devMode", to="/donate")
       i.money.icon
       | 捐贈
     RouterLink.item(v-if="!uid && !devMode", to="/history")
@@ -62,7 +62,7 @@ header
   RouterLink.item(to='/about', name="about")
     i.info.icon
     | 關於我們
-  // RouterLink.item(to='/donate', name="donate")
+  RouterLink.item(v-if="devMode", to='/donate', name="donate")
     i.money.icon
     | 捐贈本會
   RouterLink.item(to='/podcast', name="podcast")
@@ -121,7 +121,8 @@ header
     :users="users",
     :photoURL="photoURL",
     :email="email",
-    :emailVerified="emailVerified"
+    :emailVerified="emailVerified",
+    :devMode="devMode"
   )
 Login(
   v-if="showLogin"
