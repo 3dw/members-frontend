@@ -1,5 +1,26 @@
 <template>
   <div class="ui segment container">
+    <div v-if="showDonationStatus" class="ui segment">
+      <div class="ui segment" v-if="status === 'success'">
+        <h2 class="main-title">捐款完成，謝謝您的愛心</h2>
+      </div>
+
+      <div class="ui segment" v-if="status === 'failed'">
+        <h2 class="main-title">捐款失敗</h2>
+        <p>很抱歉，您的捐款處理失敗。請嘗試其他捐款方式或稍後再試。</p>
+      </div>
+
+      <div class="ui segment" v-if="status === 'simulated'">
+        <h2 class="main-title">模擬捐款完成</h2>
+        <p>這是一筆測試性質的捐款，並未實際進行交易。</p>
+      </div>
+
+      <div class="ui segment" v-if="status === 'pending'">
+        <h2 class="main-title">處理中</h2>
+        <p>您的捐款正在處理中，請稍候...</p>
+      </div>
+    </div>
+
     <h2 class="ui header">
       <span><i class="dollar icon"></i></span>
       <span v-if="mode === 'donate-by-card'">信用卡小額捐贈</span>
@@ -13,7 +34,7 @@
       </div>
     </h2>
 
-    <form v-if="mode === 'donate-by-card'" method="post" action="https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5">
+    <form v-if="mode === 'donate-by-card'" method="post" @submit="handleSubmit" action="https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5" target="_blank">
       <div class="ui form">
         <div class="ui two stackable fields">
           <div class="compact field">
@@ -44,7 +65,7 @@
         <input type="hidden" name="EncryptType" value="1">
         <input type="hidden" name="CheckMacValue" :value="checkMacValue">
         <input type="hidden" name="ClientBackURL" :value="clientBackURL">
-        <input type="hidden" name="OrderResultURL" :value="orderResultURL">
+<!--    <input type="hidden" name="OrderResultURL" :value="orderResultURL"> -->
 
         <button type="submit" class="ui basic green large button">
           <i class="dollar icon"></i>
@@ -110,11 +131,22 @@ export default {
       checkMacValue: '',
       clientBackURL: window.location.origin + '/donate',
       orderResultURL: '',
+      status: '',
+      showDonationStatus: false,
+      pollingInterval: null as ReturnType<typeof setInterval> | null,
     };
   },
   async mounted() {
     this.orderResultURL = window.location.origin + '/donate_complete/' + this.merchantTradeNo;
     this.checkMacValue = await this.generateCheckMacValue();
+
+    // 檢查 URL 是否包含訂單編號
+    const urlParams = new URLSearchParams(window.location.search);
+    const merchantTradeNo = urlParams.get('merchantTradeNo');
+    if (merchantTradeNo) {
+      this.showDonationStatus = true;
+      this.startPolling(merchantTradeNo);
+    }
   },
   computed: {
     donationAmount() {
@@ -173,7 +205,7 @@ export default {
         ChoosePayment: 'Credit',
         EncryptType: '1',
         ClientBackURL: this.clientBackURL,
-        OrderResultURL: this.orderResultURL,
+        // OrderResultURL: this.orderResultURL,
       };
 
       const sortedKeys = Object.keys(params).sort();
@@ -211,8 +243,60 @@ export default {
           .map(b => b.toString(16).padStart(2, '0'))
           .join('');
       });
+    },
+    async checkDonationStatus(orderId: string) {
+      try {
+        const response = await fetch(
+          `https://members-backend.alearn13994229.workers.dev/check_donation_status/${orderId}`
+        );
+        const data = await response.json();
+        // console.log(data);
+        if (data && data.status) {
+          this.status = data.status;
+        } else {
+          this.status = 'pending';
+        }
+      } catch (error) {
+        console.error('檢查捐款狀態時發生錯誤:', error);
+      }
+    },
+
+    handleSubmit() {
+      // 當表單提交時開始輪詢
+      this.showDonationStatus = true;
+      this.startPolling(this.merchantTradeNo);
+    },
+
+    startPolling(orderId: string) {
+      // 設定初始狀態為處理中
+      this.status = 'pending';
+
+      // 立即檢查一次
+      this.checkDonationStatus(orderId);
+
+      // 每10秒檢查一次
+      this.pollingInterval = setInterval(() => {
+        this.checkDonationStatus(orderId);
+        if (this.status === 'success' || this.status === 'failed' || this.status === 'simulated') {
+          if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+          }
+        }
+      }, 10000);
+
+      // 5分鐘後停止輪詢
+      setTimeout(() => {
+        if (this.pollingInterval) {
+          clearInterval(this.pollingInterval);
+        }
+      }, 5 * 60 * 1000);
     }
   },
+  beforeUnmount() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+    }
+  }
 };
 </script>
 
