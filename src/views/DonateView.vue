@@ -13,7 +13,7 @@
       </div>
     </h2>
 
-    <form @submit.prevent="submitDonation" v-if="mode === 'donate-by-card'">
+    <form v-if="mode === 'donate-by-card'" method="post" action="https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5" target="_blank">
       <div class="ui form">
         <div class="ui two stackable fields">
           <div class="compact field">
@@ -30,6 +30,21 @@
             <input type="number" v-model.number="customAmount" min="500" placeholder="輸入金額" />
           </div>
         </div>
+
+        <!-- 綠界金流必要欄位 -->
+        <input type="hidden" name="MerchantID" :value="merchantID">
+        <input type="hidden" name="MerchantTradeNo" :value="merchantTradeNo">
+        <input type="hidden" name="MerchantTradeDate" :value="merchantTradeDate">
+        <input type="hidden" name="PaymentType" value="aio">
+        <input type="hidden" name="TotalAmount" :value="donationAmount">
+        <input type="hidden" name="TradeDesc" value="自主學習促進會捐款">
+        <input type="hidden" name="ItemName" value="捐款">
+        <input type="hidden" name="ReturnURL" :value="returnURL">
+        <input type="hidden" name="ChoosePayment" value="Credit">
+        <input type="hidden" name="EncryptType" value="1">
+        <input type="hidden" name="CheckMacValue" :value="checkMacValue">
+        <input type="hidden" name="ClientBackURL" :value="clientBackURL">
+        <input type="hidden" name="OrderResultURL" :value="orderResultURL">
 
         <button type="submit" class="ui basic green large button">
           <i class="dollar icon"></i>
@@ -84,7 +99,6 @@
 <script lang="ts">
 import { getFirestore, doc, onSnapshot, Unsubscribe } from 'firebase/firestore';
 import { app } from '../firebase';
-import axios from 'axios';
 
 export default {
   data() {
@@ -94,7 +108,43 @@ export default {
       mode: 'donate-by-card',
       modes: ['donate-by-card', 'donate-by-qrcode', 'donate-by-bank-transfer', 'donate-by-code'],
       unsubscribe: (() => {}) as Unsubscribe | null,
+      merchantID: '3002607',
+      returnURL: 'https://members-backend.alearn13994229.workers.dev/donation_callback',
+      checkMacValue: '',
+      clientBackURL: window.location.origin + '/donate',
+      orderResultURL: '',
     };
+  },
+  async mounted() {
+    this.orderResultURL = window.location.origin + '/donate_complete/' + this.merchantTradeNo;
+    this.checkMacValue = await this.generateCheckMacValue();
+  },
+  computed: {
+    donationAmount() {
+      return this.selectedAmount === 'custom' ? this.customAmount : parseInt(this.selectedAmount);
+    },
+    merchantTradeNo() {
+      // 產生唯一訂單編號,可以用時間戳記+隨機數
+      return `DON${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    },
+    merchantTradeDate() {
+      // 產生當前時間,格式: yyyy/MM/dd HH:mm:ss
+      const now = new Date();
+      return now.toLocaleString('zh-TW', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+      }).replace(/(\d+)\/(\d+)\/(\d+)/, '$1/$2/$3');
+    },
+  },
+  watch: {
+    async donationAmount() {
+      this.checkMacValue = await this.generateCheckMacValue();
+    }
   },
   methods: {
     parse(mode: string) {
@@ -112,35 +162,6 @@ export default {
       if (this.selectedAmount !== 'custom') {
         this.customAmount = 500;
       }
-    },
-    submitDonation() {
-      const amount = this.selectedAmount === 'custom' ? this.customAmount : parseInt(this.selectedAmount);
-
-      // 驗證金額
-      if (isNaN(amount) || amount < 500) {
-        alert('請輸入有效的捐贈金額（最少500元）');
-        return;
-      }
-
-      const donationData = {
-        amount: amount
-      };
-
-      console.log('準備送出捐款請求：', donationData); // 加入除錯用訊息
-
-      axios.post('https://members-backend.alearn13994229.workers.dev/donate', donationData)
-      .then(response => {
-        if (response.status !== 200) {
-          throw new Error('伺服器回應異常');
-        }
-
-        // 在新視窗中開啟付款頁面
-        window.open(response.data, '_blank');
-      })
-      .catch((error) => {
-        console.error('捐款處理錯誤:', error);
-        alert('捐贈失敗，請改為其他方式捐贈');
-      });
     },
     listenToOrderStatus(orderId: string) {
       const db = getFirestore(app);
@@ -174,6 +195,58 @@ export default {
         this.unsubscribe?.();
       }, 5 * 60 * 1000);
     },
+    async generateCheckMacValue() {
+      const params = {
+        MerchantID: this.merchantID,
+        MerchantTradeNo: this.merchantTradeNo,
+        MerchantTradeDate: this.merchantTradeDate,
+        PaymentType: 'aio',
+        TotalAmount: this.donationAmount,
+        TradeDesc: '自主學習促進會捐款',
+        ItemName: '捐款',
+        ReturnURL: this.returnURL,
+        ChoosePayment: 'Credit',
+        EncryptType: '1',
+        ClientBackURL: this.clientBackURL,
+        OrderResultURL: this.orderResultURL,
+      };
+
+      const sortedKeys = Object.keys(params).sort();
+
+      const hashKey = 'pwFHCqoQZGmho4w6'; // 綠界金流提供的 HashKey
+      const hashIV = 'EkRm7iFT261dpevs'; // 綠界金流提供的 HashIV
+
+      let checkString = 'HashKey=' + hashKey;
+      sortedKeys.forEach(key => {
+        checkString += '&' + key + '=' + params[key as keyof typeof params];
+      });
+      checkString += '&HashIV=' + hashIV;
+
+      // 使用 encodeURIComponent 進行 URL 編碼
+      let encodedString = encodeURIComponent(checkString).toLowerCase();
+
+      // 修正特殊字元的處理
+      encodedString = encodedString
+        .replace(/%20/g, '+')
+        .replace(/%2d/g, '-')
+        .replace(/%5f/g, '_')
+        .replace(/%2e/g, '.')
+        .replace(/%21/g, '!')
+        .replace(/%2a/g, '*')
+        .replace(/%28/g, '(')
+        .replace(/%29/g, ')');
+
+      const sha256Hash = await this.sha256(encodedString);
+      return sha256Hash.toUpperCase();
+    },
+    sha256(str: string) {
+      const buffer = new TextEncoder().encode(str);
+      return crypto.subtle.digest('SHA-256', buffer).then(hash => {
+        return Array.from(new Uint8Array(hash))
+          .map(b => b.toString(16).padStart(2, '0'))
+          .join('');
+      });
+    }
   },
   beforeUnmount() {
     this.unsubscribe?.();
