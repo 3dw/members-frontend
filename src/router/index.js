@@ -9,15 +9,14 @@ const router = createRouter({
             component: HomeView
         },
         {
-          path: '/donate',
-          name: 'DonateView',
-          component: () => import('../views/DonateView.vue')
+            path: '/donate',
+            name: 'DonateView',
+            component: () => import('../views/DonateView.vue')
         },
         {
-          path: '/donate_complete/:merchantTradeNo',
-          name: 'DonateCompleteView',
-          component: () => import('../views/DonateCompleteView.vue'),
-          props: true
+            path: '/donate_complete',
+            name: 'DonateCompleteView',
+            component: () => import('../views/DonateCompleteView.vue'),
         },
         {
             path: '/books',

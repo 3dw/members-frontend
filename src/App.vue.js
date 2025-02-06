@@ -27,6 +27,7 @@ export default defineComponent({
             photoURL: '',
             email: '',
             emailVerified: false,
+            devMode: false,
             zoom: 13,
             center: [23.5330, 121.0654]
         };
