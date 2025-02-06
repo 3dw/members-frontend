@@ -15,6 +15,11 @@ const router = createRouter({
       component: () => import('../views/DonateView.vue')
     },
     {
+      path: '/donate_complete',
+      name: 'DonateCompleteView',
+      component: () => import('../views/DonateCompleteView.vue'),
+    },
+    {
       path: '/books',
       name: 'BooksView',
       component: () => import('../views/BooksView.vue')
