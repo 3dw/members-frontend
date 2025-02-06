@@ -1,20 +1,37 @@
 export default (await import('vue')).defineComponent({
+    props: {
+        devMode: {
+            type: Boolean,
+            required: true,
+            default: false
+        }
+    },
     data() {
         return {
             selectedAmount: '500',
             customAmount: 500,
-            mode: 'donate-by-card',
+            mode: 'donate-by-bank-transfer',
             modes: ['donate-by-card', 'donate-by-qrcode', 'donate-by-bank-transfer', 'donate-by-code'],
             merchantID: '3002607',
             returnURL: 'https://members-backend.alearn13994229.workers.dev/donation_callback',
             checkMacValue: '',
             clientBackURL: window.location.origin + '/donate',
-            orderResultURL: '',
+            // orderResultURL: '',
+            status: '',
+            showDonationStatus: false,
+            pollingInterval: null,
         };
     },
     async mounted() {
-        this.orderResultURL = window.location.origin + '/donate_complete/' + this.merchantTradeNo;
+        //    this.orderResultURL = window.location.origin + '/donate_complete/' + this.merchantTradeNo;
         this.checkMacValue = await this.generateCheckMacValue();
+        // 檢查 URL 是否包含訂單編號
+        const urlParams = new URLSearchParams(window.location.search);
+        const merchantTradeNo = urlParams.get('merchantTradeNo');
+        if (merchantTradeNo) {
+            this.showDonationStatus = true;
+            this.startPolling(merchantTradeNo);
+        }
     },
     computed: {
         donationAmount() {
@@ -46,7 +63,7 @@ export default (await import('vue')).defineComponent({
     methods: {
         parse(mode) {
             if (mode === 'donate-by-card') {
-                return '信用卡小額捐贈';
+                return '信用卡捐贈(測試中，尚無法使用)';
             }
             else if (mode === 'donate-by-bank-transfer') {
                 return '銀行匯款捐贈';
@@ -76,7 +93,7 @@ export default (await import('vue')).defineComponent({
                 ChoosePayment: 'Credit',
                 EncryptType: '1',
                 ClientBackURL: this.clientBackURL,
-                OrderResultURL: this.orderResultURL,
+                // OrderResultURL: this.orderResultURL,
             };
             const sortedKeys = Object.keys(params).sort();
             const hashKey = 'pwFHCqoQZGmho4w6'; // 綠界金流提供的 HashKey
@@ -108,8 +125,55 @@ export default (await import('vue')).defineComponent({
                     .map(b => b.toString(16).padStart(2, '0'))
                     .join('');
             });
+        },
+        async checkDonationStatus(orderId) {
+            try {
+                const response = await fetch(`https://members-backend.alearn13994229.workers.dev/check_donation_status/${orderId}`);
+                const data = await response.json();
+                // console.log(data);
+                if (data && data.status) {
+                    this.status = data.status;
+                }
+                else {
+                    this.status = 'pending';
+                }
+            }
+            catch (error) {
+                console.error('檢查捐款狀態時發生錯誤:', error);
+            }
+        },
+        handleSubmit() {
+            // 當表單提交時開始輪詢
+            this.showDonationStatus = true;
+            this.startPolling(this.merchantTradeNo);
+        },
+        startPolling(orderId) {
+            // 設定初始狀態為處理中
+            this.status = 'pending';
+            // 立即檢查一次
+            this.checkDonationStatus(orderId);
+            // 每10秒檢查一次
+            this.pollingInterval = setInterval(() => {
+                this.checkDonationStatus(orderId);
+                if (this.status === 'success' || this.status === 'failed' || this.status === 'simulated') {
+                    if (this.pollingInterval) {
+                        clearInterval(this.pollingInterval);
+                    }
+                }
+            }, 10000);
+            // 5分鐘後停止輪詢
+            setTimeout(() => {
+                if (this.pollingInterval) {
+                    clearInterval(this.pollingInterval);
+                }
+            }, 5 * 60 * 1000);
         }
     },
+    beforeUnmount() {
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+        }
+    }
 });
 ;
 function __VLS_template() {
@@ -147,10 +211,32 @@ function __VLS_template() {
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
     __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("ui segment container") }, });
+    if (__VLS_ctx.showDonationStatus) {
+        __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("ui segment") }, });
+        if (__VLS_ctx.status === 'success') {
+            __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("ui segment") }, });
+            __VLS_elementAsFunction(__VLS_intrinsicElements.h2, __VLS_intrinsicElements.h2)({ ...{ class: ("main-title") }, });
+        }
+        if (__VLS_ctx.status === 'failed') {
+            __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("ui segment") }, });
+            __VLS_elementAsFunction(__VLS_intrinsicElements.h2, __VLS_intrinsicElements.h2)({ ...{ class: ("main-title") }, });
+            __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
+        }
+        if (__VLS_ctx.status === 'simulated') {
+            __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("ui segment") }, });
+            __VLS_elementAsFunction(__VLS_intrinsicElements.h2, __VLS_intrinsicElements.h2)({ ...{ class: ("main-title") }, });
+            __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
+        }
+        if (__VLS_ctx.status === 'pending') {
+            __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("ui segment") }, });
+            __VLS_elementAsFunction(__VLS_intrinsicElements.h2, __VLS_intrinsicElements.h2)({ ...{ class: ("main-title") }, });
+            __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
+        }
+    }
     __VLS_elementAsFunction(__VLS_intrinsicElements.h2, __VLS_intrinsicElements.h2)({ ...{ class: ("ui header") }, });
     __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
     __VLS_elementAsFunction(__VLS_intrinsicElements.i, __VLS_intrinsicElements.i)({ ...{ class: ("dollar icon") }, });
-    if (__VLS_ctx.mode === 'donate-by-card') {
+    if (__VLS_ctx.mode === 'donate-by-card' && __VLS_ctx.devMode) {
         __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
     }
     else if (__VLS_ctx.mode === 'donate-by-qrcode') {
@@ -171,7 +257,7 @@ function __VLS_template() {
         (__VLS_ctx.parse(m));
     }
     if (__VLS_ctx.mode === 'donate-by-card') {
-        __VLS_elementAsFunction(__VLS_intrinsicElements.form, __VLS_intrinsicElements.form)({ method: ("post"), action: ("https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"), target: ("_blank"), });
+        __VLS_elementAsFunction(__VLS_intrinsicElements.form, __VLS_intrinsicElements.form)({ ...{ onSubmit: (__VLS_ctx.handleSubmit) }, method: ("post"), action: ("https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"), target: ("_blank"), });
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("ui form") }, });
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("ui two stackable fields") }, });
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("compact field") }, });
@@ -199,7 +285,6 @@ function __VLS_template() {
         __VLS_elementAsFunction(__VLS_intrinsicElements.input, __VLS_intrinsicElements.input)({ type: ("hidden"), name: ("EncryptType"), value: ("1"), });
         __VLS_elementAsFunction(__VLS_intrinsicElements.input, __VLS_intrinsicElements.input)({ type: ("hidden"), name: ("CheckMacValue"), value: ((__VLS_ctx.checkMacValue)), });
         __VLS_elementAsFunction(__VLS_intrinsicElements.input, __VLS_intrinsicElements.input)({ type: ("hidden"), name: ("ClientBackURL"), value: ((__VLS_ctx.clientBackURL)), });
-        __VLS_elementAsFunction(__VLS_intrinsicElements.input, __VLS_intrinsicElements.input)({ type: ("hidden"), name: ("OrderResultURL"), value: ((__VLS_ctx.orderResultURL)), });
         __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({ type: ("submit"), ...{ class: ("ui basic green large button") }, });
         __VLS_elementAsFunction(__VLS_intrinsicElements.i, __VLS_intrinsicElements.i)({ ...{ class: ("dollar icon") }, });
     }
@@ -230,21 +315,27 @@ function __VLS_template() {
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("ui divider") }, });
     }
     if (__VLS_ctx.mode !== 'donate-by-code') {
-        __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("ui segment") }, });
+        __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("fluid segment") }, });
         __VLS_elementAsFunction(__VLS_intrinsicElements.h3, __VLS_intrinsicElements.h3)({});
-        __VLS_elementAsFunction(__VLS_intrinsicElements.a, __VLS_intrinsicElements.a)({ href: ("mailto:alearn13994229@gmail.com"), });
-        __VLS_elementAsFunction(__VLS_intrinsicElements.ul, __VLS_intrinsicElements.ul)({});
-        __VLS_elementAsFunction(__VLS_intrinsicElements.li, __VLS_intrinsicElements.li)({});
-        __VLS_elementAsFunction(__VLS_intrinsicElements.li, __VLS_intrinsicElements.li)({});
-        __VLS_elementAsFunction(__VLS_intrinsicElements.li, __VLS_intrinsicElements.li)({});
-        __VLS_elementAsFunction(__VLS_intrinsicElements.li, __VLS_intrinsicElements.li)({});
-        __VLS_elementAsFunction(__VLS_intrinsicElements.li, __VLS_intrinsicElements.li)({});
-        __VLS_elementAsFunction(__VLS_intrinsicElements.li, __VLS_intrinsicElements.li)({});
-        __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
+        __VLS_elementAsFunction(__VLS_intrinsicElements.iframe, __VLS_intrinsicElements.iframe)({ src: ("https://docs.google.com/forms/d/e/1FAIpQLSeUlMQeS4ztSkZ48GhytbQapT7TG-iBNB31YTWHVVT6XceGhQ/viewform?embedded=true"), width: ("100%"), height: ("3185"), frameborder: ("0"), marginheight: ("0"), marginwidth: ("0"), });
     }
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['segment'];
     __VLS_styleScopedClasses['container'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['segment'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['segment'];
+    __VLS_styleScopedClasses['main-title'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['segment'];
+    __VLS_styleScopedClasses['main-title'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['segment'];
+    __VLS_styleScopedClasses['main-title'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['segment'];
+    __VLS_styleScopedClasses['main-title'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['header'];
     __VLS_styleScopedClasses['dollar'];
@@ -284,7 +375,7 @@ function __VLS_template() {
     __VLS_styleScopedClasses['segment'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['divider'];
-    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['fluid'];
     __VLS_styleScopedClasses['segment'];
     var __VLS_slots;
     var __VLS_inheritedAttrs;
