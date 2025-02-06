@@ -133,11 +133,9 @@ export default {
         if (response.status !== 200) {
           throw new Error('伺服器回應異常');
         }
-        return response.data;
-      })
-      .then(data => {
+
         // 在新視窗中開啟付款頁面
-        window.open(data, '_blank');
+        window.open(response.data, '_blank');
       })
       .catch((error) => {
         console.error('捐款處理錯誤:', error);
