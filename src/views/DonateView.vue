@@ -78,6 +78,9 @@
       </ul>
       <p>本會將開立捐款收據並寄回給您，可供節稅使用。</p>
     </div>
+
+    <!-- New section to render the HTML content -->
+    <div v-if="donationHtmlContent" v-html="donationHtmlContent"></div>
   </div>
 </template>
 
@@ -94,6 +97,7 @@ export default {
       mode: 'donate-by-card',
       modes: ['donate-by-card', 'donate-by-qrcode', 'donate-by-bank-transfer', 'donate-by-code'],
       unsubscribe: (() => {}) as Unsubscribe | null,
+      donationHtmlContent: '', // New data property to store HTML content
     };
   },
   methods: {
@@ -134,8 +138,18 @@ export default {
           throw new Error('伺服器回應異常');
         }
 
-        // 在新視窗中開啟付款頁面
-        window.open(response.data, '_blank');
+        // Log the response data to check the HTML content
+        console.log('Response data:', response.data);
+
+        // Modify the HTML content to include a base tag
+        const baseUrl = 'https://www.alearn.org.tw'; // Replace with your actual base URL
+        const modifiedHtml = response.data.replace(
+          '<head>',
+          `<head><base href="${baseUrl}">`
+        );
+
+        // Store the modified HTML content in the data property
+        this.donationHtmlContent = modifiedHtml;
       })
       .catch((error) => {
         console.error('捐款處理錯誤:', error);
