@@ -1,8 +1,7 @@
 <template>
   <div class="ui segment container">
-    <div class="ui segment">
+    <div class="ui segment" v-if="status === 'success'">
       <h2 class="main-title">捐款完成，謝謝您的愛心</h2>
-
       <h3>請將以下資訊寄至本會行政室：
         <a href="mailto:alearn13994229@gmail.com">Email：alearn13994229@gmail.com</a>
       </h3>
@@ -16,18 +15,62 @@
       </ul>
       <p>本會將開立捐款收據並寄回給您，可供節稅使用。</p>
     </div>
+
+    <div class="ui segment" v-if="status === 'failed'">
+      <h2 class="main-title">捐款失敗</h2>
+      <p>很抱歉，您的捐款處理失敗。請嘗試其他捐款方式或稍後再試。</p>
+    </div>
+
+    <div class="ui segment" v-if="status === 'simulated'">
+      <h2 class="main-title">模擬捐款完成</h2>
+      <p>這是一筆測試性質的捐款，並未實際進行交易。</p>
+    </div>
+
+    <div class="ui segment" v-if="status === 'pending'">
+      <h2 class="main-title">處理中</h2>
+      <p>您的捐款正在處理中，請稍候...</p>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
+import { getFirestore, doc, onSnapshot, Unsubscribe } from 'firebase/firestore';
+import { app } from '../firebase';
 
 export default {
   data() {
     return {
+      status: 'pending',
+      merchantTradeNo: '',
+      unsubscribe: null as Unsubscribe | null,
     };
   },
+  mounted() {
+    this.merchantTradeNo = this.$route.params.merchantTradeNo as string || '';
+    if (this.merchantTradeNo) {
+      this.listenToOrderStatus(this.merchantTradeNo);
+    }
+  },
   methods: {
+    listenToOrderStatus(orderId: string) {
+      const db = getFirestore(app);
+      const orderRef = doc(db, 'donations', orderId);
 
+      this.unsubscribe = onSnapshot(orderRef, (doc) => {
+        const data = doc.data();
+        if (data) {
+          this.status = data.status;
+        }
+      });
+
+      // 5分鐘後停止監聽
+      setTimeout(() => {
+        this.unsubscribe?.();
+      }, 5 * 60 * 1000);
+    }
+  },
+  beforeUnmount() {
+    this.unsubscribe?.();
   }
 };
 </script>
