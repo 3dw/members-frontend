@@ -2,101 +2,103 @@
   <div class="ui segment container">
     <div v-if="showDonationStatus" class="ui segment">
       <div class="ui segment" v-if="status === 'success'">
-        <h2 class="main-title">捐款完成，謝謝您的愛心</h2>
+        <h2 class="main-title">捐款完成，謝謝您的愛心❤️</h2>
       </div>
 
       <div class="ui segment" v-if="status === 'failed'">
-        <h2 class="main-title">捐款失敗</h2>
+        <h2 class="main-title">捐款失敗❤️</h2>
         <p>很抱歉，您的捐款處理失敗。請嘗試其他捐款方式或稍後再試。</p>
       </div>
 
       <div class="ui segment" v-if="status === 'simulated'">
-        <h2 class="main-title">模擬捐款完成</h2>
+        <h2 class="main-title">模擬捐款完成❤️</h2>
         <p>這是一筆測試性質的捐款，並未實際進行交易。</p>
       </div>
 
       <div class="ui segment" v-if="status === 'pending'">
-        <h2 class="main-title">處理中</h2>
-        <p>您的捐款正在處理中，請稍候...</p>
+        <h2 class="main-title">處理中❤️</h2>
+        <p>您的捐款正在處理中，請稍候<span class="ellipsis">...</span></p>
       </div>
     </div>
 
-    <h2 class="ui header">
-      <span><i class="dollar icon"></i></span>
-      <span v-if="mode === 'donate-by-card' && devMode">信用卡小額捐贈</span>
-      <span v-else-if="mode === 'donate-by-qrcode'">QR Code掃碼捐贈</span>
-      <span v-else-if="mode === 'donate-by-bank-transfer'">銀行匯款捐贈</span>
-      <span v-else-if="mode === 'donate-by-code'">愛心碼捐贈</span>
+    <div v-show="!showDonationStatus">
+      <h2 class="ui header">
+        <span><i class="dollar icon"></i></span>
+        <span v-if="mode === 'donate-by-card' && devMode">信用卡小額捐贈</span>
+        <span v-else-if="mode === 'donate-by-qrcode'">QR Code掃碼捐贈</span>
+        <span v-else-if="mode === 'donate-by-bank-transfer'">銀行匯款捐贈</span>
+        <span v-else-if="mode === 'donate-by-code'">愛心碼捐贈</span>
 
-      <span>&nbsp;&nbsp;&nbsp;</span>
-      <div class="ui vertical buttons">
-        <button class="ui basic green large button" :class="{ 'active': mode === m }" v-for="m in modes" :key="m" @click="mode = m">{{ parse(m) }}</button>
-      </div>
-    </h2>
-
-    <form v-if="mode === 'donate-by-card'" method="post" @submit="handleSubmit" action="https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5" target="_blank">
-      <div class="ui form">
-        <div class="ui two stackable fields">
-          <div class="compact field">
-            <label>選擇捐贈金額</label>
-            <select v-model="selectedAmount" @change="clearCustomAmount">
-              <option value="500">新台幣500元</option>
-              <option value="1000">新台幣1000元</option>
-              <option value="2000">新台幣2000元</option>
-              <option value="custom">自訂金額</option>
-            </select>
-          </div>
-          <div class="field" v-if="selectedAmount === 'custom'">
-            <label>自訂金額：新台幣</label>
-            <input type="number" v-model.number="customAmount" min="500" placeholder="輸入金額" />
-          </div>
+        <span>&nbsp;&nbsp;&nbsp;</span>
+        <div class="ui vertical buttons">
+          <button class="ui basic green large button" :class="{ 'active': mode === m }" v-for="m in modes" :key="m" @click="mode = m">{{ parse(m) }}</button>
         </div>
+      </h2>
 
-        <!-- 綠界金流必要欄位 -->
-        <input type="hidden" name="MerchantID" :value="merchantID">
-        <input type="hidden" name="MerchantTradeNo" :value="merchantTradeNo">
-        <input type="hidden" name="MerchantTradeDate" :value="merchantTradeDate">
-        <input type="hidden" name="PaymentType" value="aio">
-        <input type="hidden" name="TotalAmount" :value="donationAmount">
-        <input type="hidden" name="TradeDesc" value="自主學習促進會捐款">
-        <input type="hidden" name="ItemName" value="捐款">
-        <input type="hidden" name="ReturnURL" :value="returnURL">
-        <input type="hidden" name="ChoosePayment" value="Credit">
-        <input type="hidden" name="EncryptType" value="1">
-        <input type="hidden" name="CheckMacValue" :value="checkMacValue">
-        <input type="hidden" name="ClientBackURL" :value="clientBackURL">
-<!--    <input type="hidden" name="OrderResultURL" :value="orderResultURL"> -->
+      <form v-if="mode === 'donate-by-card'" method="post" @submit="handleSubmit" action="https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5" target="_blank">
+        <div class="ui form">
+          <div class="ui two stackable fields">
+            <div class="compact field">
+              <label>選擇捐贈金額</label>
+              <select v-model="selectedAmount" @change="clearCustomAmount">
+                <option value="500">新台幣500元</option>
+                <option value="1000">新台幣1000元</option>
+                <option value="2000">新台幣2000元</option>
+                <option value="custom">自訂金額</option>
+              </select>
+            </div>
+            <div class="field" v-if="selectedAmount === 'custom'">
+              <label>自訂金額：新台幣</label>
+              <input type="number" v-model.number="customAmount" min="500" placeholder="輸入金額" />
+            </div>
+          </div>
 
-        <button type="submit" class="ui basic green large button">
-          <i class="dollar icon"></i>
-          捐贈
-        </button>
+          <!-- 綠界金流必要欄位 -->
+          <input type="hidden" name="MerchantID" :value="merchantID">
+          <input type="hidden" name="MerchantTradeNo" :value="merchantTradeNo">
+          <input type="hidden" name="MerchantTradeDate" :value="merchantTradeDate">
+          <input type="hidden" name="PaymentType" value="aio">
+          <input type="hidden" name="TotalAmount" :value="donationAmount">
+          <input type="hidden" name="TradeDesc" value="自主學習促進會捐款">
+          <input type="hidden" name="ItemName" value="捐款">
+          <input type="hidden" name="ReturnURL" :value="returnURL">
+          <input type="hidden" name="ChoosePayment" value="Credit">
+          <input type="hidden" name="EncryptType" value="1">
+          <input type="hidden" name="CheckMacValue" :value="checkMacValue">
+          <input type="hidden" name="ClientBackURL" :value="clientBackURL">
+  <!--    <input type="hidden" name="OrderResultURL" :value="orderResultURL"> -->
+
+          <button type="submit" class="ui basic green large button">
+            <i class="dollar icon"></i>
+            捐贈
+          </button>
+        </div>
+      </form>
+
+      <div class="ui divider" v-if="mode === 'donate-by-bank-transfer'"></div>
+      <div class="ui segment" v-if="mode === 'donate-by-bank-transfer'">
+        <h3>本會銀行帳戶：
+          <br>
+          台北富邦 士林分行（012）
+          <br>
+          帳號：30012-0000601
+          <br>
+          戶名：社團法人中華民國自主學習促進會
+        </h3>
       </div>
-    </form>
 
-    <div class="ui divider" v-if="mode === 'donate-by-bank-transfer'"></div>
-    <div class="ui segment" v-if="mode === 'donate-by-bank-transfer'">
-      <h3>本會銀行帳戶：
-        <br>
-        台北富邦 士林分行（012）
-        <br>
-        帳號：30012-0000601
-        <br>
-        戶名：社團法人中華民國自主學習促進會
-      </h3>
-    </div>
+      <div class="ui segment" v-if="mode === 'donate-by-qrcode'">
+        <img id ="#donate-qrcode" src="../assets/autolearn_donate_QRCode.png" alt="線上捐款"/>
+        <p>請掃描上方 QR Code</p>
+      </div>
 
-    <div class="ui segment" v-if="mode === 'donate-by-qrcode'">
-      <img id ="#donate-qrcode" src="../assets/autolearn_donate_QRCode.png" alt="線上捐款"/>
-      <p>請掃描上方 QR Code</p>
-    </div>
-
-    <div class="ui segment" v-if="mode === 'donate-by-code'">
-      <h3>以愛心碼「9806」捐助本會</h3>
-      <p>本會是一個非營利組織，需要您的支持。</p>
-      <p>愛心碼取為「9806」，是因為最初成立的契機，在於1998~2006年的「台北市自主學習（中學六年一貫）實驗計畫」，本會第一代會員多是計畫中的親師生及關注計畫的學者賢達，別具意義。</p>
-      <p>邀請並歡迎大家未來在開立電子發票的商家購物時，可主動向店員要求使用愛心碼，說出捐贈碼9806，或出示條碼即可。發票若中獎，將會自動捐入本會！</p>
-      <img id="donate" src="../assets/9806.png" alt="愛心碼"/>
+      <div class="ui segment" v-if="mode === 'donate-by-code'">
+        <h3>以愛心碼「9806」捐助本會</h3>
+        <p>本會是一個非營利組織，需要您的支持。</p>
+        <p>愛心碼取為「9806」，是因為最初成立的契機，在於1998~2006年的「台北市自主學習（中學六年一貫）實驗計畫」，本會第一代會員多是計畫中的親師生及關注計畫的學者賢達，別具意義。</p>
+        <p>邀請並歡迎大家未來在開立電子發票的商家購物時，可主動向店員要求使用愛心碼，說出捐贈碼9806，或出示條碼即可。發票若中獎，將會自動捐入本會！</p>
+        <img id="donate" src="../assets/9806.png" alt="愛心碼"/>
+      </div>
     </div>
 
     <div class="ui divider" v-if="mode !== 'donate-by-code'"></div>
@@ -321,7 +323,7 @@ li, p {
 }
 
 .main-title {
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   font-weight: bold;
   color: #4CAF50;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
@@ -411,5 +413,28 @@ li, p {
 
 .expiry-inputs span {
   color: #666;
+}
+
+.ellipsis::after {
+  content: '';
+  display: inline-block;
+  width: 1em;
+  text-align: left;
+  animation: ellipsis 1.5s infinite;
+}
+
+@keyframes ellipsis {
+  0% {
+    content: '.';
+  }
+  33% {
+    content: '..';
+  }
+  66% {
+    content: '...';
+  }
+  100% {
+    content: '';
+  }
 }
 </style>
