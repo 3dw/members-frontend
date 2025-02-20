@@ -24,7 +24,7 @@
     <div v-show="!showDonationStatus">
       <h2 class="ui header">
         <span><i class="dollar icon"></i></span>
-        <span v-if="mode === 'donate-by-card' && devMode">信用卡小額捐贈</span>
+        <span v-if="mode === 'donate-by-card'">信用卡捐贈</span>
         <span v-else-if="mode === 'donate-by-qrcode'">QR Code掃碼捐贈</span>
         <span v-else-if="mode === 'donate-by-bank-transfer'">銀行匯款捐贈</span>
         <span v-else-if="mode === 'donate-by-code'">愛心碼捐贈</span>
@@ -69,7 +69,7 @@
           <input type="hidden" name="ClientBackURL" :value="clientBackURL">
   <!--    <input type="hidden" name="OrderResultURL" :value="orderResultURL"> -->
 
-          <button type="submit" class="ui basic green large button">
+          <button type="submit" class="ui basic green huge active button">
             <i class="dollar icon"></i>
             捐贈
           </button>
@@ -140,7 +140,7 @@ export default {
     return {
       selectedAmount: '500',
       customAmount: 500,
-      mode: 'donate-by-bank-transfer',
+      mode: 'donate-by-card',
       modes: ['donate-by-card', 'donate-by-qrcode', 'donate-by-bank-transfer', 'donate-by-code'],
       merchantID: '3214475', // 正式金流
       returnURL: 'https://members-backend.alearn13994229.workers.dev/donation_callback',
@@ -194,7 +194,7 @@ export default {
   methods: {
     parse(mode: string) {
       if (mode === 'donate-by-card') {
-        return '信用卡捐贈' // (測試中，尚無法使用)
+        return '信用卡捐贈'
       } else if (mode === 'donate-by-bank-transfer') {
         return '銀行匯款捐贈'
       } else if (mode === 'donate-by-qrcode') {
@@ -317,6 +317,11 @@ export default {
 </script>
 
 <style scoped>
+
+.ui.basic.green.active.button {
+  background-color: #4CAF50 !important;
+  color: white !important;
+}
 
 li, p {
   font-size: 1.2rem;
