@@ -25,7 +25,7 @@ header
       | 問題
     RouterLink.item(to="/donate")
       i.money.icon
-      | 捐款支持
+      | 捐款
     // RouterLink.item(v-if="!uid && !devMode", to="/history")
     //   i.history.icon
     //   | 歷史
