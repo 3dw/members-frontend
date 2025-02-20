@@ -231,8 +231,11 @@ function __VLS_template() {
             __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("ui segment") }, });
             __VLS_elementAsFunction(__VLS_intrinsicElements.h2, __VLS_intrinsicElements.h2)({ ...{ class: ("main-title") }, });
             __VLS_elementAsFunction(__VLS_intrinsicElements.p, __VLS_intrinsicElements.p)({});
+            __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({ ...{ class: ("ellipsis") }, });
         }
     }
+    __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({});
+    __VLS_directiveAsFunction(__VLS_directives.vShow)(null, { ...__VLS_directiveBindingRestFields, value: (!__VLS_ctx.showDonationStatus) }, null, null);
     __VLS_elementAsFunction(__VLS_intrinsicElements.h2, __VLS_intrinsicElements.h2)({ ...{ class: ("ui header") }, });
     __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
     __VLS_elementAsFunction(__VLS_intrinsicElements.i, __VLS_intrinsicElements.i)({ ...{ class: ("dollar icon") }, });
@@ -336,6 +339,7 @@ function __VLS_template() {
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['segment'];
     __VLS_styleScopedClasses['main-title'];
+    __VLS_styleScopedClasses['ellipsis'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['header'];
     __VLS_styleScopedClasses['dollar'];
