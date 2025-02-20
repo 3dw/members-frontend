@@ -23,16 +23,16 @@ header
       i.help.icon
       span 常見
       | 問題
-    RouterLink.item(v-if="devMode", to="/donate")
+    RouterLink.item(to="/donate")
       i.money.icon
-      | 捐贈
-    RouterLink.item(v-if="!uid && !devMode", to="/history")
-      i.history.icon
-      | 歷史
-    RouterLink.item(v-if="uid && !devMode",to="/create_faq")
-      i.plus.icon
-      | 新增
-      span.fat-only 問答
+      | 捐款支持
+    // RouterLink.item(v-if="!uid && !devMode", to="/history")
+    //   i.history.icon
+    //   | 歷史
+    // RouterLink.item(v-if="uid && !devMode",to="/create_faq")
+    //   i.plus.icon
+    //   | 新增
+    //   span.fat-only 問答
     //RouterLink.item.fat-only(v-if="uid", to="/feedback")
       i.magic.icon
       | 回饋
@@ -62,9 +62,9 @@ header
   RouterLink.item(to='/about', name="about")
     i.info.icon
     | 關於我們
-  RouterLink.item(v-if="devMode", to='/donate', name="donate")
+  RouterLink.item(to='/donate', name="donate")
     i.money.icon
-    | 捐贈本會
+    | 捐款支持
   RouterLink.item(to='/podcast', name="podcast")
     i.vedio.play.icon
     | 影音短講

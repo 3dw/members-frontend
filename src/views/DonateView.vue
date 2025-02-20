@@ -35,12 +35,13 @@
         </div>
       </h2>
 
-      <form v-if="mode === 'donate-by-card'" method="post" @submit="handleSubmit" action="https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5" target="_blank">
+      <form v-if="mode === 'donate-by-card'" method="post" @submit="handleSubmit" action="https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5" target="_blank">
         <div class="ui form">
           <div class="ui two stackable fields">
             <div class="compact field">
               <label>選擇捐贈金額</label>
               <select v-model="selectedAmount" @change="clearCustomAmount">
+                <option value="100">新台幣100元</option>
                 <option value="500">新台幣500元</option>
                 <option value="1000">新台幣1000元</option>
                 <option value="2000">新台幣2000元</option>
@@ -141,7 +142,7 @@ export default {
       customAmount: 500,
       mode: 'donate-by-bank-transfer',
       modes: ['donate-by-card', 'donate-by-qrcode', 'donate-by-bank-transfer', 'donate-by-code'],
-      merchantID: '3002607',
+      merchantID: '3214475', // 正式金流
       returnURL: 'https://members-backend.alearn13994229.workers.dev/donation_callback',
       checkMacValue: '',
       clientBackURL: window.location.origin + '/donate',
@@ -193,7 +194,7 @@ export default {
   methods: {
     parse(mode: string) {
       if (mode === 'donate-by-card') {
-        return '信用卡捐贈(測試中，尚無法使用)'
+        return '信用卡捐贈' // (測試中，尚無法使用)
       } else if (mode === 'donate-by-bank-transfer') {
         return '銀行匯款捐贈'
       } else if (mode === 'donate-by-qrcode') {
@@ -225,8 +226,8 @@ export default {
 
       const sortedKeys = Object.keys(params).sort();
 
-      const hashKey = 'pwFHCqoQZGmho4w6'; // 綠界金流提供的 HashKey
-      const hashIV = 'EkRm7iFT261dpevs'; // 綠界金流提供的 HashIV
+      const hashKey = 'uwd8iyVvedwkGKY7'; // 正式的金流 HashKey
+      const hashIV = 'IsVGPnoyr1xzvExa'; // 正式的金流 HashIV
 
       let checkString = 'HashKey=' + hashKey;
       sortedKeys.forEach(key => {
