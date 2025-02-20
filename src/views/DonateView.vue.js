@@ -10,9 +10,9 @@ export default (await import('vue')).defineComponent({
         return {
             selectedAmount: '500',
             customAmount: 500,
-            mode: 'donate-by-bank-transfer',
+            mode: 'donate-by-card',
             modes: ['donate-by-card', 'donate-by-qrcode', 'donate-by-bank-transfer', 'donate-by-code'],
-            merchantID: '3002607',
+            merchantID: '3214475', // 正式金流
             returnURL: 'https://members-backend.alearn13994229.workers.dev/donation_callback',
             checkMacValue: '',
             clientBackURL: window.location.origin + '/donate',
@@ -63,7 +63,7 @@ export default (await import('vue')).defineComponent({
     methods: {
         parse(mode) {
             if (mode === 'donate-by-card') {
-                return '信用卡捐贈(測試中，尚無法使用)';
+                return '信用卡捐贈';
             }
             else if (mode === 'donate-by-bank-transfer') {
                 return '銀行匯款捐贈';
@@ -96,8 +96,8 @@ export default (await import('vue')).defineComponent({
                 // OrderResultURL: this.orderResultURL,
             };
             const sortedKeys = Object.keys(params).sort();
-            const hashKey = 'pwFHCqoQZGmho4w6'; // 綠界金流提供的 HashKey
-            const hashIV = 'EkRm7iFT261dpevs'; // 綠界金流提供的 HashIV
+            const hashKey = 'uwd8iyVvedwkGKY7'; // 正式的金流 HashKey
+            const hashIV = 'IsVGPnoyr1xzvExa'; // 正式的金流 HashIV
             let checkString = 'HashKey=' + hashKey;
             sortedKeys.forEach(key => {
                 checkString += '&' + key + '=' + params[key];
@@ -190,9 +190,11 @@ function __VLS_template() {
     let __VLS_directives;
     let __VLS_styleScopedClasses;
     __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['container'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['basic'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['basic'];
     __VLS_styleScopedClasses['segment'];
@@ -239,7 +241,7 @@ function __VLS_template() {
     __VLS_elementAsFunction(__VLS_intrinsicElements.h2, __VLS_intrinsicElements.h2)({ ...{ class: ("ui header") }, });
     __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
     __VLS_elementAsFunction(__VLS_intrinsicElements.i, __VLS_intrinsicElements.i)({ ...{ class: ("dollar icon") }, });
-    if (__VLS_ctx.mode === 'donate-by-card' && __VLS_ctx.devMode) {
+    if (__VLS_ctx.mode === 'donate-by-card') {
         __VLS_elementAsFunction(__VLS_intrinsicElements.span, __VLS_intrinsicElements.span)({});
     }
     else if (__VLS_ctx.mode === 'donate-by-qrcode') {
@@ -260,12 +262,13 @@ function __VLS_template() {
         (__VLS_ctx.parse(m));
     }
     if (__VLS_ctx.mode === 'donate-by-card') {
-        __VLS_elementAsFunction(__VLS_intrinsicElements.form, __VLS_intrinsicElements.form)({ ...{ onSubmit: (__VLS_ctx.handleSubmit) }, method: ("post"), action: ("https://payment-stage.ecpay.com.tw/Cashier/AioCheckOut/V5"), target: ("_blank"), });
+        __VLS_elementAsFunction(__VLS_intrinsicElements.form, __VLS_intrinsicElements.form)({ ...{ onSubmit: (__VLS_ctx.handleSubmit) }, method: ("post"), action: ("https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5"), target: ("_blank"), });
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("ui form") }, });
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("ui two stackable fields") }, });
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("compact field") }, });
         __VLS_elementAsFunction(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({});
         __VLS_elementAsFunction(__VLS_intrinsicElements.select, __VLS_intrinsicElements.select)({ ...{ onChange: (__VLS_ctx.clearCustomAmount) }, value: ((__VLS_ctx.selectedAmount)), });
+        __VLS_elementAsFunction(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({ value: ("100"), });
         __VLS_elementAsFunction(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({ value: ("500"), });
         __VLS_elementAsFunction(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({ value: ("1000"), });
         __VLS_elementAsFunction(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({ value: ("2000"), });
@@ -288,7 +291,7 @@ function __VLS_template() {
         __VLS_elementAsFunction(__VLS_intrinsicElements.input, __VLS_intrinsicElements.input)({ type: ("hidden"), name: ("EncryptType"), value: ("1"), });
         __VLS_elementAsFunction(__VLS_intrinsicElements.input, __VLS_intrinsicElements.input)({ type: ("hidden"), name: ("CheckMacValue"), value: ((__VLS_ctx.checkMacValue)), });
         __VLS_elementAsFunction(__VLS_intrinsicElements.input, __VLS_intrinsicElements.input)({ type: ("hidden"), name: ("ClientBackURL"), value: ((__VLS_ctx.clientBackURL)), });
-        __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({ type: ("submit"), ...{ class: ("ui basic green large button") }, });
+        __VLS_elementAsFunction(__VLS_intrinsicElements.button, __VLS_intrinsicElements.button)({ type: ("submit"), ...{ class: ("ui basic green huge active button") }, });
         __VLS_elementAsFunction(__VLS_intrinsicElements.i, __VLS_intrinsicElements.i)({ ...{ class: ("dollar icon") }, });
     }
     if (__VLS_ctx.mode === 'donate-by-bank-transfer') {
@@ -365,7 +368,8 @@ function __VLS_template() {
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['basic'];
     __VLS_styleScopedClasses['green'];
-    __VLS_styleScopedClasses['large'];
+    __VLS_styleScopedClasses['huge'];
+    __VLS_styleScopedClasses['active'];
     __VLS_styleScopedClasses['button'];
     __VLS_styleScopedClasses['dollar'];
     __VLS_styleScopedClasses['icon'];
