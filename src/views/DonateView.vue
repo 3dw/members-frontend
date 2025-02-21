@@ -33,6 +33,7 @@
         <div class="ui vertical buttons">
           <button class="ui basic green large button" :class="{ 'active': mode === m }" v-for="m in modes" :key="m" @click="mode = m">{{ parse(m) }}</button>
         </div>
+        <img src="../assets/donate_heart.webp" alt="捐贈愛心" class="donate-heart">
       </h2>
 
       <form v-if="mode === 'donate-by-card'" method="post" @submit="handleSubmit" action="https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5" target="_blank">
@@ -108,7 +109,7 @@
 
       <iframe
         src="https://docs.google.com/forms/d/e/1FAIpQLSeUlMQeS4ztSkZ48GhytbQapT7TG-iBNB31YTWHVVT6XceGhQ/viewform?embedded=true"
-        width="100%" height="3185" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
+        width="100%" height="4300" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
     </div>
       <!-- <h3>完成捐款後，請將以下資訊寄至本會行政室：
         <a href="mailto:alearn13994229@gmail.com">Email：alearn13994229@gmail.com</a>
@@ -317,6 +318,31 @@ export default {
 </script>
 
 <style scoped>
+
+img.donate-heart {
+  width: 200px;
+  height: 200px;
+  margin: .2em;
+  float: right;
+  border-radius: 50%;
+}
+
+.ui.container {
+  background: #fff3e6 !important; /* 淺橙色 */
+}
+
+@media (min-width: 992px) {
+  img.donate-heart {
+    margin-right: 4em;
+  }
+}
+
+@media (max-width: 768px) {
+  img.donate-heart {
+    width: 100px;
+    height: 100px;
+  }
+}
 
 .ui.basic.green.active.button {
   background-color: #4CAF50 !important;
