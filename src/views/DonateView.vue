@@ -105,7 +105,7 @@
 
     <div class="ui divider" v-if="mode !== 'donate-by-code'"></div>
     <div class="fluid segment" v-if="mode !== 'donate-by-code'">
-      <h3>完成捐款後，請填寫下表，讓本會知道您的捐款資訊：</h3>
+      <h3>完成捐款後，請填寫下表，讓本會知道您的捐款資訊，並開立捐款收據，可供節稅：</h3>
 
       <iframe
         src="https://docs.google.com/forms/d/e/1FAIpQLSeUlMQeS4ztSkZ48GhytbQapT7TG-iBNB31YTWHVVT6XceGhQ/viewform?embedded=true"
