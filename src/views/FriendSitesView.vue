@@ -9,11 +9,11 @@ main.ui.container#friend-sites-container
         i(:class="section.icon")
         .content {{ section.title }}
       .ui.relaxed.divided.list
-        .item(v-for="site in section.sites" :key="site.url")
+        a.item.flex.flex-start-center(:href="site.url" target="_blank", rel="noopener noreferrer", v-for="site in section.sites" :key="site.url")
           img.ui.avatar.image(v-if="site.image" :src="site.image" :alt="site.name")
           i.linkify.icon(v-else)
           .content
-            a(:href="site.url" target="_blank", rel="noopener noreferrer") {{ site.name }}
+            | {{ site.name }}
 
 </template>
 

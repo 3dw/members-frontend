@@ -68,7 +68,7 @@ a, button {
 }
 
 .flex {
-  display: flex;
+  display: flex !important;
 }
 
 .flex-center {
@@ -90,6 +90,10 @@ a, button {
   align-items: center;
 }
 
+.flex-start-center {
+  justify-content: flex-start !important;
+  align-items: center !important;
+}
 
 .highlight {
   background-color: yellow !important;
