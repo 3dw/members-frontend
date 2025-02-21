@@ -189,7 +189,11 @@ function __VLS_template() {
     };
     let __VLS_directives;
     let __VLS_styleScopedClasses;
+    __VLS_styleScopedClasses['donate-heart'];
+    __VLS_styleScopedClasses['donate-heart'];
     __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['container'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['container'];
     __VLS_styleScopedClasses['ui'];
@@ -261,6 +265,7 @@ function __VLS_template() {
                 } }, ...{ class: ("ui basic green large button") }, ...{ class: (({ 'active': __VLS_ctx.mode === m })) }, key: ((m)), });
         (__VLS_ctx.parse(m));
     }
+    __VLS_elementAsFunction(__VLS_intrinsicElements.img, __VLS_intrinsicElements.img)({ src: ("../assets/donate_heart.webp"), alt: ("捐贈愛心"), ...{ class: ("donate-heart") }, });
     if (__VLS_ctx.mode === 'donate-by-card') {
         __VLS_elementAsFunction(__VLS_intrinsicElements.form, __VLS_intrinsicElements.form)({ ...{ onSubmit: (__VLS_ctx.handleSubmit) }, method: ("post"), action: ("https://payment.ecpay.com.tw/Cashier/AioCheckOut/V5"), target: ("_blank"), });
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("ui form") }, });
@@ -323,7 +328,7 @@ function __VLS_template() {
     if (__VLS_ctx.mode !== 'donate-by-code') {
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("fluid segment") }, });
         __VLS_elementAsFunction(__VLS_intrinsicElements.h3, __VLS_intrinsicElements.h3)({});
-        __VLS_elementAsFunction(__VLS_intrinsicElements.iframe, __VLS_intrinsicElements.iframe)({ src: ("https://docs.google.com/forms/d/e/1FAIpQLSeUlMQeS4ztSkZ48GhytbQapT7TG-iBNB31YTWHVVT6XceGhQ/viewform?embedded=true"), width: ("100%"), height: ("3185"), frameborder: ("0"), marginheight: ("0"), marginwidth: ("0"), });
+        __VLS_elementAsFunction(__VLS_intrinsicElements.iframe, __VLS_intrinsicElements.iframe)({ src: ("https://docs.google.com/forms/d/e/1FAIpQLSeUlMQeS4ztSkZ48GhytbQapT7TG-iBNB31YTWHVVT6XceGhQ/viewform?embedded=true"), width: ("100%"), height: ("4300"), frameborder: ("0"), marginheight: ("0"), marginwidth: ("0"), });
     }
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['segment'];
@@ -356,6 +361,7 @@ function __VLS_template() {
     __VLS_styleScopedClasses['large'];
     __VLS_styleScopedClasses['button'];
     __VLS_styleScopedClasses['active'];
+    __VLS_styleScopedClasses['donate-heart'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['form'];
     __VLS_styleScopedClasses['ui'];
