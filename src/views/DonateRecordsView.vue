@@ -7,7 +7,7 @@ main.ui.segment
     a(href="mailto:alearn13994229@gmail.com") alearn13994229@gmail.com
     | ，我們會盡速補上，謝謝！
 
-  .ui.celled.striped.compact.table
+  table.ui.celled.striped.compact.table
     thead
       tr
         th 日期
