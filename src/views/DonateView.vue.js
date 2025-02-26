@@ -8,8 +8,8 @@ export default (await import('vue')).defineComponent({
     },
     data() {
         return {
-            selectedAmount: '500',
-            customAmount: 500,
+            selectedAmount: '150',
+            customAmount: 150,
             mode: 'donate-by-card',
             modes: ['donate-by-card', 'donate-by-qrcode', 'donate-by-bank-transfer', 'donate-by-code'],
             merchantID: '3214475', // 正式金流
@@ -77,7 +77,7 @@ export default (await import('vue')).defineComponent({
         },
         clearCustomAmount() {
             if (this.selectedAmount !== 'custom') {
-                this.customAmount = 500;
+                this.customAmount = 150;
             }
         },
         async generateCheckMacValue() {
@@ -273,7 +273,7 @@ function __VLS_template() {
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("compact field") }, });
         __VLS_elementAsFunction(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({});
         __VLS_elementAsFunction(__VLS_intrinsicElements.select, __VLS_intrinsicElements.select)({ ...{ onChange: (__VLS_ctx.clearCustomAmount) }, value: ((__VLS_ctx.selectedAmount)), });
-        __VLS_elementAsFunction(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({ value: ("100"), });
+        __VLS_elementAsFunction(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({ value: ("150"), });
         __VLS_elementAsFunction(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({ value: ("500"), });
         __VLS_elementAsFunction(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({ value: ("1000"), });
         __VLS_elementAsFunction(__VLS_intrinsicElements.option, __VLS_intrinsicElements.option)({ value: ("2000"), });
@@ -281,7 +281,7 @@ function __VLS_template() {
         if (__VLS_ctx.selectedAmount === 'custom') {
             __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("field") }, });
             __VLS_elementAsFunction(__VLS_intrinsicElements.label, __VLS_intrinsicElements.label)({});
-            __VLS_elementAsFunction(__VLS_intrinsicElements.input)({ type: ("number"), min: ("500"), placeholder: ("輸入金額"), });
+            __VLS_elementAsFunction(__VLS_intrinsicElements.input)({ type: ("number"), min: ("150"), placeholder: ("輸入金額"), });
             (__VLS_ctx.customAmount);
         }
         __VLS_elementAsFunction(__VLS_intrinsicElements.input, __VLS_intrinsicElements.input)({ type: ("hidden"), name: ("MerchantID"), value: ((__VLS_ctx.merchantID)), });
@@ -328,6 +328,13 @@ function __VLS_template() {
     if (__VLS_ctx.mode !== 'donate-by-code') {
         __VLS_elementAsFunction(__VLS_intrinsicElements.div, __VLS_intrinsicElements.div)({ ...{ class: ("fluid segment") }, });
         __VLS_elementAsFunction(__VLS_intrinsicElements.h3, __VLS_intrinsicElements.h3)({});
+        const __VLS_0 = __VLS_resolvedLocalAndGlobalComponents.RouterLink;
+        /** @type { [typeof __VLS_components.RouterLink, typeof __VLS_components.RouterLink, ] } */
+        // @ts-ignore
+        const __VLS_1 = __VLS_asFunctionalComponent(__VLS_0, new __VLS_0({ to: ("/donate_records"), }));
+        const __VLS_2 = __VLS_1({ to: ("/donate_records"), }, ...__VLS_functionalComponentArgsRest(__VLS_1));
+        __VLS_nonNullable(__VLS_5.slots).default;
+        const __VLS_5 = __VLS_pickFunctionalComponentCtx(__VLS_0, __VLS_2);
         __VLS_elementAsFunction(__VLS_intrinsicElements.iframe, __VLS_intrinsicElements.iframe)({ src: ("https://docs.google.com/forms/d/e/1FAIpQLSeUlMQeS4ztSkZ48GhytbQapT7TG-iBNB31YTWHVVT6XceGhQ/viewform?embedded=true"), width: ("100%"), height: ("4300"), frameborder: ("0"), marginheight: ("0"), marginwidth: ("0"), });
     }
     __VLS_styleScopedClasses['ui'];
