@@ -42,7 +42,7 @@
             <div class="compact field">
               <label>選擇捐贈金額</label>
               <select v-model="selectedAmount" @change="clearCustomAmount">
-                <option value="100">新台幣100元</option>
+                <option value="150">新台幣150元</option>
                 <option value="500">新台幣500元</option>
                 <option value="1000">新台幣1000元</option>
                 <option value="2000">新台幣2000元</option>
@@ -51,7 +51,7 @@
             </div>
             <div class="field" v-if="selectedAmount === 'custom'">
               <label>自訂金額：新台幣</label>
-              <input type="number" v-model.number="customAmount" min="500" placeholder="輸入金額" />
+              <input type="number" v-model.number="customAmount" min="150" placeholder="輸入金額" />
             </div>
           </div>
 
@@ -139,8 +139,8 @@ export default {
   },
   data() {
     return {
-      selectedAmount: '500',
-      customAmount: 500,
+      selectedAmount: '150',
+      customAmount: 150,
       mode: 'donate-by-card',
       modes: ['donate-by-card', 'donate-by-qrcode', 'donate-by-bank-transfer', 'donate-by-code'],
       merchantID: '3214475', // 正式金流
@@ -206,7 +206,7 @@ export default {
     },
     clearCustomAmount() {
       if (this.selectedAmount !== 'custom') {
-        this.customAmount = 500;
+        this.customAmount = 150;
       }
     },
     async generateCheckMacValue() {
