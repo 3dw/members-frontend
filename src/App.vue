@@ -26,6 +26,9 @@ header
     RouterLink.item(to="/donate")
       i.money.icon
       | 捐款
+    RouterLink.item(to="/donate_records")
+      i.history.icon
+      | 芳名錄
     // RouterLink.item(v-if="!uid && !devMode", to="/history")
     //   i.history.icon
     //   | 歷史
