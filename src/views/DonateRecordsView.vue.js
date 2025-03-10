@@ -1,4 +1,4 @@
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 export default (await import('vue')).defineComponent({
     setup() {
         const records = ref([
@@ -108,8 +108,25 @@ export default (await import('vue')).defineComponent({
             { datetime: '99年2月', name: '鄧純純', amount: 3000, project: '不指定' },
             { datetime: '99年2月', name: '鄭彩華', amount: 3000, project: '不指定' }
         ]);
+        const searchQuery = ref('');
+        const filteredRecords = computed(() => {
+            const parseDateTime = (datetime) => {
+                const [year, month] = datetime.split('年').map(Number);
+                return new Date(year, month - 1, 1);
+            };
+            if (!searchQuery.value) {
+                return records.value.slice().sort((a, b) => new Date(parseDateTime(b.datetime)).getTime() - new Date(parseDateTime(a.datetime)).getTime());
+            }
+            const query = searchQuery.value;
+            console.log(query);
+            return records.value.filter(record => record.name.includes(query) ||
+                record.project.includes(query) ||
+                record.datetime.includes(query)).slice().sort((a, b) => new Date(parseDateTime(b.datetime)).getTime() - new Date(parseDateTime(a.datetime)).getTime());
+        });
         return {
-            records
+            records,
+            searchQuery,
+            filteredRecords
         };
     }
 });
