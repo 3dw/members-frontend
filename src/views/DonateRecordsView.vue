@@ -2,6 +2,8 @@
 main.ui.segment
   h1.ui.header 捐款芳名錄
 
+  <img src="../assets/donate_heart.webp" alt="捐贈愛心" class="donate-heart"/>
+
   p 感謝諸位大德支持。芳名錄如有疏漏，煩請與本會連絡
     |
     a(href="mailto:alearn13994229@gmail.com") alearn13994229@gmail.com
@@ -187,6 +189,16 @@ export default {
 </script>
 
 <style scoped>
+
+
+img.donate-heart {
+  width: 200px;
+  height: 200px;
+  margin: .2em;
+  float: right;
+  border-radius: 50%;
+}
+
 .ui.cards {
   margin-top: 2em;
 }
