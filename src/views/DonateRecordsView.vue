@@ -7,6 +7,14 @@ main.ui.segment
     a(href="mailto:alearn13994229@gmail.com") alearn13994229@gmail.com
     | ，我們會盡速補上，謝謝！
 
+  .ui.form
+    .field
+      label 關鍵字搜尋
+      input(type="text" v-model="searchQuery" placeholder="請輸入姓名、專案或日期關鍵字")
+
+  p(v-if="filteredRecords.length === 0") 沒有符合搜尋條件的結果
+  p(v-else-if="searchQuery") 找到 {{ filteredRecords.length }} 筆符合的捐款記錄
+
   table.ui.celled.striped.compact.table
     thead
       tr
@@ -15,7 +23,7 @@ main.ui.segment
         th 金額
         th 支持專案
     tbody
-      tr(v-for="record in records" :key="record.datetime")
+      tr(v-for="(record, idx) in filteredRecords" :key="idx")
         td {{ record.datetime }}
         td {{ record.name }}
         td {{ record.amount }}
@@ -23,7 +31,7 @@ main.ui.segment
 </template>
 
 <script lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 interface Record {
   datetime: string;
@@ -144,8 +152,35 @@ export default {
       { datetime: '99年2月', name: '鄭彩華', amount: 3000, project: '不指定' }
     ])
 
+    const searchQuery = ref('');
+
+    const filteredRecords = computed(() => {
+      const parseDateTime = (datetime: string) => {
+        const [year, month] = datetime.split('年').map(Number);
+        return new Date(year, month - 1, 1);
+      }
+
+      if (!searchQuery.value) {
+        return records.value.slice().sort((a, b) =>
+          new Date(parseDateTime(b.datetime)).getTime() - new Date(parseDateTime(a.datetime)).getTime()
+        );
+      }
+
+      const query = searchQuery.value;
+      console.log(query);
+      return records.value.filter(record =>
+        record.name.includes(query) ||
+        record.project.includes(query) ||
+        record.datetime.includes(query)
+      ).slice().sort((a, b) =>
+        new Date(parseDateTime(b.datetime)).getTime() - new Date(parseDateTime(a.datetime)).getTime()
+      );
+    });
+
     return {
-      records
+      records,
+      searchQuery,
+      filteredRecords
     }
   }
 }
