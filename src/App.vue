@@ -26,7 +26,7 @@ header
     RouterLink.item(to="/donate")
       i.money.icon
       | 捐款
-    RouterLink.item(to="/donate_records")
+    RouterLink.item.fat-only(to="/donate_records")
       i.history.icon
       | 芳名錄
     // RouterLink.item(v-if="!uid && !devMode", to="/history")
@@ -65,9 +65,14 @@ header
   RouterLink.item(to='/about', name="about")
     i.info.icon
     | 關於我們
+
   RouterLink.item(to='/donate', name="donate")
     i.money.icon
     | 捐款支持
+  RouterLink.item(to="/donate_records")
+    i.history.icon
+    | 芳名錄
+  
   RouterLink.item(to='/podcast', name="podcast")
     i.vedio.play.icon
     | 影音短講
