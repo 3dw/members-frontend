@@ -12,7 +12,7 @@ export default defineComponent({
             default: () => ({})
         }
     },
-    setup(props) {
+    setup(props, { emit }) {
         const messages = ref([
             { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
             { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' }
@@ -31,6 +31,9 @@ export default defineComponent({
                 console.log('留言成功');
             });
             // 可以在這裡添加邏輯來將新留言添加到 messages 中
+        };
+        const toggleLogin = () => {
+            emit('toggleLogin');
         };
         const parseDate = (date) => {
             const now = new Date();
@@ -82,7 +85,8 @@ export default defineComponent({
             messages,
             newMessage,
             addMessage,
-            parseDate
+            parseDate,
+            toggleLogin
         };
     }
 });

@@ -66,10 +66,10 @@ export default defineComponent({
             let autoredirect = true;
             console.log('Login clicked');
             const path = window.location.pathname;
-            /* if (!validateEmail(users_email.value)) {
-              alert('請用@alearn.org.tw的Email登入');
-              return;
-            } */
+            if (!validateEmail(users_email.value)) {
+                alert('請用@alearn.org.tw，或是會員名冊上有的Email登入');
+                return;
+            }
             if (path === '/friends' || path === '/maps' || path === '/privacy-policy' || path.startsWith('/flag') || path.startsWith('/group')) {
                 autoredirect = false;
             }
