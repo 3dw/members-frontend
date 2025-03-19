@@ -47,10 +47,29 @@ header
       .ui.simple.dropdown.item(v-else)
         img.ui.avatar.image(v-if="photoURL" :src="photoURL" alt="User Avatar" @error="useDefaultAvatar" @load="onImageLoad")
         i.user.icon(v-else)
+        i.caret.down.icon
         .menu
-          router-link.item(to="/profile")
+          RouterLink.item(to="/bulletin_board")
+            i.comments.icon
+            | 留言板
+          RouterLink.item(v-if="uid", to='/create_faq', name="create-faq")
+            i.plus.icon
+            | 新增問答
+          .divider
+          RouterLink.item(to="/profile")
             i.flag.icon
             | 我的旗幟
+          RouterLink.item(v-if="uid", to="/maps", name="maps")
+            i.map.icon
+            | 互助地圖
+          .divider
+          RouterLink.item(v-if="uid", to='/changelog', name="changelog")
+            i.history.icon
+            | 變更紀錄
+          RouterLink.item(v-if="uid", to='/privacy-policy', name="privacy")
+            i.lock.icon
+            | 隱私權政策
+          .divider
           button.no-border.ui.item(v-if="uid", @click="logout")
             i.sign-out.icon
             | 登出
@@ -72,7 +91,7 @@ header
   RouterLink.item(to="/donate_records")
     i.history.icon
     | 芳名錄
-  
+
   RouterLink.item(to='/podcast', name="podcast")
     i.vedio.play.icon
     | 影音短講
@@ -97,18 +116,6 @@ header
   RouterLink.item(to='/faq', name="faq")
     i.help.icon
     | 常見問題
-  RouterLink.item(v-if="uid", to='/create_faq', name="create-faq")
-    i.plus.icon
-    | 新增問答
-  RouterLink.item(v-if="uid", to="/maps", name="maps")
-    i.map.icon
-    | 地圖
-  RouterLink.item(v-if="uid", to='/changelog', name="changelog")
-    i.history.icon
-    | 變更紀錄
-  RouterLink.item(v-if="uid", to='/privacy-policy', name="privacy")
-    i.lock.icon
-    | 隱私權政策
   RouterLink.item(to='/friend-sites', name="friend-sites")
     i.linkify.icon
     | 友站連結

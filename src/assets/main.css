@@ -55,6 +55,12 @@ a,
   }
 }
 
+@media (min-width: 769px) {
+  .thin-only {
+    display: none !important;
+  }
+}
+
 .small-spacer {
   height: 3rem;
 }

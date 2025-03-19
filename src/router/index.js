@@ -9,6 +9,11 @@ const router = createRouter({
             component: HomeView
         },
         {
+          path: '/bulletin_board',
+          name: 'BulletinBoardView',
+          component: () => import('../views/BulletinBoardView.vue')
+        },
+        {
             path: '/donate',
             name: 'DonateView',
             component: () => import('../views/DonateView.vue')
