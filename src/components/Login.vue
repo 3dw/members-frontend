@@ -122,7 +122,7 @@ export default defineComponent({
         return;
       }
 
-      if (path === '/bulletin_board' || path === '/friends' || path === '/maps' || path === '/privacy-policy' || path.startsWith('/flag') || path.startsWith('/group')) {
+      if (path === '/friends' || path === '/maps' || path === '/privacy-policy' || path.startsWith('/flag') || path.startsWith('/group')) {
         autoredirect = false;
       }
 
