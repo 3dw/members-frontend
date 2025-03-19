@@ -1,6 +1,13 @@
 <template lang="pug">
   .ui.container.two.column.stackable.grid
-    .ui.comments.flex-reverse.column
+    .column(v-if="!uid")
+      .ui.segment
+        .ui.header 留言板
+        .ui.description 請先登入才能留言
+        .ui.divider
+        button.ui.large.green.basic.button(@click="toggleLogin") 登入
+
+    .ui.comments.flex-reverse.column(v-if="uid")
       .comment(v-for="(message, index) in messages" :key="index")
         .content
           img.ui.avatar.image(v-if="users && users[message.uid] && users[message.uid].photoURL" :src="users[message.uid].photoURL")
@@ -9,7 +16,7 @@
             .date {{ parseDate(message.date) }}
           .text {{ message.text }}
 
-    .ui.form.reply.column
+    .ui.form.reply.column(v-if="uid")
       .ui.divider.thin-only
       .field
         label 輸入留言
@@ -33,7 +40,7 @@ export default defineComponent({
       default: () => ({})
     }
   },
-  setup(props) {
+  setup(props, { emit }) {
     const messages = ref([
       { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
       { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' }
@@ -54,6 +61,11 @@ export default defineComponent({
       });
       // 可以在這裡添加邏輯來將新留言添加到 messages 中
     }
+
+    const toggleLogin = () => {
+      emit('toggleLogin');
+    }
+
     const parseDate = (date: string) => {
       const now = new Date();
       const messageDate = new Date(date);
@@ -105,7 +117,8 @@ export default defineComponent({
       messages,
       newMessage,
       addMessage,
-      parseDate
+      parseDate,
+      toggleLogin
     }
   }
 })
