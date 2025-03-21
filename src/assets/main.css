@@ -4,6 +4,10 @@
   color: #666;
 }
 
+.clickable {
+  cursor: pointer;
+}
+
 #app {
   max-width: 1280px;
   margin: 0 auto;

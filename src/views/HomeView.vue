@@ -28,7 +28,9 @@
         p 因此，本會致力於促進自主學習與教育的土壤。
 
       .column
-        img#main(src="../assets/main.png", alt="logo")
+        img#main.clickable(v-if="!showLineQRCode" alt="Logo" src="../assets/main.png", @click="showLineQRCode = true")
+        img#main.clickable(v-else alt="Logo" src="../assets/autobot.png", @click="showLineQRCode = false")
+
         h2.left.aligned.ui.header 自學AI
           .left.aligned.ui.sub.header 以自學問答集為基礎，提供更即時的回答
         .ui.fluid.input
@@ -189,7 +191,7 @@ export default defineComponent({
     const visibleEmails = ref(arr);
     const message = ref('');
     const result = ref('');
-
+    const showLineQRCode = ref(false);
     onMounted(() => {
       // 檢查網址是否包含 #donate-online
       console.log(window.location.hash);
@@ -225,6 +227,7 @@ export default defineComponent({
       visibleEmails,
       message,
       result,
+      showLineQRCode,
     };
   },
   methods: {
