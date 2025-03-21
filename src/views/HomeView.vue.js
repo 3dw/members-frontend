@@ -18,6 +18,7 @@ export default defineComponent({
         const visibleEmails = ref(arr);
         const message = ref('');
         const result = ref('');
+        const showLineQRCode = ref(false);
         onMounted(() => {
             // 檢查網址是否包含 #donate-online
             console.log(window.location.hash);
@@ -50,6 +51,7 @@ export default defineComponent({
             visibleEmails,
             message,
             result,
+            showLineQRCode,
         };
     },
     methods: {
