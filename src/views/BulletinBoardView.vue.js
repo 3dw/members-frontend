@@ -1,4 +1,4 @@
-import { ref, defineComponent, onMounted, nextTick } from 'vue';
+import { ref, defineComponent, onMounted, nextTick, computed } from 'vue';
 import { onValue, set } from 'firebase/database';
 import { bulletinRef } from '@/firebase';
 export default defineComponent({
@@ -14,10 +14,40 @@ export default defineComponent({
     },
     setup(props, { emit }) {
         const messages = ref([
+            { author: 'AliceS', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+            { author: 'BobS', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+            { author: 'Alice', uid: '123', date: '2025-03-20 10:00:00', text: 'This is a great post!' },
+            { author: 'Bob', uid: '456', date: '2025-03-20 10:00:00', text: 'I totally agree with Alice.' },
+            { author: 'Alice', uid: '123', date: '2025-03-29 10:00:00', text: 'This is a great post!' },
+            { author: 'Bob', uid: '456', date: '2025-03-29 10:00:00', text: 'I totally agree with Alice.' },
+            { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+            { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+            { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+            { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+            { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+            { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+            { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+            { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+            { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+            { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+            { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+            { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+            { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+            { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+            { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+            { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
             { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
             { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' }
         ]);
         const newMessage = ref('');
+        // 添加 sortedMessages 計算屬性
+        const sortedMessages = computed(() => {
+            return [...messages.value].sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                return dateB.getTime() - dateA.getTime(); // 降序排列，最新的在前面
+            });
+        });
         const addMessage = () => {
             console.log(newMessage.value);
             messages.value.push({
@@ -86,7 +116,8 @@ export default defineComponent({
             newMessage,
             addMessage,
             parseDate,
-            toggleLogin
+            toggleLogin,
+            sortedMessages
         };
     }
 });
@@ -107,6 +138,19 @@ function __VLS_template() {
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['comments'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['comments'];
+    __VLS_styleScopedClasses['flex-column'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['comments'];
+    __VLS_styleScopedClasses['comment'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['comments'];
+    __VLS_styleScopedClasses['comment'];
+    __VLS_styleScopedClasses['content'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['comments'];
+    __VLS_styleScopedClasses['comment'];
     // CSS variable injection 
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
