@@ -21,6 +21,7 @@ main.ui.container#friend-sites-container
 import khanAcademyLogo from '@/assets/friendly_sites/可汗學院.png'
 import wikiLogo from '@/assets/friendly_sites/維基百科.png'
 import freeMathLogo from '@/assets/friendly_sites/自由數學.png'
+import freeEnglishLogo from '@/assets/friendly_sites/自主學英文.png'
 
 export default {
   name: 'FriendSitesView',
@@ -42,6 +43,7 @@ export default {
           icon: 'book icon',
           sites: [
             { name: '自由數學', url: 'https://math.alearn.org.tw/', image: freeMathLogo },
+            { name: '自主學英文', url: 'https://en.alearn.org.tw/', image: freeEnglishLogo },
             { name: '維基百科', url: 'https://zh.wikipedia.org/', image: wikiLogo },
             { name: '可汗學院 Khan Academy', url: 'https://www.khanacademy.org/', image: khanAcademyLogo }
           ]

@@ -7,8 +7,8 @@
         .ui.divider
         button.ui.large.green.basic.button(@click="toggleLogin") 登入
 
-    .ui.comments.flex-reverse.column(v-if="uid")
-      .comment(v-for="(message, index) in messages" :key="index")
+    .ui.comments.flex-column.column(v-if="uid")
+      .comment(v-for="(message, index) in sortedMessages" :key="index")
         .content
           img.ui.avatar.image(v-if="users && users[message.uid] && users[message.uid].photoURL" :src="users[message.uid].photoURL")
           .author {{ message.author }}
@@ -25,7 +25,7 @@
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, onMounted, nextTick } from 'vue';
+import { ref, defineComponent, onMounted, nextTick, computed } from 'vue';
 import { onValue, ref as dbRef, set } from 'firebase/database';
 import { bulletinRef } from '@/firebase';
 
@@ -42,11 +42,55 @@ export default defineComponent({
   },
   setup(props, { emit }) {
     const messages = ref([
+      { author: 'AliceS', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+      { author: 'BobS', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+
+      { author: 'Alice', uid: '123', date: '2025-03-20 10:00:00', text: 'This is a great post!' },
+      { author: 'Bob', uid: '456', date: '2025-03-20 10:00:00', text: 'I totally agree with Alice.' },
+
+      { author: 'Alice', uid: '123', date: '2025-03-29 10:00:00', text: 'This is a great post!' },
+      { author: 'Bob', uid: '456', date: '2025-03-29 10:00:00', text: 'I totally agree with Alice.' },
+
+      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+
+      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+
+      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+
+      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+
+      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+
+      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+
+      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+
+      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
+      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
+
       { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
       { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' }
+
     ]);
 
     const newMessage = ref('');
+
+    // 添加 sortedMessages 計算屬性
+    const sortedMessages = computed(() => {
+      return [...messages.value].sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB.getTime() - dateA.getTime(); // 降序排列，最新的在前面
+      });
+    });
+
     const addMessage = () => {
       console.log(newMessage.value);
       messages.value.push({
@@ -118,7 +162,8 @@ export default defineComponent({
       newMessage,
       addMessage,
       parseDate,
-      toggleLogin
+      toggleLogin,
+      sortedMessages
     }
   }
 })
@@ -140,11 +185,38 @@ img.ui.avatar.image {
   font-size: 16px;
 }
 
-.ui.comments.flex-reverse {
+.ui.comments.flex-column {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   align-items: flex-start;
-  justify-content: flex-end;
+  max-height: 85vh; /* 設定最大高度 */
+  overflow-y: auto !important; /* 添加垂直卷軸 */
+  padding-right: 10px; /* 為卷軸預留空間 */
+  width: 100%; /* 確保寬度為100% */
+  word-break: break-word; /* 防止文字溢出 */
+}
+
+@media (max-width: 768px) {
+  .ui.comments.flex-column {
+    max-height: 45vh;
+  }
+}
+
+.ui.comments .comment {
+  width: 100%; /* 確保留言寬度為100% */
+  margin-bottom: 1em;
+}
+
+.ui.comments .comment .content {
+  font-size: 16px;
+  max-width: 100%; /* 確保內容不超過容器 */
+}
+
+/* 確保留言文字不會溢出 */
+.ui.comments .comment .text {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 /* 可以在這裡添加自定義樣式 */
