@@ -90,7 +90,7 @@
           span.text(v-html="highlight(h.note, mySearch)")
           br
     .filler
-    .ui.bottom.attached.stackable.buttons(:class="{vertical: !full || thin}")
+    .ui.bottom.attached.stackable.buttons(v-if ="h.latlngColumn", :class="{vertical: !full || thin}")
       .ui.purple.button(@click="locate(h, true)")
         i.map.icon
         | 查看地圖

@@ -216,7 +216,7 @@ img.ui.avatar.image {
 .ui.comments .comment .text {
   word-wrap: break-word;
   overflow-wrap: break-word;
-  white-space: normal;
+  white-space: pre-line;
 }
 
 /* 可以在這裡添加自定義樣式 */
