@@ -375,6 +375,7 @@ export default defineComponent({
         console.log('Center updated and propagated to children');
       });
       if (gotoMap) {
+        console.log('gotoMap:', gotoMap);
         this.$router.push({path: '/maps'})
       }
     },
