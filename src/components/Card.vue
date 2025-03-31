@@ -18,7 +18,7 @@
           |&nbsp;&nbsp; - {{countDateDiff(h.lastUpdate)}}已更新
         p.description(v-if="h.learner_habit" v-html="'興趣：' + highlight(h.learner_habit, mySearch)")
         p.description(v-if="h.share" v-html="'可分享：' + highlight(h.share, mySearch)")
-        p.description(v-if="h.ask" v-html="'想學習：' + highlight(h.ask, mySearch)")
+        p.description(v-if="h.ask" v-html="'想尋找：' + highlight(h.ask, mySearch)")
         p.description(v-if="h.price" v-html="'可支付：' + highlight(h.price, mySearch)")
       .content(v-if="h.connect_me && full")
         .ui.divider
@@ -63,8 +63,8 @@
           |&nbsp;&nbsp; - {{countDateDiff(h.lastUpdate)}}已更新
         p.description(v-if="h.learner_habit" v-html="'興趣：' + highlight(h.learner_habit, mySearch)")
         p.description(v-if="h.share" v-html="'可分享：' + highlight(h.share, mySearch)")
-        p.description(v-if="h.ask" v-html="'想學習：' + highlight(h.ask, mySearch)")
-        p.description(v-if="h.price" v-html="'收費：' + highlight(h.price, mySearch)")
+        p.description(v-if="h.ask" v-html="'想尋找：' + highlight(h.ask, mySearch)")
+        p.description(v-if="h.price" v-html="'可支付：' + highlight(h.price, mySearch)")
       .content(v-if="h.connect_me && full")
         .ui.divider
         p.description(v-if="isEmail(h.connect_me)") 點擊寄信：
