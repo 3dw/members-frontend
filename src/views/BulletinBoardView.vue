@@ -170,54 +170,132 @@ export default defineComponent({
 </script>
 
 <style scoped>
-img.ui.avatar.image {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  margin-right: 10px;
-}
-
 .ui.container {
-  font-size: 16px; /* 調整這裡的數值來改變字體大小 */
-}
-
-.ui.comments .comment .content {
-  font-size: 16px;
-}
-
-.ui.comments.flex-column {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  max-height: 85vh; /* 設定最大高度 */
-  overflow-y: auto !important; /* 添加垂直卷軸 */
-  padding-right: 10px; /* 為卷軸預留空間 */
-  width: 100%; /* 確保寬度為100% */
-  word-break: break-word; /* 防止文字溢出 */
-}
-
-@media (max-width: 768px) {
-  .ui.comments.flex-column {
-    max-height: 45vh;
-  }
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #1A1A1A;
 }
 
 .ui.comments .comment {
-  width: 100%; /* 確保留言寬度為100% */
-  margin-bottom: 1em;
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
 }
 
-.ui.comments .comment .content {
-  font-size: 16px;
-  max-width: 100%; /* 確保內容不超過容器 */
+.ui.comments .comment:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
-/* 確保留言文字不會溢出 */
+.ui.comments .comment .author {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #0066FF;
+  margin-bottom: 0.5rem;
+}
+
+.ui.comments .comment .metadata {
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
 .ui.comments .comment .text {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: pre-line;
+  line-height: 1.6;
+  color: #333;
 }
 
-/* 可以在這裡添加自定義樣式 */
+.ui.form.reply {
+  background: #f8f9fa;
+  padding: 2rem;
+  border-radius: 12px;
+}
+
+.ui.form.reply textarea {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+}
+
+.ui.form.reply textarea:focus {
+  border-color: #0066FF;
+  outline: none;
+}
+
+.ui.primary.submit.button {
+  background-color: #0066FF;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.8rem 1.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.ui.primary.submit.button:hover {
+  background-color: #0052cc;
+}
+
+.ui.green.basic.button {
+  border: 2px solid #0066FF;
+  color: #0066FF;
+  background: transparent;
+  border-radius: 8px;
+  padding: 0.8rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.ui.green.basic.button:hover {
+  background-color: #0066FF;
+  color: white;
+}
+
+img.ui.avatar.image {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 1rem;
+  border: 2px solid #f0f0f0;
+}
+
+.ui.comments.flex-column::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ui.comments.flex-column::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.ui.comments.flex-column::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.ui.comments.flex-column::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+@media (max-width: 768px) {
+  .ui.container {
+    padding: 1rem;
+  }
+
+  .ui.comments .comment {
+    padding: 1rem;
+  }
+
+  .ui.form.reply {
+    padding: 1rem;
+  }
+}
 </style>
