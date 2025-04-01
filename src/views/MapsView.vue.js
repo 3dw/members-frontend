@@ -80,6 +80,9 @@ export default defineComponent({
             return users.filter(h => [h.name, h.learner_habit, h.share, h.ask, h.note].some(field => field && field.toLowerCase().includes(searchLower)));
         }
         onMounted(() => {
+            console.log('onMounted');
+            console.log('props.zoom:', props.zoom);
+            console.log('props.center:', props.center);
             const initialZoom = props.zoom || 7;
             const initialCenter = props.center || [22.613220, 121.219482];
             map.value = L.map('map').setView(initialCenter, initialZoom);
@@ -107,6 +110,25 @@ export default defineComponent({
                 }
             }
         });
+        // 添加對 center 和 zoom 屬性變化的監聽
+        watch([() => props.center, () => props.zoom], ([newCenter, newZoom]) => {
+            // 先等一下，確保 map.value 已經初始化，用setTimeout
+            console.log('newCenter:', newCenter);
+            console.log('newZoom:', newZoom);
+            setTimeout(() => {
+                if (map.value && newCenter && newCenter.length === 2) {
+                    // 確保座標有效
+                    if (!isNaN(newCenter[0]) && !isNaN(newCenter[1])) {
+                        console.log('更新地圖視圖到:', newCenter, '縮放級別:', newZoom);
+                        map.value.setView(newCenter, newZoom || map.value.getZoom());
+                    }
+                }
+                else {
+                    console.error('無效的座標:', newCenter);
+                }
+            }, 500);
+        });
+        // 也監聽 users 和 mySearch 的變化
         watch([() => props.users, () => props.mySearch], ([newUsers, newSearch]) => {
             if (markerClusterGroup.value) {
                 markerClusterGroup.value.clearLayers();
