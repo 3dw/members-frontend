@@ -15,6 +15,26 @@
           .metadata
             .date {{ parseDate(message.date) }}
           .text {{ message.text }}
+          .actions
+            .reaction-buttons
+              button.reaction-btn(
+                @click="toggleReaction(message, '❤️')"
+                :class="{ active: hasReacted(message, '❤️') }"
+              )
+                span.emoji ❤️
+                span.count {{ getReactionCount(message, '❤️') }}
+              button.reaction-btn(
+                @click="toggleReaction(message, '👍')"
+                :class="{ active: hasReacted(message, '👍') }"
+              )
+                span.emoji 👍
+                span.count {{ getReactionCount(message, '👍') }}
+              button.reaction-btn(
+                @click="toggleReaction(message, '🙏')"
+                :class="{ active: hasReacted(message, '🙏') }"
+              )
+                span.emoji 🙏
+                span.count {{ getReactionCount(message, '🙏') }}
 
     .ui.form.reply.column(v-if="uid")
       .ui.divider.thin-only
@@ -41,7 +61,7 @@ export default defineComponent({
     }
   },
   setup(props, { emit }) {
-    const messages = ref([
+    const messages = ref<Message[]>([
       { author: 'AliceS', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
       { author: 'BobS', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
 
@@ -73,12 +93,12 @@ export default defineComponent({
       { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
 
       { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
-      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
-
-      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
       { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' }
 
-    ]);
+    ].map(msg => ({
+      ...msg,
+      reactions: {}
+    })));
 
     const newMessage = ref('');
 
@@ -97,13 +117,13 @@ export default defineComponent({
         author: props.users[props.uid].name || '匿名',
         uid: props.uid || '123',
         date: new Date().toISOString(),
-        text: newMessage.value
+        text: newMessage.value,
+        reactions: {}
       });
       newMessage.value = '';
       set(bulletinRef, messages.value).then(() => {
         console.log('留言成功');
       });
-      // 可以在這裡添加邏輯來將新留言添加到 messages 中
     }
 
     const toggleLogin = () => {
@@ -137,6 +157,38 @@ export default defineComponent({
       }
     }
 
+    // 新增處理反應的方法
+    const toggleReaction = (message: Message, reaction: string) => {
+      if (!props.uid) return;
+
+      if (!message.reactions) {
+        message.reactions = {};
+      }
+
+      if (!message.reactions[reaction]) {
+        message.reactions[reaction] = {};
+      }
+
+      if (message.reactions[reaction][props.uid]) {
+        delete message.reactions[reaction][props.uid];
+      } else {
+        message.reactions[reaction][props.uid] = true;
+      }
+
+      // 更新到 Firebase
+      set(bulletinRef, messages.value).then(() => {
+        console.log('反應更新成功');
+      });
+    };
+
+    const hasReacted = (message: Message, reaction: string) => {
+      return message.reactions?.[reaction]?.[props.uid] || false;
+    };
+
+    const getReactionCount = (message: Message, reaction: string) => {
+      return Object.keys(message.reactions?.[reaction] || {}).length;
+    };
+
     onMounted(() => {
       console.log('mounted');
       onValue(bulletinRef, (snapshot) => {
@@ -146,7 +198,8 @@ export default defineComponent({
           author: message.author,
           uid: message.uid,
           date: message.date,
-          text: message.text
+          text: message.text,
+          reactions: message.reactions || {}
         }));
       });
       setInterval(async () => {
@@ -163,7 +216,10 @@ export default defineComponent({
       addMessage,
       parseDate,
       toggleLogin,
-      sortedMessages
+      sortedMessages,
+      toggleReaction,
+      hasReacted,
+      getReactionCount
     }
   }
 })
@@ -285,6 +341,55 @@ img.ui.avatar.image {
   background: #a8a8a8;
 }
 
+.actions {
+  margin-top: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.reaction-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.reaction-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.reaction-btn:hover {
+  background-color: #f8f9fa;
+  border-color: #0066FF;
+  color: #0066FF;
+  transform: translateY(-1px);
+}
+
+.reaction-btn.active {
+  background-color: #EEF3FF;
+  border-color: #0066FF;
+  color: #0066FF;
+}
+
+.emoji {
+  font-size: 1.1rem;
+}
+
+.count {
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 1rem;
+  text-align: center;
+}
+
 @media (max-width: 768px) {
   .ui.container {
     padding: 1rem;
@@ -296,6 +401,18 @@ img.ui.avatar.image {
 
   .ui.form.reply {
     padding: 1rem;
+  }
+
+  .reaction-btn {
+    padding: 0.3rem 0.6rem;
+  }
+
+  .emoji {
+    font-size: 1rem;
+  }
+
+  .count {
+    font-size: 0.8rem;
   }
 }
 </style>
