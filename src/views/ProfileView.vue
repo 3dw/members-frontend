@@ -553,115 +553,185 @@ export default {
 
   <style scoped>
   .hello {
-    font-family: Arial, sans-serif;
-    color: #333;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1A1A1A;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
   }
 
   .ui.header {
-    color: #0056b3; /* 主色調 */
+    color: #0066FF;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  .ui.header .sub.header {
+    color: #666;
+    font-weight: normal;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
   }
 
   p {
-    font-size: 16px;
+    font-size: 1rem;
     color: #333;
     line-height: 1.6;
   }
 
   .ui.divider {
-    margin: 1em 0;
+    margin: 2rem 0;
+    border-top: 1px solid #e0e0e0;
   }
 
   .ui.grid.container {
-    margin-top: 30px;
+    margin-top: 2rem;
   }
 
-  button.ui.orange.button, button.ui.green.button, button.ui.red.button {
-    font-size: 16px;
-    padding: 12px 16px;
-    margin: 10px 0;
+  .ui.fluid.card.container {
+    background: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
   }
 
-  button.ui.orange.button {
-    background-color: #f39c12;
-    color: #fff;
+  .ui.fluid.card.container:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
   }
 
-  button.ui.orange.button:hover {
-    background-color: #e67e22;
+  .ui.form .field {
+    margin-bottom: 1.5rem;
   }
 
-  button.ui.green.button {
-    background-color: #28a745;
-    color: #fff;
+  .ui.form input,
+  .ui.form textarea,
+  .ui.form select {
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    width: 100%;
+    transition: all 0.2s ease;
   }
 
-  button.ui.green.button:hover {
-    background-color: #218838;
+  .ui.form input:focus,
+  .ui.form textarea:focus,
+  .ui.form select:focus {
+    border-color: #0066FF;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.1);
   }
 
-  button.ui.red.button {
-    background-color: #dc3545;
-    color: #fff;
+  .ui.form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #333;
   }
 
-  button.ui.red.button:hover {
-    background-color: #c82333;
-  }
-
-  .form .field {
-    margin-bottom: 20px;
-  }
-
-  .form input, .form textarea, .form select {
-    border: 1px solid #ced4da;
-    padding: 10px;
-    font-size: 16px;
-    border-radius: 4px;
-  }
-
-  .form label.required::before {
+  .ui.form label.required::after {
     content: "*";
-    color: red;
+    color: #FF3B30;
+    margin-left: 0.25rem;
+  }
+
+  .ui.button {
+    border-radius: 8px;
+    padding: 0.8rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+
+  .ui.massive.blue.button {
+    background-color: #0066FF;
+    color: white;
+    border: none;
+  }
+
+  .ui.massive.blue.button:hover {
+    background-color: #0052cc;
+    transform: translateY(-1px);
+  }
+
+  .ui.warning.message,
+  .ui.error.message,
+  .ui.success.message {
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border: none;
+  }
+
+  .ui.warning.message {
+    background-color: #FFF9E6;
+    color: #946C00;
+  }
+
+  .ui.error.message {
+    background-color: #FFF2F2;
+    color: #CC0000;
+  }
+
+  .ui.success.message {
+    background-color: #F0FFF4;
+    color: #00802B;
   }
 
   #map {
-    height: 300px;
-    margin-bottom: 20px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 1rem 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   }
 
-  .warning, .error, .success {
-    margin-bottom: 20px;
+  .ui.center.aligned.segment {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 1rem 0;
   }
 
-  .ui.vertical.buttons .button {
-    width: 100%;
-    margin-bottom: 10px;
+  .ui.centered.medium.round.image {
+    border-radius: 50%;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
-  button.ui.blue.button {
-    background-color: #007bff;
-    color: #fff;
+  .ui.basic.button {
+    background: transparent;
+    border: 2px solid #0066FF;
+    color: #0066FF;
+    margin-top: 1rem;
   }
 
-  button.ui.blue.button:hover {
-    background-color: #0056b3;
+  .ui.basic.button:hover {
+    background-color: #0066FF;
+    color: white;
   }
 
-  button.ui.green.button {
-    background-color: #28a745;
-    color: #fff;
-  }
+  @media (max-width: 768px) {
+    .hello {
+      padding: 1rem;
+    }
 
-  button.ui.green.button:hover {
-    background-color: #218838;
-  }
+    .ui.fluid.card.container {
+      padding: 1rem;
+    }
 
-  button.ui.red.button {
-    background-color: #dc3545;
-    color: #fff;
-  }
+    .ui.form.reply {
+      padding: 1rem;
+    }
 
-  button.ui.red.button:hover {
-    background-color: #c82333;
+    .ui.grid.container {
+      margin-top: 1rem;
+    }
+
+    .ui.button {
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
   }
   </style>
