@@ -122,6 +122,9 @@ header
   RouterLink.item.fat-only(to='/feedback', name="feedback")
     i.magic.icon
     | 回饋
+  RouterLink.item(to='/slido', name="slidoMeeting")
+    i.linkify.icon
+    | slido會員大會
   a.item(href="https://sites.google.com/view/autoalearn/%E9%A6%96%E9%A0%81", target="_blank", rel="noopener noreferrer")
     i.linkify.icon
     | 舊版網站
