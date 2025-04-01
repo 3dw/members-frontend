@@ -130,6 +130,8 @@ header
   RouterView(
     @toggleLogin="toggleLogin",
     @locate="locate",
+    :zoom="zoom",
+    :center="center",
     :uid="uid",
     :isInApp="isInApp",
     :user="user",
@@ -365,18 +367,28 @@ export default defineComponent({
       this.updateUserInfo(pvdata);
     },
 
-    // eslint-disable-next-line
     locate: function (h:any, gotoMap: boolean) {
-      this.zoom = 13
-      this.center = h.latlngColumn.split(',')
-      console.log("Updated location:", this.center);
-      // 使用 nextTick 確保子組件接收到最新的 props
-      this.$nextTick(() => {
-        console.log('Center updated and propagated to children');
-      });
-      if (gotoMap) {
-        console.log('gotoMap:', gotoMap);
-        this.$router.push({path: '/maps'})
+      if (h && h.latlngColumn) {
+        const coordinates = h.latlngColumn.split(',').map(Number);
+        if (coordinates.length === 2 && !isNaN(coordinates[0]) && !isNaN(coordinates[1])) {
+          this.center = coordinates;
+          this.zoom = 10;
+          console.log("更新位置到:", this.center);
+
+          // 使用 nextTick 確保子組件接收到最新的 props
+          this.$nextTick().then(() => {
+            console.log('中心位置已更新並傳遞給子組件');
+          });
+
+          if (gotoMap) {
+            console.log('前往地圖頁面');
+            this.$router.push('/maps');
+          }
+        } else {
+          console.error("無效的座標格式:", h.latlngColumn);
+        }
+      } else {
+        console.error("無法定位：缺少座標資訊");
       }
     },
 
