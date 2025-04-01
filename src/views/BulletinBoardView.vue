@@ -18,23 +18,41 @@
           .actions
             .reaction-buttons
               button.reaction-btn(
-                @click="toggleReaction(message, '❤️')"
-                :class="{ active: hasReacted(message, '❤️') }"
+                @click="toggleReaction(message, '🌻')"
+                :class="{ active: hasReacted(message, '🌻') }"
               )
-                span.emoji ❤️
-                span.count {{ getReactionCount(message, '❤️') }}
+                span.emoji 🌻
+                span.count {{ getReactionCount(message, '🌻') }}
               button.reaction-btn(
-                @click="toggleReaction(message, '👍')"
-                :class="{ active: hasReacted(message, '👍') }"
+                @click="toggleReaction(message, '🫡')"
+                :class="{ active: hasReacted(message, '🫡') }"
               )
-                span.emoji 👍
-                span.count {{ getReactionCount(message, '👍') }}
+                span.emoji 🫡
+                span.count {{ getReactionCount(message, '🫡') }}
               button.reaction-btn(
-                @click="toggleReaction(message, '🙏')"
-                :class="{ active: hasReacted(message, '🙏') }"
+                @click="toggleReaction(message, '🍎')"
+                :class="{ active: hasReacted(message, '🍎') }"
               )
-                span.emoji 🙏
-                span.count {{ getReactionCount(message, '🙏') }}
+                span.emoji 🍎
+                span.count {{ getReactionCount(message, '🍎') }}
+              button.reaction-btn(
+                @click="toggleReaction(message, '🥭')"
+                :class="{ active: hasReacted(message, '🥭') }"
+              )
+                span.emoji 🥭
+                span.count {{ getReactionCount(message, '🥭') }}
+              button.reaction-btn(
+                @click="toggleReaction(message, '🥑')"
+                :class="{ active: hasReacted(message, '🥑') }"
+              )
+                span.emoji 🥑
+                span.count {{ getReactionCount(message, '🥑') }}
+              button.reaction-btn(
+                @click="toggleReaction(message, '🌶️')"
+                :class="{ active: hasReacted(message, '🌶️') }"
+              )
+                span.emoji 🌶️
+                span.count {{ getReactionCount(message, '🌶️') }}
 
     .ui.form.reply.column(v-if="uid")
       .ui.divider.thin-only
@@ -350,6 +368,7 @@ img.ui.avatar.image {
 .reaction-buttons {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .reaction-btn {
@@ -364,6 +383,7 @@ img.ui.avatar.image {
   transition: all 0.2s ease;
   color: #666;
   font-size: 0.9rem;
+  margin-bottom: 0.5rem;
 }
 
 .reaction-btn:hover {
@@ -403,8 +423,13 @@ img.ui.avatar.image {
     padding: 1rem;
   }
 
+  .reaction-buttons {
+    gap: 0.3rem;
+  }
+
   .reaction-btn {
     padding: 0.3rem 0.6rem;
+    margin-bottom: 0.3rem;
   }
 
   .emoji {
