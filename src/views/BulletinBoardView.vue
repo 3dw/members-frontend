@@ -18,41 +18,15 @@
           .actions
             .reaction-buttons
               button.reaction-btn(
-                @click="toggleReaction(message, '🌻')"
-                :class="{ active: hasReacted(message, '🌻') }"
+                v-for="emoji in ['🌻', '🫡', '🍎', '🥭', '🥑', '🌶️']"
+                :key="emoji"
+                @click="toggleReaction(message, emoji)"
+                :class="{ active: hasReacted(message, emoji) }"
               )
-                span.emoji 🌻
-                span.count {{ getReactionCount(message, '🌻') }}
-              button.reaction-btn(
-                @click="toggleReaction(message, '🫡')"
-                :class="{ active: hasReacted(message, '🫡') }"
-              )
-                span.emoji 🫡
-                span.count {{ getReactionCount(message, '🫡') }}
-              button.reaction-btn(
-                @click="toggleReaction(message, '🍎')"
-                :class="{ active: hasReacted(message, '🍎') }"
-              )
-                span.emoji 🍎
-                span.count {{ getReactionCount(message, '🍎') }}
-              button.reaction-btn(
-                @click="toggleReaction(message, '🥭')"
-                :class="{ active: hasReacted(message, '🥭') }"
-              )
-                span.emoji 🥭
-                span.count {{ getReactionCount(message, '🥭') }}
-              button.reaction-btn(
-                @click="toggleReaction(message, '🥑')"
-                :class="{ active: hasReacted(message, '🥑') }"
-              )
-                span.emoji 🥑
-                span.count {{ getReactionCount(message, '🥑') }}
-              button.reaction-btn(
-                @click="toggleReaction(message, '🌶️')"
-                :class="{ active: hasReacted(message, '🌶️') }"
-              )
-                span.emoji 🌶️
-                span.count {{ getReactionCount(message, '🌶️') }}
+                .reaction-tooltip(v-if="getReactionCount(message, emoji) > 0")
+                  | {{ getReactionUsers(message, emoji) }}
+                span.emoji {{ emoji }}
+                span.count {{ getReactionCount(message, emoji) }}
 
     .ui.form.reply.column(v-if="uid")
       .ui.divider.thin-only
@@ -66,6 +40,18 @@
 import { ref, defineComponent, onMounted, nextTick, computed } from 'vue';
 import { onValue, ref as dbRef, set } from 'firebase/database';
 import { bulletinRef } from '@/firebase';
+
+interface Message {
+  author: string;
+  uid: string;
+  date: string;
+  text: string;
+  reactions: {
+    [key: string]: {
+      [uid: string]: boolean;
+    };
+  };
+}
 
 export default defineComponent({
   props: {
@@ -207,6 +193,15 @@ export default defineComponent({
       return Object.keys(message.reactions?.[reaction] || {}).length;
     };
 
+    // 新增獲取反應者名稱的方法
+    const getReactionUsers = (message: Message, reaction: string): string => {
+      if (!message.reactions?.[reaction]) return '';
+
+      return Object.keys(message.reactions[reaction])
+        .map(uid => props.users[uid]?.name || '匿名用戶')
+        .join('、');
+    };
+
     onMounted(() => {
       console.log('mounted');
       onValue(bulletinRef, (snapshot) => {
@@ -237,7 +232,8 @@ export default defineComponent({
       sortedMessages,
       toggleReaction,
       hasReacted,
-      getReactionCount
+      getReactionCount,
+      getReactionUsers
     }
   }
 })
@@ -372,6 +368,7 @@ img.ui.avatar.image {
 }
 
 .reaction-btn {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.25rem;
@@ -410,6 +407,39 @@ img.ui.avatar.image {
   text-align: center;
 }
 
+.reaction-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 1000;
+  margin-bottom: 5px;
+}
+
+.reaction-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+}
+
+.reaction-btn:hover .reaction-tooltip {
+  opacity: 1;
+}
+
 @media (max-width: 768px) {
   .ui.container {
     padding: 1rem;
@@ -438,6 +468,11 @@ img.ui.avatar.image {
 
   .count {
     font-size: 0.8rem;
+  }
+
+  .reaction-tooltip {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.6rem;
   }
 }
 </style>
