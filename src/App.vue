@@ -69,6 +69,9 @@ header
           RouterLink.item(v-if="uid", to='/privacy-policy', name="privacy")
             i.lock.icon
             | 隱私權政策
+          RouterLink.item(v-if="uid", to='/slido', name="slidoMeeting")
+            i.linkify.icon
+            | Slido-2025/4/26會員大會(臨時設置)
           .divider
           button.no-border.ui.item(v-if="uid", @click="logout")
             i.sign-out.icon
@@ -122,9 +125,9 @@ header
   RouterLink.item.fat-only(to='/feedback', name="feedback")
     i.magic.icon
     | 回饋
-  RouterLink.item(to='/slido', name="slidoMeeting")
-    i.linkify.icon
-    | slido會員大會
+  //- RouterLink.item(to='/slido', name="slidoMeeting")
+  //-   i.linkify.icon
+  //-   | slido會員大會
   a.item(href="https://sites.google.com/view/autoalearn/%E9%A6%96%E9%A0%81", target="_blank", rel="noopener noreferrer")
     i.linkify.icon
     | 舊版網站
