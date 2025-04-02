@@ -6,7 +6,7 @@
           img.main(:src='getIcon(h)' alt='^_^')
           | {{h.name}}
           span(v-if="h.learner_birth")
-            | -
+            | -約
             span(v-html='toAge(h.learner_birth)')
             | 歲
           span(v-if="h.child_birth") (孩子約
