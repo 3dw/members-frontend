@@ -69,6 +69,9 @@ header
           RouterLink.item(v-if="uid", to='/privacy-policy', name="privacy")
             i.lock.icon
             | 隱私權政策
+          RouterLink.item(v-if="uid", to='/githubembeded', name="githubembeded")
+            i.linkify.icon
+            | 自促會 Github 開源專案
           RouterLink.item(v-if="uid", to='/slido', name="slidoMeeting")
             i.linkify.icon
             | Slido-2025/4/26會員大會(臨時設置)

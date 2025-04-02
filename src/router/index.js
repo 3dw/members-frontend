@@ -137,6 +137,11 @@ const router = createRouter({
             component: SlidoMeetingView
         },
         {
+            path: '/githubembeded',
+            name: 'GithubEmbededView',
+            component: () => import('../views/GithubEmbededView.vue')
+        },
+        {
             path: '/:pathMatch(.*)*',
             redirect: '/404'
         }
