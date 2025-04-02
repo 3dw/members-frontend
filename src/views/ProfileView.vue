@@ -115,7 +115,7 @@
         .field(:class="{error: badAge(root.learner_birth), warning: !root.learner_birth}")
           label.required 出生年份
           input(type='text' v-model='root.learner_birth' placeholder="請輸入出生年份")
-        span(v-if='root.learner_birth') 您已經 {{ toAge(root.learner_birth) }} 歲
+        span(v-if='root.learner_birth') 您已經大約 {{ toAge(root.learner_birth) }} 歲
         .ui.warning.message(v-if="!root.learner_birth")
           .header 出生年份未填寫
           p 請填寫出生年份。
