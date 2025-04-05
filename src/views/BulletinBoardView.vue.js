@@ -35,10 +35,11 @@ export default defineComponent({
             { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
             { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
             { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
-            { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
-            { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
             { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' }
-        ]);
+        ].map(msg => ({
+            ...msg,
+            reactions: {}
+        })));
         const newMessage = ref('');
         // 添加 sortedMessages 計算屬性
         const sortedMessages = computed(() => {
@@ -54,13 +55,13 @@ export default defineComponent({
                 author: props.users[props.uid].name || '匿名',
                 uid: props.uid || '123',
                 date: new Date().toISOString(),
-                text: newMessage.value
+                text: newMessage.value,
+                reactions: {}
             });
             newMessage.value = '';
             set(bulletinRef, messages.value).then(() => {
                 console.log('留言成功');
             });
-            // 可以在這裡添加邏輯來將新留言添加到 messages 中
         };
         const toggleLogin = () => {
             emit('toggleLogin');
@@ -92,6 +93,41 @@ export default defineComponent({
                 return `${diffDays} 天前`;
             }
         };
+        // 新增處理反應的方法
+        const toggleReaction = (message, reaction) => {
+            if (!props.uid)
+                return;
+            if (!message.reactions) {
+                message.reactions = {};
+            }
+            if (!message.reactions[reaction]) {
+                message.reactions[reaction] = {};
+            }
+            if (message.reactions[reaction][props.uid]) {
+                delete message.reactions[reaction][props.uid];
+            }
+            else {
+                message.reactions[reaction][props.uid] = true;
+            }
+            // 更新到 Firebase
+            set(bulletinRef, messages.value).then(() => {
+                console.log('反應更新成功');
+            });
+        };
+        const hasReacted = (message, reaction) => {
+            return message.reactions?.[reaction]?.[props.uid] || false;
+        };
+        const getReactionCount = (message, reaction) => {
+            return Object.keys(message.reactions?.[reaction] || {}).length;
+        };
+        // 新增獲取反應者名稱的方法
+        const getReactionUsers = (message, reaction) => {
+            if (!message.reactions?.[reaction])
+                return '';
+            return Object.keys(message.reactions[reaction])
+                .map(uid => props.users[uid]?.name || '匿名用戶')
+                .join('、');
+        };
         onMounted(() => {
             console.log('mounted');
             onValue(bulletinRef, (snapshot) => {
@@ -101,7 +137,8 @@ export default defineComponent({
                     author: message.author,
                     uid: message.uid,
                     date: message.date,
-                    text: message.text
+                    text: message.text,
+                    reactions: message.reactions || {}
                 }));
             });
             setInterval(async () => {
@@ -117,7 +154,11 @@ export default defineComponent({
             addMessage,
             parseDate,
             toggleLogin,
-            sortedMessages
+            sortedMessages,
+            toggleReaction,
+            hasReacted,
+            getReactionCount,
+            getReactionUsers
         };
     }
 });
@@ -136,6 +177,36 @@ function __VLS_template() {
     let __VLS_styleScopedClasses;
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['comments'];
+    __VLS_styleScopedClasses['comment'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['comments'];
+    __VLS_styleScopedClasses['comment'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['comments'];
+    __VLS_styleScopedClasses['comment'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['comments'];
+    __VLS_styleScopedClasses['comment'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['form'];
+    __VLS_styleScopedClasses['reply'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['form'];
+    __VLS_styleScopedClasses['reply'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['primary'];
+    __VLS_styleScopedClasses['submit'];
+    __VLS_styleScopedClasses['button'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['button'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['green'];
+    __VLS_styleScopedClasses['basic'];
+    __VLS_styleScopedClasses['button'];
+    __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['comments'];
     __VLS_styleScopedClasses['ui'];
@@ -143,14 +214,28 @@ function __VLS_template() {
     __VLS_styleScopedClasses['flex-column'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['comments'];
-    __VLS_styleScopedClasses['comment'];
+    __VLS_styleScopedClasses['flex-column'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['comments'];
+    __VLS_styleScopedClasses['flex-column'];
+    __VLS_styleScopedClasses['reaction-btn'];
+    __VLS_styleScopedClasses['reaction-btn'];
+    __VLS_styleScopedClasses['reaction-tooltip'];
+    __VLS_styleScopedClasses['reaction-btn'];
+    __VLS_styleScopedClasses['reaction-tooltip'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['container'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['comments'];
     __VLS_styleScopedClasses['comment'];
-    __VLS_styleScopedClasses['content'];
     __VLS_styleScopedClasses['ui'];
-    __VLS_styleScopedClasses['comments'];
-    __VLS_styleScopedClasses['comment'];
+    __VLS_styleScopedClasses['form'];
+    __VLS_styleScopedClasses['reply'];
+    __VLS_styleScopedClasses['reaction-buttons'];
+    __VLS_styleScopedClasses['reaction-btn'];
+    __VLS_styleScopedClasses['emoji'];
+    __VLS_styleScopedClasses['count'];
+    __VLS_styleScopedClasses['reaction-tooltip'];
     // CSS variable injection 
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;

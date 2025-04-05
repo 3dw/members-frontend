@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
-import SlidoMeetingView from '../views/SlidoMeetingView.vue'
-
+import SlidoMeetingView from '../views/SlidoMeetingView.vue';
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
