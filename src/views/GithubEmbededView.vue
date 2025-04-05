@@ -67,7 +67,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, ref, onMounted } from 'vue'
+import axios from 'axios'
 
 export default defineComponent({
   name: 'GithubEmbededView',
@@ -77,15 +78,15 @@ export default defineComponent({
         name: 'freemath',
         description: '適合自學親子使用的自由數學教材教法，以全中文編輯',
         url: 'https://github.com/3dw/freemath',
-        stars: 16,
-        forks: 7,
+        stars: 0,
+        forks: 0,
         language: 'Rich Text Format'
       },
       {
         name: 'zh-en',
         description: '中英對照學習資源',
         url: 'https://github.com/3dw/zh-en',
-        stars: 4,
+        stars: 0,
         forks: 0,
         language: 'Vue'
       },
@@ -93,27 +94,45 @@ export default defineComponent({
         name: 'auto20-next',
         description: '自學2.0是一個公益尋友平台，旨在透過地理位置、個人興趣及專長來協助用戶尋找朋友。平台的核心功能「互助旗」提供公開的自我介紹，讓人們在見面前能初步了解和認識對方。',
         url: 'https://github.com/3dw/auto20-next',
-        stars: 4,
-        forks: 1,
+        stars: 0,
+        forks: 0,
         language: 'Vue'
       },
       {
         name: 'start-learn',
         description: '新版自學入口頁(編輯中)',
         url: 'https://github.com/3dw/start-learn',
-        stars: 4,
-        forks: 1,
+        stars: 0,
+        forks: 0,
         language: 'Vue'
       },
       {
-        name: 'autolearn',
-        description: '自主學習課程準備平台',
-        url: 'https://github.com/3dw/autolearn',
-        stars: 2,
+        name: 'diverse',
+        description: '多樣性學習平台',
+        url: 'https://github.com/3dw/diverse',
+        stars: 0,
         forks: 0,
         language: 'Vue'
       }
     ])
+
+    const fetchRepoData = async () => {
+      try {
+        for (const repo of pinnedRepos.value) {
+          const response = await axios.get(`https://api.github.com/repos/3dw/${repo.name}`)
+          console.log('已獲取', repo.name, '的資料')
+          repo.stars = response.data.stargazers_count
+          repo.forks = response.data.forks_count
+          repo.language = response.data.language || repo.language
+        }
+      } catch (error) {
+        console.error('獲取 GitHub 資料時出錯:', error)
+      }
+    }
+
+    onMounted(() => {
+      fetchRepoData()
+    })
 
     return {
       pinnedRepos
