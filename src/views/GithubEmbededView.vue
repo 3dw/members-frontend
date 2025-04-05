@@ -84,7 +84,7 @@ export default defineComponent({
       },
       {
         name: 'zh-en',
-        description: '中英對照學習資源',
+        description: '以AI協助中英對照的學習資源網',
         url: 'https://github.com/3dw/zh-en',
         stars: 0,
         forks: 0,
@@ -108,7 +108,7 @@ export default defineComponent({
       },
       {
         name: 'diverse',
-        description: '多樣性學習平台',
+        description: '多元學習風格自我測驗',
         url: 'https://github.com/3dw/diverse',
         stars: 0,
         forks: 0,
@@ -124,6 +124,7 @@ export default defineComponent({
           repo.stars = response.data.stargazers_count
           repo.forks = response.data.forks_count
           repo.language = response.data.language || repo.language
+          repo.description = response.data.description || repo.description
         }
       } catch (error) {
         console.error('獲取 GitHub 資料時出錯:', error)
