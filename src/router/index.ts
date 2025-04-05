@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import SlidoMeetingView from '../views/SlidoMeetingView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -129,6 +130,16 @@ const router = createRouter({
       path: '/404',
       name: '404Error',
       component: () => import('../views/404ErrorView.vue')
+    },
+    {
+        path: '/slido',
+        name: 'SlidoMeeting',
+        component: SlidoMeetingView
+    },
+    {
+        path: '/githubembeded',
+        name: 'GithubEmbededView',
+        component: () => import('../views/GithubEmbededView.vue')
     },
     {
       path: '/:pathMatch(.*)*',
