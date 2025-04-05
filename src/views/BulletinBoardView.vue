@@ -18,7 +18,7 @@
           .actions
             .reaction-buttons
               button.reaction-btn(
-                v-for="emoji in ['🌻', '🫡', '🍎', '🥭', '🥑', '🌶️']"
+                v-for="emoji in ['👍', '❤️', '🙏', '🫡', '❤️‍🔥', '😢']"
                 :key="emoji"
                 @click="toggleReaction(message, emoji)"
                 :class="{ active: hasReacted(message, emoji) }"
