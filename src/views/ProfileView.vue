@@ -11,6 +11,13 @@
     br(v-if="isNew")
 
     .ui.grid.container
+      .ui.row.thin-only
+        .ui.column
+          .ui.massive.blue.button(v-show="uid && !editing" @click="startEdit")
+            i.edit.icon
+            | 我要
+            span(v-if="isNew") 升旗
+            span(v-else) 更新資料
       .ui.stackable.two.column.row(v-if="!editing")
         .ten.wide.column(v-show="!isNew")
           .ui.fluid.card.container(v-show="!isNew && !editing")
@@ -19,7 +26,7 @@
 
         .filler(v-if="isNew")
 
-        .six.wide.column
+        .six.wide.column.fat-only
           .ui.massive.blue.button(v-show="uid && !editing" @click="startEdit")
             i.edit.icon
             | 我要
