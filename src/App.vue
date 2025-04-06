@@ -71,10 +71,10 @@ header
             | 隱私權政策
           RouterLink.item(v-if="uid", to='/githubembeded', name="githubembeded")
             i.linkify.icon
-            | 自促會 Github 開源專案
+            | 自促會Github開源專案
           RouterLink.item(v-if="uid", to='/slido', name="slidoMeeting")
-            i.linkify.icon
-            | Slido-2025/4/26會員大會(臨時設置)
+            i.comments.icon
+            | Slido問答區(暫時)
           .divider
           button.no-border.ui.item(v-if="uid", @click="logout")
             i.sign-out.icon
