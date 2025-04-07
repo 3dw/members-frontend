@@ -441,11 +441,6 @@ export default defineComponent({
         console.error("Error fetching user data:", error);
       }
     },
-
-    // 在組件銷毀時清理事件監聽器
-    beforeDestroy() {
-      document.removeEventListener('click', this.handleOutsideClick)
-    }
   }
 })
 
