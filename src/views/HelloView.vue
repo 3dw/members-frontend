@@ -1,5 +1,6 @@
 <template lang="pug">
   .hello-view
+
     //- 登入區塊 (如果尚未登入)
     div(v-if="!isLoggedIn")
       h2 加入池塘對話！
@@ -22,47 +23,55 @@
         button(@click="logout") 離開池塘
 
       //- 發送招呼語表單
-      .greeting-form
-        textarea(v-model.trim="currentGreeting" placeholder="想說些什麼？")
-        //- 移除了 hasGreetedToday 的限制，因為 Firebase 會處理即時更新
+      .greeting-form(v-if="!hasGreetedToday")
+        textarea(v-model.trim="currentGreeting" placeholder="今天想說些什麼？")
         button(@click="postGreeting" :disabled="!currentGreeting") 向大家打招呼！
-      //- p(v-else) 你今天已經打過招呼了！ //- 移除這行，允許多次發言
+      p(v-else) 你今天已經打過招呼了！
 
       //- 池塘顯示區塊
-      h3.pond-title 池塘訊息 (即時更新)
-      .pond(v-if="isLoading")
-        p 正在載入池塘訊息...
-      .pond(v-else)
-        .greeting-item(v-if="sortedGreetings.length === 0")
-          p 池塘很安靜... 快來打聲招呼吧！
-        //- 使用 sortedGreetings 進行渲染
-        .greeting-item(v-for="(greeting) in sortedGreetings" :key="greeting.id || greeting.timestamp") //- 使用唯一 key
+      h3.pond-title 今日池塘訊息
+      .pond
+        .greeting-item(v-if="greetingsOnPond.length === 0")
+          p 今天池塘很安靜... 快來打聲招呼吧！
+        .greeting-item(v-for="(greeting, index) in greetingsOnPond" :key="index")
           .user-info
             span.avatar {{ greeting.avatar }}
             span.username {{ greeting.username }}:
           p.message {{ greeting.message }}
-          span.timestamp {{ formatTimestamp(greeting.timestamp) }}
-
+          //- 可選：顯示時間
+          //- span.timestamp {{ formatTimestamp(greeting.timestamp) }}
   </template>
 
   <script setup>
-  import { ref, onMounted, onUnmounted, computed } from 'vue';
-  // 導入 Firebase Realtime Database 相關函數和你的 bulletinRef
-  import { onValue, set, serverTimestamp as rtdbServerTimestamp } from 'firebase/database'; // Realtime Database 使用 set
-  import { bulletinRef } from '@/firebase'; // <--- 確認路徑正確
+  import { ref, onMounted, computed } from 'vue';
+  // 1) 新增從 firebase/database 與我們的 bulletinRef 匯入
+  import { onValue, set } from 'firebase/database';
+  import { bulletinRef } from '@/firebase'; // <-- 跟 BulletinBoardView.vue 相同的匯入
 
   // --- 響應式狀態 ---
   const isLoggedIn = ref(false);
-  const inputUsername = ref('');
-  const username = ref('');
-  const selectedAvatar = ref('');
-  const currentGreeting = ref('');
-  const greetingsOnPond = ref([]); // 從 Firebase 讀取的原始數據
-  const isLoading = ref(true); // 添加載入狀態
+  const inputUsername = ref('');       // 用於登入輸入框
+  const username = ref('');            // 登入後的使用者名稱
+  const selectedAvatar = ref('');      // 選擇的頭像 (Emoji 或 URL)
+  const currentGreeting = ref('');     // 當前輸入的招呼語
+
+  // 2) 改用 Firebase 儲存留言
+  //    greetingsOnPond 不再只顯示「今日」的留言，而是所有來自 bulletinRef 的留言
+  const greetingsOnPond = ref([]);     // 池塘上的所有招呼語
+
+  // 可選的頭像列表 (可以用圖片 URL 替換)
   const availableAvatars = ref(['😊', '🚀', '🌟', '☀️', '💧', '🌳']);
 
-  // Firebase 監聽器的取消函數
-  let unsubscribeListener = null;
+  // --- 計算屬性 ---
+  // 這裡保留了原本的「今天是否打過招呼」邏輯，
+  // 只是現在的 greetingsOnPond 是來自 Firebase 全部資料。
+  const hasGreetedToday = computed(() => {
+    if (!isLoggedIn.value) return false;
+    const todayString = new Date().toDateString();
+    return greetingsOnPond.value.some(
+      (g) => g.username === username.value && g.dateString === todayString
+    );
+  });
 
   // --- 方法 ---
   const login = () => {
@@ -80,124 +89,55 @@
     currentGreeting.value = '';
   };
 
-  const postGreeting = async () => { // 改為 async
-    if (!currentGreeting.value || !isLoggedIn.value) {
-      return;
+  // 3) 發送留言時直接 set 整份 greetingsOnPond 到 Firebase
+  const postGreeting = () => {
+    if (!currentGreeting.value || !isLoggedIn.value || hasGreetedToday.value) {
+      return; // 如果沒有訊息、未登入或今天已打過招呼，則不執行
     }
 
+    const now = new Date();
     const newGreeting = {
       username: username.value,
       avatar: selectedAvatar.value,
       message: currentGreeting.value,
-      // 注意：RTDB 通常不直接用 serverTimestamp() 寫入數組。
-      // 我們這裡存儲客戶端時間的 ISO 字符串，與 BulletinBoardView 保持一致。
-      // 或者你可以使用 push() 來生成唯一 ID 並允許 Firebase 處理時間戳，但這會改變數據結構。
-      timestamp: new Date().toISOString(),
+      timestamp: now.getTime(),
+      dateString: now.toDateString()
     };
 
-    // **重要：模仿 BulletinBoardView 使用 set 覆蓋整個陣列的模式**
-    // 這在多人同時寫入時可能會有問題（後寫入的會覆蓋先寫入的），
-    // 但為了符合範例，我們先這樣做。
-    // 更好的做法是用 push() 或 transaction()。
-    const currentGreetings = Array.isArray(greetingsOnPond.value) ? [...greetingsOnPond.value] : [];
-    const updatedGreetings = [...currentGreetings, newGreeting];
+    greetingsOnPond.value.push(newGreeting);
+    currentGreeting.value = '';
 
-    try {
-      await set(bulletinRef, updatedGreetings); // 使用 set 寫入整個更新後的陣列
-      currentGreeting.value = ''; // 成功後清空輸入框
-      console.log("訊息已發送到 Firebase RTDB");
-    } catch (error) {
-      console.error("發送訊息到 Firebase 時出錯:", error);
-      alert("發送失敗，請稍後再試。");
-    }
+    // 將整個陣列寫回 Firebase
+    set(bulletinRef, greetingsOnPond.value)
+      .then(() => {
+        console.log('留言已寫入 Firebase');
+      })
+      .catch((err) => {
+        console.error('寫入 Firebase 時發生錯誤:', err);
+      });
   };
 
-  // --- 計算屬性 ---
-  // 添加排序功能，最新的訊息在最前面
-  const sortedGreetings = computed(() => {
-    // 確保 greetingsOnPond.value 是個陣列
-    if (!Array.isArray(greetingsOnPond.value)) {
-      return [];
-    }
-    // 複製陣列以避免修改原始數據
-    return [...greetingsOnPond.value].sort((a, b) => {
-      // 假設 timestamp 是 ISO 格式字符串
-      const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
-      const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-      return dateB - dateA; // 降序排列
-    });
-  });
-
-  // 格式化時間戳顯示 (處理 ISO String)
-  const formatTimestamp = (timestamp) => {
-    if (!timestamp) return '';
-    try {
-      const date = new Date(timestamp);
-      if (isNaN(date.getTime())) return '無效日期'; // 檢查日期是否有效
-
-      const now = new Date();
-      const diff = now.getTime() - date.getTime();
-      const diffSeconds = Math.floor(diff / 1000);
-      const diffMinutes = Math.floor(diff / (1000 * 60));
-      const diffHours = Math.floor(diff / (1000 * 60 * 60));
-      const diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-      if (diffSeconds < 5) return '剛剛';
-      if (diffSeconds < 60) return `${diffSeconds} 秒前`;
-      if (diffMinutes < 60) return `${diffMinutes} 分鐘前`;
-      if (diffHours < 24) return `${diffHours} 小時前`;
-      if (diffDays < 7) return `${diffDays} 天前`;
-      // 如果超過一周，可以顯示具體日期
-      return date.toLocaleDateString('zh-TW', { year: 'numeric', month: 'numeric', day: 'numeric' });
-
-    } catch (e) {
-      console.error("格式化時間戳錯誤:", e);
-      return '時間錯誤';
-    }
-  };
-
+  // 可選：格式化時間戳顯示
+  // const formatTimestamp = (timestamp) => {
+  //   const date = new Date(timestamp);
+  //   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  // };
 
   // --- 生命週期鉤子 ---
+  // 4) 組件掛載時，使用 onValue 監聽 bulletinRef，並更新 greetingsOnPond
   onMounted(() => {
-    isLoading.value = true; // 開始載入
-    // 設置 Firebase Realtime Database 的監聽器
-    unsubscribeListener = onValue(bulletinRef, (snapshot) => {
-      const data = snapshot.val();
-      // Firebase RTDB 在路徑不存在或為空時返回 null
-      // BulletinBoardView 似乎期望數據是一個陣列
-      if (Array.isArray(data)) {
-        greetingsOnPond.value = data;
-      } else if (data === null) {
-        greetingsOnPond.value = []; // 如果 Firebase 中沒數據，設為空陣列
-        console.log("Firebase 'bulletin' 路徑目前為空。");
+    onValue(bulletinRef, (snapshot) => {
+      if (snapshot.exists()) {
+        // 假設整個 bulletinRef 是一個陣列形式
+        greetingsOnPond.value = snapshot.val();
       } else {
-          // 如果數據不是陣列也不是 null (例如是個物件)，這可能表示數據結構不符預期
-          console.warn("從 Firebase 收到的數據不是預期的陣列格式:", data);
-          // 可以嘗試轉換，或報錯，或設置為空
-          greetingsOnPond.value = [];
+        greetingsOnPond.value = [];
       }
-      isLoading.value = false; // 載入完成
-      console.log("從 Firebase RTDB 更新數據:", greetingsOnPond.value);
-    }, (error) => {
-      // 監聽錯誤處理
-      console.error("監聽 Firebase RTDB 時出錯:", error);
-      isLoading.value = false; // 出錯也視為載入結束（雖然是失敗的）
-      alert("無法從資料庫載入訊息，請檢查網路連線或稍後再試。");
     });
   });
-
-  onUnmounted(() => {
-    // 組件卸載時取消 Firebase 監聽器，防止內存洩漏
-    if (unsubscribeListener) {
-      unsubscribeListener();
-      console.log("Firebase RTDB 監聽器已卸載");
-    }
-  });
-
   </script>
 
   <style scoped>
-  /* 樣式基本不變，可以沿用之前的 */
   .hello-view {
     font-family: sans-serif;
     max-width: 600px;
@@ -217,13 +157,13 @@
   .login-form, .greeting-form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 15px; /* 增加元素間距 */
     margin-bottom: 20px;
   }
 
   label {
     font-weight: bold;
-    margin-bottom: -10px;
+    margin-bottom: -10px; /* 讓標籤靠近輸入框 */
   }
 
   input[type="text"],
@@ -263,14 +203,14 @@
     display: flex;
     gap: 10px;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* 頭像多時可換行 */
   }
 
   .avatar-selection label {
     display: flex;
     align-items: center;
     cursor: pointer;
-    margin-bottom: 0;
+    margin-bottom: 0; /* 重置 label 底部邊距 */
   }
 
   .avatar-selection input[type="radio"] {
@@ -278,7 +218,7 @@
   }
 
   .avatar {
-    font-size: 1.5rem;
+    font-size: 1.5rem; /* 放大頭像 Emoji */
     display: inline-block;
     margin: 0 5px;
   }
@@ -294,10 +234,10 @@
   }
   .welcome-message h2 {
     margin: 0;
-    text-align: left;
+    text-align: left; /* 取消置中 */
   }
   .welcome-message button {
-    background-color: #dc3545;
+    background-color: #dc3545; /* 登出按鈕用紅色 */
     font-size: 0.9rem;
     padding: 5px 10px;
   }
@@ -305,21 +245,20 @@
     background-color: #c82333;
   }
 
-
   .pond-title {
     border-top: 1px dashed #ccc;
     padding-top: 20px;
   }
 
   .pond {
-    border: 2px solid #a0d8f0;
-    background-color: #eaf7ff;
+    border: 2px solid #a0d8f0; /* 淡藍色邊框模擬池塘 */
+    background-color: #eaf7ff; /* 更淡的藍色背景 */
     padding: 15px;
     border-radius: 8px;
     min-height: 150px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 15px; /* 訊息間的間隔 */
   }
 
   .greeting-item {
@@ -327,36 +266,33 @@
     padding: 10px 15px;
     border-radius: 6px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    display: flex;
-    align-items: flex-start;
+    display: flex; /* 讓頭像和訊息水平排列 */
+    align-items: flex-start; /* 頂部對齊 */
     gap: 10px;
   }
 
   .greeting-item .user-info {
-      display: flex;
-      align-items: center;
-      white-space: nowrap;
-      margin-right: 5px; /* 給用戶信息和消息之間一點空間 */
+    display: flex;
+    align-items: center; /* 頭像和名字垂直居中 */
+    white-space: nowrap; /* 防止名字換行 */
   }
 
   .greeting-item .username {
     font-weight: bold;
-    margin-left: 5px;
+    margin-left: 5px; /* 頭像和名字間的距離 */
   }
 
   .greeting-item .message {
-    margin: 0;
-    flex-grow: 1;
-    word-break: break-word;
-    white-space: pre-wrap; /* 保留換行符 */
+    margin: 0; /* 重置段落邊距 */
+    flex-grow: 1; /* 讓訊息佔用剩餘空間 */
+    word-break: break-word; /* 長單字或連結換行 */
   }
 
+  /* 可選的時間戳樣式 */
   .timestamp {
     font-size: 0.8em;
     color: #888;
-    margin-left: auto; /* 將時間戳推到右側 */
-    padding-left: 10px; /* 與消息保持一點距離 */
-    white-space: nowrap; /* 防止時間換行 */
-    align-self: flex-end; /* 在 flex item 內部底部對齊（雖然這裡效果不明顯） */
+    margin-top: 5px;
+    text-align: right;
   }
   </style>
