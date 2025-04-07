@@ -238,6 +238,23 @@ export default defineComponent({
     },
     toggleSidebar() {
       this.sidebarVisible = !this.sidebarVisible
+
+      // 如果側邊欄打開，添加點擊監聽器到整個文檔
+      if (this.sidebarVisible) {
+        setTimeout(() => {
+          document.addEventListener('click', this.handleOutsideClick)
+        }, 0)
+      }
+    },
+    handleOutsideClick(event: MouseEvent) {
+      const sideMenu = document.getElementById('side-menu')
+      const target = event.target as HTMLElement
+
+      // 如果點擊的不是側邊欄且側邊欄是可見的
+      if (sideMenu && !sideMenu.contains(target) && this.sidebarVisible) {
+        this.sidebarVisible = false
+        document.removeEventListener('click', this.handleOutsideClick)
+      }
     },
     logout () {
       // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -437,6 +454,11 @@ export default defineComponent({
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
+    },
+
+    // 在組件銷毀時清理事件監聽器
+    beforeDestroy() {
+      document.removeEventListener('click', this.handleOutsideClick)
     }
   }
 })
