@@ -189,6 +189,14 @@ function __VLS_template() {
     __VLS_styleScopedClasses['comments'];
     __VLS_styleScopedClasses['comment'];
     __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['comments'];
+    __VLS_styleScopedClasses['comment'];
+    __VLS_styleScopedClasses['text'];
+    __VLS_styleScopedClasses['ui'];
+    __VLS_styleScopedClasses['comments'];
+    __VLS_styleScopedClasses['comment'];
+    __VLS_styleScopedClasses['text'];
+    __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['form'];
     __VLS_styleScopedClasses['reply'];

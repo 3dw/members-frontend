@@ -143,7 +143,12 @@ const router = createRouter({
         {
             path: '/hello',
             name: 'HelloView',
-            component: () => import('../views/HelloView.vue')
+            component: () => import('../views/HelloView.vue'),
+            props: route => ({
+                uid: route.params.uid,
+                photoURL: route.params.photoURL,
+                email: route.params.email
+            })
         },
         {
             path: '/:pathMatch(.*)*',

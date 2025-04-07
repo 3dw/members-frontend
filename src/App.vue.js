@@ -261,7 +261,7 @@ export default defineComponent({
             catch (error) {
                 console.error("Error fetching user data:", error);
             }
-        }
+        },
     }
 });
 function __VLS_template() {
