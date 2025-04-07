@@ -1,0 +1,39 @@
+{
+    "greetings": {
+      "-ONFhPNMSYfw1uIfNQ_U": {
+        "text": "大家早安！今天也要加油！",
+        "uid": "pa5LPUcf7aUAAXPehAplLiEKH1q2",
+        "email": "user1@example.com",
+        "photoURL": "https://we.alearn.org.tw/logo-new.png",
+        "timestamp": 1744037061562
+      },
+      "-ONFhPNMSYfw2uIfNQ_V": {
+        "text": "午安！希望大家都有美好的一天！",
+        "uid": "pa5LPUcf7aUAAXPehAplLiEKH2q2",
+        "email": "user2@example.com",
+        "photoURL": "https://we.alearn.org.tw/logo-new.png",
+        "timestamp": 1744037162562
+      },
+      "-ONFhPNMSYfw3uIfNQ_W": {
+        "text": "晚安！明天見！",
+        "uid": "pa5LPUcf7aUAAXPehAplLiEKH3q2",
+        "email": "user3@example.com",
+        "photoURL": "https://we.alearn.org.tw/logo-new.png",
+        "timestamp": 1744037263562
+      },
+      "-ONFhPNMSYfw4uIfNQ_X": {
+        "text": "今天天氣真好，適合學習！",
+        "uid": "pa5LPUcf7aUAAXPehAplLiEKH4q2",
+        "email": "user4@example.com",
+        "photoURL": "https://we.alearn.org.tw/logo-new.png",
+        "timestamp": 1744037364562
+      },
+      "-ONFhPNMSYfw5uIfNQ_Y": {
+        "text": "自主學習真有趣！",
+        "uid": "pa5LPUcf7aUAAXPehAplLiEKH5q2",
+        "email": "user5@example.com",
+        "photoURL": "https://we.alearn.org.tw/logo-new.png",
+        "timestamp": 1744037465562
+      }
+    }
+  }

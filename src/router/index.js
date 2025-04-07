@@ -141,6 +141,11 @@ const router = createRouter({
             component: () => import('../views/GithubEmbededView.vue')
         },
         {
+            path: '/hello',
+            name: 'HelloView',
+            component: () => import('../views/HelloView.vue')
+        },
+        {
             path: '/:pathMatch(.*)*',
             redirect: '/404'
         }
