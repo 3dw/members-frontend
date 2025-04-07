@@ -280,6 +280,26 @@ export default defineComponent({
   color: #333;
 }
 
+/* 具有懸停能力的設備（通常是桌面電腦）可以選擇文字 */
+@media (hover: hover) {
+  .ui.comments .comment .text {
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+  }
+}
+
+/* 觸控設備（手機和平板）不能選擇文字 */
+@media (hover: none) {
+  .ui.comments .comment .text {
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+}
+
 .ui.form.reply {
   background: #f8f9fa;
   padding: 2rem;
