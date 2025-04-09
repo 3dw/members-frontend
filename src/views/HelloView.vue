@@ -50,7 +50,7 @@
 
   // 匯入 Firebase 功能
   import { onValue, set } from 'firebase/database';
-  import { bulletinRef } from '@/firebase';  // 請依自己專案路徑調整
+  import { waterdropRef } from '@/firebase';  // 請依自己專案路徑調整
 
   // --- 基本響應式狀態 ---
   const isLoggedIn = ref(false);
@@ -132,7 +132,7 @@
 
     const updatedGreetings = [...greetingsOnPond.value, newGreeting];
 
-    set(bulletinRef, updatedGreetings)
+    set(waterdropRef, updatedGreetings)
       .then(() => {
         console.log('留言已寫入 Firebase');
         // 加一個小漣漪
@@ -413,9 +413,9 @@
 
   // --- Firebase 監聽 + 生命週期 ---
   onMounted(() => {
-    // 監聽 bulletinRef
+    // 監聽 waterdropRef
     onValue(
-      bulletinRef,
+      waterdropRef,
       (snapshot) => {
         let data = [];
         if (snapshot.exists()) {

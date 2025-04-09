@@ -29,4 +29,5 @@ export const usersRef = ref(database, 'users');
 export const changelogsRef = ref(database, 'changelogs');
 export const actionsRef = ref(database, 'actions');
 export const bulletinRef = ref(database, 'bulletin');
+export const waterdropRef = ref(database, 'waterdrop');
 //# sourceMappingURL=firebase.js.map

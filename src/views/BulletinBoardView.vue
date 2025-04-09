@@ -68,43 +68,13 @@ export default defineComponent({
     const messages = ref<Message[]>([
       { author: 'AliceS', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
       { author: 'BobS', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
-
-      { author: 'Alice', uid: '123', date: '2025-03-20 10:00:00', text: 'This is a great post!' },
-      { author: 'Bob', uid: '456', date: '2025-03-20 10:00:00', text: 'I totally agree with Alice.' },
-
-      { author: 'Alice', uid: '123', date: '2025-03-29 10:00:00', text: 'This is a great post!' },
-      { author: 'Bob', uid: '456', date: '2025-03-29 10:00:00', text: 'I totally agree with Alice.' },
-
-      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
-      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
-
-      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
-      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
-
-      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
-      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
-
-      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
-      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
-
-      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
-      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
-
-      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
-      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
-
-      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
-      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
-
-      { author: 'Alice', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
-      { author: 'Bob', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' }
-
     ].map(msg => ({
       ...msg,
       reactions: {}
     })));
 
     const newMessage = ref('');
+    const dataLoaded = ref(false);
 
     // 添加 sortedMessages 計算屬性
     const sortedMessages = computed(() => {
@@ -116,6 +86,8 @@ export default defineComponent({
     });
 
     const addMessage = () => {
+      if (!dataLoaded.value) return;
+
       console.log(newMessage.value);
       messages.value.push({
         author: props.users[props.uid].name || '匿名',
@@ -214,6 +186,7 @@ export default defineComponent({
           text: message.text,
           reactions: message.reactions || {}
         }));
+        dataLoaded.value = true;
       });
       setInterval(async () => {
         console.log('tick');
@@ -233,7 +206,8 @@ export default defineComponent({
       toggleReaction,
       hasReacted,
       getReactionCount,
-      getReactionUsers
+      getReactionUsers,
+      dataLoaded
     }
   }
 })
