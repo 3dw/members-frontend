@@ -2,7 +2,7 @@
   .hello-view
     //- 顯示台灣日期和池塘（只保留一個）
     h3.taiwan-date {{ taiwanDate }}
-    h3.pond-title 今日池塘動態
+    h3.pond-title 自主學習促進會今日池塘動態
     .pond-container
       canvas.pond-canvas(ref="pondCanvas")
 
@@ -59,7 +59,7 @@ const inputUsername = ref('');
 const username = ref('');
 const selectedAvatar = ref('');
 const currentGreeting = ref('');
-const availableAvatars = ref(['😊', '🚀', '🌟', '☀️', '💧', '🌳']);
+const availableAvatars = ref(['😊', '🚀', '🌟', '☀️', '💧', '🌳', '🐟', '🦈', '🪷', '🐬']);
 const greetingsOnPond = ref([]); // 從 Firebase 取得的原始留言列表
 
 // --- Canvas 動畫相關狀態 ---
