@@ -384,7 +384,6 @@
       avatar.y += avatar.vy;
 
       // 2. 碰撞邊界（簡單反彈）
-      //   先假設文字泡泡高度 ~70px
       const bubbleReserve = 70;
       const halfSize = avatar.size / 2;
 
@@ -396,31 +395,30 @@
         avatar.vx *= -1;
       }
 
-      // 上方考慮泡泡
       if (avatar.y - halfSize - bubbleReserve < 0) {
         avatar.y = halfSize + bubbleReserve;
-        avatar.vy = Math.abs(avatar.vy); // 往下反彈
+        avatar.vy = Math.abs(avatar.vy);
       } else if (avatar.y + halfSize > canvas.height) {
         avatar.y = canvas.height - halfSize;
         avatar.vy *= -1;
       }
 
-      // 3. 繪製泡泡 (avatar + username + message)
-      const textContent = `${avatar.avatar} ${avatar.username}\n${avatar.message}`;
+      // 3. 只繪製訊息泡泡
+      const textContent = `${avatar.message}`; // 移除重複的頭像和使用者名稱
       drawWrappedText(
         ctx,
         textContent,
         avatar.x,
-        avatar.y - halfSize, // 泡泡錨點在頭像上方
-        130,        // 泡泡文字最大寬度
-        16,         // 行高
-        8,          // 文字邊距
-        'rgba(255, 255, 255, 0.85)', // 泡泡底色
-        '#333',     // 文字顏色
-        '14px sans-serif' // 字體
+        avatar.y - halfSize,
+        130,
+        16,
+        8,
+        'rgba(255, 255, 255, 0.85)',
+        '#333',
+        '14px sans-serif'
       );
 
-      // 4. 再繪製頭像 Emoji (在泡泡下方)
+      // 4. 只繪製一次頭像
       ctx.font = `${avatar.size}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
