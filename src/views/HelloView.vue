@@ -28,6 +28,7 @@
       p(v-else) 你今天已經打過招呼了！
 
       //- 池塘顯示區 (只保留 Canvas，頭像＋訊息在畫布中動態繪製)
+      h3.taiwan-date {{ taiwanDate }}
       h3.pond-title 今日池塘動態
       .pond-container
         canvas.pond-canvas(ref="pondCanvas")
@@ -84,6 +85,47 @@
       return (b.timestamp || 0) - (a.timestamp || 0)
     })
   })
+
+  // 取得台灣時間的函數
+  function getTaiwanDate() {
+    const options = {
+      timeZone: 'Asia/Taipei',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'long'
+    };
+    return new Date().toLocaleDateString('zh-TW', options);
+  }
+
+  // 新增：顯示台灣日期的響應式變數
+  const taiwanDate = ref(getTaiwanDate());
+
+  // 新增：預設訊息
+  const defaultGreeting = {
+    id: 'default-greeting',
+    username: '池塘管理員',
+    avatar: '🌊',
+    message: '來打招呼吧！',
+    timestamp: Date.now(),
+    dateString: new Date().toDateString()
+  };
+
+  // 修改：過濾今日訊息的計算屬性
+  const todayGreetings = computed(() => {
+    const today = new Date();
+    const taiwanOptions = { timeZone: 'Asia/Taipei' };
+    const taiwanToday = new Date(today.toLocaleString('en-US', taiwanOptions)).toDateString();
+
+    const filteredGreetings = greetingsOnPond.value.filter(greeting => {
+      const greetingDate = new Date(greeting.timestamp);
+      const greetingDateString = new Date(greetingDate.toLocaleString('en-US', taiwanOptions)).toDateString();
+      return greetingDateString === taiwanToday;
+    });
+
+    // 如果今天沒有訊息，加入預設訊息
+    return filteredGreetings.length > 0 ? filteredGreetings : [defaultGreeting];
+  });
 
   // --- 登入 / 登出 / 發送留言 ---
   function login() {
@@ -181,9 +223,8 @@
   function syncAvatarsFromGreetings() {
     if (!Array.isArray(greetingsOnPond.value)) return;
 
-    // 目前畫面上有哪些 id
-    const currentIds = pondAvatars.value.map(a => a.id);
-    const incomingGreetings = greetingsOnPond.value;
+    // 使用今日訊息
+    const incomingGreetings = todayGreetings.value;
 
     // 1. 新增或更新
     incomingGreetings.forEach(g => {
@@ -200,7 +241,7 @@
       }
     });
 
-    // 2. 移除已刪除的留言
+    // 2. 移除不是今天的留言
     const incomingIds = incomingGreetings.map(i => i.id).filter(Boolean);
     pondAvatars.value = pondAvatars.value.filter(a => incomingIds.includes(a.id));
   }
@@ -698,6 +739,14 @@
     text-align: center;
     color: #666;
     font-style: italic;
+  }
+
+  .taiwan-date {
+    text-align: center;
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    font-weight: normal;
   }
   </style>
 

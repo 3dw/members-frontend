@@ -27,7 +27,7 @@ export default defineComponent({
             photoURL: '',
             email: '',
             emailVerified: false,
-            devMode: false,
+            devMode: true,
             zoom: 13,
             center: [23.5330, 121.0654]
         };
@@ -285,8 +285,8 @@ function __VLS_template() {
     __VLS_styleScopedClasses['sidebar'];
     __VLS_styleScopedClasses['ui'];
     __VLS_styleScopedClasses['sidebar'];
-    // CSS variable injection 
-    // CSS variable injection end 
+    // CSS variable injection
+    // CSS variable injection end
     let __VLS_resolvedLocalAndGlobalComponents;
     var __VLS_slots;
     var __VLS_inheritedAttrs;
