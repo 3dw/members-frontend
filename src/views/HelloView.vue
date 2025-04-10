@@ -16,7 +16,7 @@
         label 頭像選擇：
         .avatar-selection
           label(v-for="(avatar, index) in availableAvatars" :key="index")
-            input(type="radio" name="avatar" :value="avatar.value" v-model="selectedAvatar")
+            input(type="radio" name="avatar" :value="avatar" v-model="selectedAvatar")
             span.avatar(v-if="avatar.type === 'emoji'") {{ avatar.value }}
             img.avatar-img(v-else :src="avatar.src" :alt="avatar.value")
 
@@ -25,7 +25,9 @@
     //- 打招呼和池塘顯示區 (如果已登入)
     div(v-else)
       .welcome-message
-        h2 Hi, {{ username }} ({{ selectedAvatar }})!
+        h2 Hi, {{ username }}
+          span.avatar(v-if="selectedAvatar.type === 'emoji'") {{ selectedAvatar.value }}
+          img.avatar-img(v-else :src="selectedAvatar.src" :alt="selectedAvatar.value")
         button(@click="logout") 離開池塘
 
       //- 發送招呼語表單
@@ -54,47 +56,57 @@ import { ref, onMounted, computed, onBeforeUnmount, nextTick, watch } from 'vue'
 import { onValue, set } from 'firebase/database';
 import { waterdropRef } from '@/firebase';  // 請依自己專案路徑調整
 
-// 使用動態引入
+// 使用動態引入所有頭像
 const customAvatars = [
   {
     type: 'image',
-    src: new URL('../assets/佳仁小icon.png', import.meta.url).href,
+    src: new URL('../assets/icon/佳仁小icon.png', import.meta.url).href,
     value: 'jiaren'
   },
   {
     type: 'image',
-    src: new URL('../assets/Friday小icon.png', import.meta.url).href,
+    src: new URL('../assets/icon/Friday小icon.png', import.meta.url).href,
     value: 'friday'
   },
   {
     type: 'image',
-    src: new URL('../assets/思琴小icon.png', import.meta.url).href,
+    src: new URL('../assets/icon/思琴小icon.png', import.meta.url).href,
     value: 'siqin'
   },
   {
     type: 'image',
-    src: new URL('../assets/Bestian小icon.png', import.meta.url).href,
+    src: new URL('../assets/icon/Bestian小icon.png', import.meta.url).href,
     value: 'bestian'
   },
   {
     type: 'image',
-    src: new URL('../assets/YiYi小icon.png', import.meta.url).href,
+    src: new URL('../assets/icon/YiYi小icon.png', import.meta.url).href,
     value: 'yiyi'
   },
   {
     type: 'image',
-    src: new URL('../assets/Yi-Ting小icon.png', import.meta.url).href,
+    src: new URL('../assets/icon/Yi-Ting小icon.png', import.meta.url).href,
     value: 'yiting'
   },
   {
     type: 'image',
-    src: new URL('../assets/Yi-ling小icon.png', import.meta.url).href,
+    src: new URL('../assets/icon/Yi-ling小icon.png', import.meta.url).href,
     value: 'yiling'
   },
   {
     type: 'image',
-    src: new URL('../assets/秋慧小icon.png', import.meta.url).href,
+    src: new URL('../assets/icon/秋慧小icon.png', import.meta.url).href,
     value: 'qiuhui'
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/奕君小icon.png', import.meta.url).href,
+    value: 'yijun'
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/音秀小icon.png', import.meta.url).href,
+    value: 'yinxiu'
   }
 ];
 
@@ -104,6 +116,12 @@ const emojiAvatars = ['😊', '🚀', '🌟', '☀️', '💧', '🌳', '🐟', 
 // 將兩種頭像組合在一起
 const availableAvatars = ref([...customAvatars, ...emojiAvatars.map(emoji => ({ type: 'emoji', value: emoji }))]);
 
+// --- 基本響應式狀態 ---
+const isLoggedIn = ref(false);
+const inputUsername = ref('');
+const username = ref('');
+const selectedAvatar = ref(null);
+const currentGreeting = ref('');
 const greetingsOnPond = ref([]); // 從 Firebase 取得的原始留言列表
 
 // --- Canvas 動畫相關狀態 ---
@@ -187,7 +205,7 @@ function logout() {
   isLoggedIn.value = false;
   username.value = '';
   inputUsername.value = '';
-  selectedAvatar.value = '';
+  selectedAvatar.value = null;
   currentGreeting.value = '';
 
   // 停止動畫
@@ -643,46 +661,24 @@ button:hover:not(:disabled) {
 }
 
 .avatar-selection {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+  display: flex;
   gap: 10px;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
+  align-items: center;
+  flex-wrap: wrap;
 }
-
 .avatar-selection label {
   display: flex;
   align-items: center;
-  justify-content: center;
   cursor: pointer;
-  padding: 5px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
+  margin-bottom: 0;
 }
-
-.avatar-selection label:hover {
-  background-color: rgba(0, 123, 255, 0.1);
-}
-
 .avatar-selection input[type="radio"] {
-  position: absolute;
-  opacity: 0;
+  margin-right: 5px;
 }
-
-.avatar-selection input[type="radio"]:checked + .avatar,
-.avatar-selection input[type="radio"]:checked + .avatar-img {
-  transform: scale(1.2);
-  box-shadow: 0 0 0 2px #007bff;
-}
-
-.avatar-img {
-  width: 30px;
-  height: 30px;
-  object-fit: cover;
-  border-radius: 50%;
+.avatar {
+  font-size: 1.5rem;
   display: inline-block;
-  vertical-align: middle;
+  margin: 0 5px;
 }
 
 /* 歡迎訊息區 */
@@ -804,5 +800,13 @@ button:hover:not(:disabled) {
 .login-form {
   margin-top: 20px; /* 增加與池塘的間距 */
 }
-</style>
 
+.avatar-img {
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  border-radius: 50%;
+  display: inline-block;
+  vertical-align: middle;
+}
+</style>
