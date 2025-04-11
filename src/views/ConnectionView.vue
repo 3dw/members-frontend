@@ -17,7 +17,7 @@
     .stats
       .stat-item
         .stat-number {{ Object.keys(users).length }}
-        .stat-label 在線成員
+        .stat-label 認證成員
   </template>
 
   <script setup lang="ts">
