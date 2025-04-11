@@ -107,7 +107,85 @@ const customAvatars = [
     type: 'image',
     src: new URL('../assets/icon/音秀小icon.png', import.meta.url).href,
     value: 'yinxiu'
-  }
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/光華小icon.png', import.meta.url).href,
+    value: 'guanghua'
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/雅卿小icon.png', import.meta.url).href,
+    value: 'yaching'
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/妍伶小icon.png', import.meta.url).href,
+    value: 'yanling'
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/春芳小icon.png', import.meta.url).href,
+    value: 'chunfang'
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/郁玲小icon.png', import.meta.url).href,
+    value: 'southyuling'
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/培芬小icon.png', import.meta.url).href,
+    value: 'peifen'
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/毓惠小icon.png', import.meta.url).href,
+    value: 'yuhui'
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/瑞士小icon.png', import.meta.url).href,
+    value: 'ruishi'
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/慶瑜小icon.png', import.meta.url).href,
+    value: 'qingyu'
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/鴻祥小icon.png', import.meta.url).href,
+    value: 'hongxiang'
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/jenny小icon.png', import.meta.url).href,
+    value: 'jenny'
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/Tim小icon.png', import.meta.url).href,
+    value: 'tim'
+  },
+  {
+    type: 'image',
+    src: new URL('../assets/icon/yu lin小icon.png', import.meta.url).href,
+    value: 'yulin'
+  },
+
+
+
+
+
+
+
+
+
+
+
+
+
 ];
 
 // 修改：表情符號頭像
