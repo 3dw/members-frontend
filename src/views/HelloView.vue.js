@@ -1,42 +1,197 @@
-import { ref, onMounted, computed, onBeforeUnmount, nextTick, watch } from 'vue';
-// 匯入 Firebase 功能
+import { ref, onMounted, computed, onBeforeUnmount, nextTick } from 'vue';
 import { onValue, set } from 'firebase/database';
 import { waterdropRef } from '@/firebase'; // 請依自己專案路徑調整
 const { defineProps, defineSlots, defineEmits, defineExpose, defineModel, defineOptions, withDefaults, } = await import('vue');
-// --- 基本響應式狀態 ---
+// 使用動態引入所有頭像 (自訂圖像)
+const customAvatars = [
+    {
+        type: 'image',
+        src: new URL('../assets/icon/佳仁小icon.png', import.meta.url).href,
+        value: 'jiaren'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/Friday小icon.png', import.meta.url).href,
+        value: 'friday'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/思琴小icon.png', import.meta.url).href,
+        value: 'siqin'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/Bestian小icon.png', import.meta.url).href,
+        value: 'bestian'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/YiYi小icon.png', import.meta.url).href,
+        value: 'yiyi'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/Yi-Ting小icon.png', import.meta.url).href,
+        value: 'yiting'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/Yi-ling小icon.png', import.meta.url).href,
+        value: 'yiling'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/秋慧小icon.png', import.meta.url).href,
+        value: 'qiuhui'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/奕君小icon.png', import.meta.url).href,
+        value: 'yijun'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/音秀小icon.png', import.meta.url).href,
+        value: 'yinxiu'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/光華小icon.png', import.meta.url).href,
+        value: 'guanghua'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/雅卿小icon.png', import.meta.url).href,
+        value: 'yaching'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/妍伶小icon.png', import.meta.url).href,
+        value: 'yanling'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/春芳小icon.png', import.meta.url).href,
+        value: 'chunfang'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/郁玲小icon.png', import.meta.url).href,
+        value: 'southyuling'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/培芬小icon.png', import.meta.url).href,
+        value: 'peifen'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/毓惠小icon.png', import.meta.url).href,
+        value: 'yuhui'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/瑞士小icon.png', import.meta.url).href,
+        value: 'ruishi'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/慶瑜小icon.png', import.meta.url).href,
+        value: 'qingyu'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/鴻祥小icon.png', import.meta.url).href,
+        value: 'hongxiang'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/jenny小icon.png', import.meta.url).href,
+        value: 'jenny'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/Tim小icon.png', import.meta.url).href,
+        value: 'tim'
+    },
+    {
+        type: 'image',
+        src: new URL('../assets/icon/yu lin小icon.png', import.meta.url).href,
+        value: 'yulin'
+    },
+];
+// 表情符號頭像
+const emojiAvatars = ['😊', '🚀', '🌟', '☀️', '💧', '🌳', '🐟', '🦈', '🪷', '🐬'];
+// 結合圖片與表情頭像
+const availableAvatars = ref([
+    ...customAvatars,
+    ...emojiAvatars.map(emoji => ({ type: 'emoji', value: emoji }))
+]);
+// 基本響應式狀態
 const isLoggedIn = ref(false);
 const inputUsername = ref('');
 const username = ref('');
-const selectedAvatar = ref('');
+const selectedAvatar = ref(null);
 const currentGreeting = ref('');
-const availableAvatars = ref(['😊', '🚀', '🌟', '☀️', '💧', '🌳']);
-const greetingsOnPond = ref([]); // 從 Firebase 取得的原始留言列表
-// --- Canvas 動畫相關狀態 ---
-const pondCanvas = ref(null); // <canvas> DOM
-let ctx = null; // 2D context
-let animationId = null; // requestAnimationFrame ID
-const ripples = ref([]); // 水波紋
-const pondAvatars = ref([]); // 在池塘中「飄動」的物件（包含：頭像＋暱稱＋訊息）
-const lastGreetingCount = ref(0); // 用於偵測是否有新留言
-// --- 計算屬性：判斷使用者今天是否已經發過言 ---
+const greetingsOnPond = ref([]);
+// Canvas 動畫相關
+const pondCanvas = ref(null);
+let ctx = null;
+let animationId = null;
+const ripples = ref([]);
+const pondAvatars = ref([]);
+const lastGreetingCount = ref(0);
+// 是否今日已經發過招呼
 const hasGreetedToday = computed(() => {
     if (!isLoggedIn.value || !Array.isArray(greetingsOnPond.value))
         return false;
     const todayString = new Date().toDateString();
     return greetingsOnPond.value.some((g) => g.username === username.value && g.dateString === todayString);
 });
-// 新增：訊息排序的計算屬性
+// 訊息時間排序
 const sortedMessages = computed(() => {
     return [...greetingsOnPond.value].sort((a, b) => {
         return (b.timestamp || 0) - (a.timestamp || 0);
     });
 });
-// --- 登入 / 登出 / 發送留言 ---
+// 取得台灣日期
+function getTaiwanDate() {
+    const options = {
+        timeZone: 'Asia/Taipei',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long'
+    };
+    return new Date().toLocaleDateString('zh-TW', options);
+}
+const taiwanDate = ref(getTaiwanDate());
+// 預設訊息
+const defaultGreeting = {
+    id: 'default-greeting',
+    username: '池塘管理員',
+    avatar: '🌊',
+    message: '來打招呼吧！',
+    timestamp: Date.now(),
+    dateString: new Date().toDateString()
+};
+// 今日訊息 (若無則顯示預設)
+const todayGreetings = computed(() => {
+    const today = new Date();
+    const taiwanOptions = { timeZone: 'Asia/Taipei' };
+    const taiwanToday = new Date(today.toLocaleString('en-US', taiwanOptions)).toDateString();
+    const filteredGreetings = greetingsOnPond.value.filter(greeting => {
+        const greetingDate = new Date(greeting.timestamp);
+        const greetingDateString = new Date(greetingDate.toLocaleString('en-US', taiwanOptions)).toDateString();
+        return greetingDateString === taiwanToday;
+    });
+    return filteredGreetings.length > 0 ? filteredGreetings : [defaultGreeting];
+});
+// 登入 / 登出 / 發送留言
 function login() {
     if (inputUsername.value && selectedAvatar.value) {
         username.value = inputUsername.value;
         isLoggedIn.value = true;
-        // 登入後初始化池塘
         nextTick(() => {
             initPond();
         });
@@ -46,14 +201,12 @@ function logout() {
     isLoggedIn.value = false;
     username.value = '';
     inputUsername.value = '';
-    selectedAvatar.value = '';
+    selectedAvatar.value = null;
     currentGreeting.value = '';
-    // 停止動畫
     if (animationId) {
         cancelAnimationFrame(animationId);
         animationId = null;
     }
-    // 清空狀態
     pondAvatars.value = [];
     ripples.value = [];
     lastGreetingCount.value = 0;
@@ -68,7 +221,7 @@ function postGreeting() {
         id: `msg-${now.getTime()}-${Math.random().toString(16).slice(2)}`,
         username: username.value,
         avatar: selectedAvatar.value,
-        message: currentGreeting.value, // **包含文字訊息**
+        message: currentGreeting.value,
         timestamp: now.getTime(),
         dateString: now.toDateString(),
     };
@@ -86,7 +239,7 @@ function postGreeting() {
         console.error('寫入 Firebase 時發生錯誤:', err);
     });
 }
-// --- Canvas 與池塘初始化 ---
+// Canvas 與池塘初始化
 function initPond() {
     if (!pondCanvas.value) {
         console.error("Canvas element not found!");
@@ -108,44 +261,43 @@ function resizeCanvas() {
     const container = pondCanvas.value.parentElement;
     if (!container)
         return;
-    // 寬度跟隨容器 (RWD)
     pondCanvas.value.width = container.clientWidth;
-    // 高度根據容器計算 (clip-path 不會改變實際寬高，需要我們手動設定)
     pondCanvas.value.height = container.clientHeight;
 }
-// --- 從 Firebase 留言同步到「池塘中的動態物件」列表 ---
+// 從 Firebase 留言同步到池塘動態物件
 function syncAvatarsFromGreetings() {
     if (!Array.isArray(greetingsOnPond.value))
         return;
-    // 目前畫面上有哪些 id
-    const currentIds = pondAvatars.value.map(a => a.id);
-    const incomingGreetings = greetingsOnPond.value;
-    // 1. 新增或更新
+    const incomingGreetings = todayGreetings.value;
+    // 新增或更新
     incomingGreetings.forEach(g => {
         if (!g || !g.id)
             return;
         const idx = pondAvatars.value.findIndex(a => a.id === g.id);
         if (idx === -1) {
-            // 新增
             addAvatarToPond(g);
         }
         else {
-            // 已存在 -> 更新文字或頭像
             pondAvatars.value[idx].message = g.message;
             pondAvatars.value[idx].avatar = g.avatar;
             pondAvatars.value[idx].username = g.username;
         }
     });
-    // 2. 移除已刪除的留言
+    // 移除不是今天的留言
     const incomingIds = incomingGreetings.map(i => i.id).filter(Boolean);
     pondAvatars.value = pondAvatars.value.filter(a => incomingIds.includes(a.id));
 }
-// --- 將單一留言轉成池塘上的動態物件 (包含頭像、暱稱、訊息) ---
+// 新增池塘動態物件
 function addAvatarToPond(greeting) {
     if (!pondCanvas.value)
         return;
     const canvas = pondCanvas.value;
-    // 隨機分配初始位置與速度
+    // 若是圖片頭像，先建 Image 實體
+    let imageObj = null;
+    if (greeting.avatar && greeting.avatar.type === 'image') {
+        imageObj = new Image();
+        imageObj.src = greeting.avatar.src;
+    }
     pondAvatars.value.push({
         id: greeting.id,
         avatar: greeting.avatar,
@@ -153,12 +305,13 @@ function addAvatarToPond(greeting) {
         message: greeting.message,
         x: Math.random() * (canvas.width - 50) + 25,
         y: Math.random() * (canvas.height - 50) + 25,
-        vx: (Math.random() - 0.5) * 0.8, // 慢速晃動
+        vx: (Math.random() - 0.5) * 0.8,
         vy: (Math.random() - 0.5) * 0.8,
-        size: 30, // 統一大小
+        size: 30,
+        imageObj
     });
 }
-// --- 波紋相關 ---
+// 波紋相關
 function addRipple(x, y) {
     ripples.value.push({
         x,
@@ -175,7 +328,6 @@ function drawPondBackground() {
         return;
     const canvas = pondCanvas.value;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // 藍色漸層
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     gradient.addColorStop(0, '#a0d8f0');
     gradient.addColorStop(1, '#79c2e6');
@@ -199,7 +351,7 @@ function updateRipples() {
         }
     }
 }
-// --- 繪製文字 (可換行) 的工具函式 ---
+// 繪製可換行文字
 function drawWrappedText(context, text, x, y, maxWidth, lineHeight, padding, bubbleBg, textColor, font) {
     if (!text)
         return;
@@ -208,7 +360,6 @@ function drawWrappedText(context, text, x, y, maxWidth, lineHeight, padding, bub
     const words = text.split(' ');
     const lines = [];
     let currentLine = words[0];
-    // 1) 計算要換行的行
     for (let i = 1; i < words.length; i++) {
         const word = words[i];
         const width = context.measureText(currentLine + ' ' + word).width;
@@ -221,55 +372,49 @@ function drawWrappedText(context, text, x, y, maxWidth, lineHeight, padding, bub
         }
     }
     lines.push(currentLine);
-    // 2) 算出最寬行
     let maxLineWidth = 0;
     lines.forEach(line => {
         const w = context.measureText(line).width;
         if (w > maxLineWidth)
             maxLineWidth = w;
     });
-    // 泡泡的寬高
     const bubbleWidth = maxLineWidth + padding * 2;
     const bubbleHeight = lines.length * lineHeight + padding * 2;
-    // 泡泡的左上角(令泡泡底座在 (x, y))
     const bubbleX = x - bubbleWidth / 2;
-    const bubbleY = y - bubbleHeight - 5; // 往上 5px 讓泡泡尖端落在物件上方
-    // 3) 繪製圓角矩形背景
+    const bubbleY = y - bubbleHeight - 5;
     context.fillStyle = bubbleBg;
-    const r = 6; // 圓角
+    const r = 6;
     context.beginPath();
-    // 左上角
+    // 左上
     context.moveTo(bubbleX + r, bubbleY);
     context.lineTo(bubbleX + bubbleWidth - r, bubbleY);
     context.quadraticCurveTo(bubbleX + bubbleWidth, bubbleY, bubbleX + bubbleWidth, bubbleY + r);
-    // 右下角
+    // 右下
     context.lineTo(bubbleX + bubbleWidth, bubbleY + bubbleHeight - r);
     context.quadraticCurveTo(bubbleX + bubbleWidth, bubbleY + bubbleHeight, bubbleX + bubbleWidth - r, bubbleY + bubbleHeight);
-    // 左下角
+    // 左下
     context.lineTo(bubbleX + r, bubbleY + bubbleHeight);
     context.quadraticCurveTo(bubbleX, bubbleY + bubbleHeight, bubbleX, bubbleY + bubbleHeight - r);
-    // 左上角
+    // 左上
     context.lineTo(bubbleX, bubbleY + r);
     context.quadraticCurveTo(bubbleX, bubbleY, bubbleX + r, bubbleY);
     context.closePath();
     context.fill();
-    // 4) 繪製文字
     context.fillStyle = textColor;
     lines.forEach((line, index) => {
         context.fillText(line, bubbleX + padding, bubbleY + padding + index * lineHeight);
     });
 }
-// --- 更新並繪製「暱稱＋訊息＋頭像」的泡泡 ---
+// 更新並繪製頭像/訊息
 function updateAndDrawAvatars() {
     if (!ctx || !pondCanvas.value)
         return;
     const canvas = pondCanvas.value;
     pondAvatars.value.forEach(avatar => {
-        // 1. 移動
+        // 移動
         avatar.x += avatar.vx;
         avatar.y += avatar.vy;
-        // 2. 碰撞邊界（簡單反彈）
-        //   先假設文字泡泡高度 ~70px
+        // 簡易邊界反彈
         const bubbleReserve = 70;
         const halfSize = avatar.size / 2;
         if (avatar.x - halfSize < 0) {
@@ -280,37 +425,40 @@ function updateAndDrawAvatars() {
             avatar.x = canvas.width - halfSize;
             avatar.vx *= -1;
         }
-        // 上方考慮泡泡
         if (avatar.y - halfSize - bubbleReserve < 0) {
             avatar.y = halfSize + bubbleReserve;
-            avatar.vy = Math.abs(avatar.vy); // 往下反彈
+            avatar.vy = Math.abs(avatar.vy);
         }
         else if (avatar.y + halfSize > canvas.height) {
             avatar.y = canvas.height - halfSize;
             avatar.vy *= -1;
         }
-        // 3. 繪製泡泡 (avatar + username + message)
-        const textContent = `${avatar.avatar} ${avatar.username}\n${avatar.message}`;
-        drawWrappedText(ctx, textContent, avatar.x, avatar.y - halfSize, // 泡泡錨點在頭像上方
-        130, // 泡泡文字最大寬度
-        16, // 行高
-        8, // 文字邊距
-        'rgba(255, 255, 255, 0.85)', // 泡泡底色
-        '#333', // 文字顏色
-        '14px sans-serif' // 字體
-        );
-        // 4. 再繪製頭像 Emoji (在泡泡下方)
-        ctx.font = `${avatar.size}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(avatar.avatar, avatar.x, avatar.y);
+        // 繪製訊息泡泡
+        const textContent = avatar.message;
+        drawWrappedText(ctx, textContent, avatar.x, avatar.y - halfSize, 130, 16, 8, 'rgba(255, 255, 255, 0.85)', '#333', '14px sans-serif');
+        // 根據頭像類型顯示
+        if (avatar.avatar?.type === 'emoji') {
+            ctx.font = `${avatar.size}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(avatar.avatar.value, avatar.x, avatar.y);
+        }
+        else if (avatar.avatar?.type === 'image' && avatar.imageObj) {
+            ctx.drawImage(avatar.imageObj, avatar.x - avatar.size / 2, avatar.y - avatar.size / 2, avatar.size, avatar.size);
+        }
+        else {
+            // fallback
+            ctx.font = `${avatar.size}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('💧', avatar.x, avatar.y);
+        }
     });
 }
-// --- 動畫主循環 ---
+// 動畫主循環
 function addRandomRipple() {
     if (!pondCanvas.value)
         return;
-    // 1.5% 機率在任一幀生成漣漪
     if (Math.random() < 0.015) {
         const x = Math.random() * pondCanvas.value.width;
         const y = Math.random() * pondCanvas.value.height;
@@ -324,21 +472,19 @@ function startAnimation() {
         drawPondBackground();
         addRandomRipple();
         updateRipples();
-        updateAndDrawAvatars(); // 繪製暱稱+訊息+頭像 的泡泡
+        updateAndDrawAvatars();
         animationId = requestAnimationFrame(animate);
     };
     animate();
 }
-// --- Firebase 監聽 + 生命週期 ---
+// Firebase 監聽
 onMounted(() => {
-    // 監聽 waterdropRef
     onValue(waterdropRef, (snapshot) => {
         let data = [];
         if (snapshot.exists()) {
             const rawData = snapshot.val();
             if (Array.isArray(rawData)) {
                 data = rawData;
-                // 補上 id 或 message
                 data.forEach((item, idx) => {
                     if (!item.id) {
                         item.id = `fallback-${item.timestamp || idx}-${Math.random().toString(16).slice(2)}`;
@@ -349,7 +495,6 @@ onMounted(() => {
                 });
             }
             else if (rawData && typeof rawData === 'object') {
-                // 如果拿到的是物件，轉成陣列
                 data = Object.entries(rawData).map(([key, val]) => ({
                     id: key,
                     message: val.message || '',
@@ -358,28 +503,24 @@ onMounted(() => {
             }
         }
         greetingsOnPond.value = data;
-        // 同步至畫布
-        if (ctx) {
-            syncAvatarsFromGreetings();
-        }
-        // 若偵測到有新留言，就產生一次漣漪
-        if (greetingsOnPond.value.length > lastGreetingCount.value &&
-            pondCanvas.value &&
-            ctx) {
-            addRipple(Math.random() * pondCanvas.value.width, Math.random() * pondCanvas.value.height);
-        }
-        lastGreetingCount.value = greetingsOnPond.value.length;
+        nextTick(() => {
+            if (!ctx) {
+                initPond();
+            }
+            else {
+                syncAvatarsFromGreetings();
+            }
+            // 若偵測到有新留言，就產生一次漣漪
+            if (greetingsOnPond.value.length > lastGreetingCount.value && pondCanvas.value) {
+                addRipple(Math.random() * pondCanvas.value.width, Math.random() * pondCanvas.value.height);
+            }
+            lastGreetingCount.value = greetingsOnPond.value.length;
+        });
     }, (error) => {
         console.error("Error fetching data from Firebase:", error);
         greetingsOnPond.value = [];
         pondAvatars.value = [];
     });
-    // 若已登入，馬上初始化池塘
-    if (isLoggedIn.value) {
-        nextTick(() => {
-            initPond();
-        });
-    }
 });
 onBeforeUnmount(() => {
     if (animationId) {
@@ -388,15 +529,7 @@ onBeforeUnmount(() => {
     }
     window.removeEventListener('resize', resizeCanvas);
 });
-watch(isLoggedIn, (newVal) => {
-    if (newVal) {
-        nextTick(() => {
-            if (!ctx)
-                initPond();
-        });
-    }
-});
-// 修改：移除類型註解的時間格式化函數
+// 時間格式化
 function formatTime(timestamp) {
     if (!timestamp)
         return '';
@@ -438,7 +571,7 @@ function __VLS_template() {
     __VLS_styleScopedClasses['welcome-message'];
     __VLS_styleScopedClasses['welcome-message'];
     __VLS_styleScopedClasses['welcome-message'];
-    __VLS_styleScopedClasses['avatar'];
+    __VLS_styleScopedClasses['login-form'];
     // CSS variable injection 
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
