@@ -63,20 +63,21 @@ header
             i.map.icon
             | 互助地圖
           .divider
+          RouterLink.item(v-if="uid", to='/githubembeded', name="githubembeded")
+            i.linkify.icon
+            | 自促會Github開源專案
           RouterLink.item(v-if="uid", to='/changelog', name="changelog")
             i.history.icon
             | 變更紀錄
           RouterLink.item(v-if="uid", to='/privacy-policy', name="privacy")
             i.lock.icon
             | 隱私權政策
-          RouterLink.item(v-if="uid", to='/githubembeded', name="githubembeded")
-            i.linkify.icon
-            | 自促會Github開源專案
+          .divider
           RouterLink.item(v-if="uid", to='/slido', name="slidoMeeting")
             i.comments.icon
             | Slido問答區(暫時)
-          RouterLink.item(v-if="uid && devMode", to='/hello', name="HelloView")
-            i.comments.icon
+          RouterLink.item(v-if="uid", to='/hello', name="HelloView")
+            i.handshake.icon
             | 池塘打招呼
           .divider
           button.no-border.ui.item(v-if="uid", @click="logout")
