@@ -53,32 +53,11 @@
       .message-content {{ message.message }}
   </template>
 
-  <script lang="ts">
+  <script lang="js">
   import { ref, defineComponent, onMounted, computed, onBeforeUnmount, nextTick } from 'vue';
   import { onValue, set } from 'firebase/database';
   import { waterdropRef } from '@/firebase';  // 請依自己專案路徑調整
 
-  // 定義訊息介面
-  interface PondMessage {
-    id: string;
-    avatar: any;
-    message: string;
-    timestamp: number;
-    dateString: string;
-  }
-
-  // 定義池塘頭像介面
-  interface PondAvatar {
-    id: string;
-    avatar: any;
-    message: string;
-    x: number;
-    y: number;
-    vx: number;
-    vy: number;
-    size: number;
-    imageObj: HTMLImageElement | null;
-  }
 
   export default defineComponent({
     name: 'HelloView',
@@ -101,14 +80,14 @@
 //       const username = ref('');
       const selectedAvatar = ref(null);
       const currentGreeting = ref('');
-      const greetingsOnPond = ref<PondMessage[]>([]);
+      const greetingsOnPond = ref([]);
 
       // Canvas 動畫相關
       const pondCanvas = ref(null);
       let ctx = null;
       let animationId = null;
       const ripples = ref([]);
-      const pondAvatars = ref<PondAvatar[]>([]);
+      const pondAvatars = ref([]);
       const lastGreetingCount = ref(0);
 
       // 訊息時間排序
