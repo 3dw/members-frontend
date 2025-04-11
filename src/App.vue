@@ -79,6 +79,9 @@ header
           RouterLink.item(v-if="uid", to='/hello', name="HelloView")
             i.handshake.icon
             | 池塘打招呼
+          RouterLink.item(v-if= "uid && devMode", to='/connection', name="ConnectionView")
+            i.handshake.icon
+            | 接力顯示板
           .divider
           button.no-border.ui.item(v-if="uid", @click="logout")
             i.sign-out.icon
@@ -207,7 +210,7 @@ export default defineComponent({
       photoURL: '',
       email: '',
       emailVerified: false,
-      devMode: false,
+      devMode: true,
       zoom: 13,
       center: [23.5330, 121.0654]
     }

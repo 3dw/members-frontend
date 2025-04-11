@@ -151,6 +151,11 @@ const router = createRouter({
             })
         },
         {
+            path: '/connection',
+            name: 'ConnectionView',
+            component: () => import('../views/ConnectionView.vue')
+        },
+        {
             path: '/:pathMatch(.*)*',
             redirect: '/404'
         }
