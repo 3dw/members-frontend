@@ -5,7 +5,7 @@
       p.subtitle 即時顯示成員已認證狀態
     .circle-container
       .seat(
-        v-for="n in 50"
+        v-for="n in totalSeats"
         :key="n"
         :class="{ 'occupied': getSeatUser(n) }"
         :style="getPosition(n)"
@@ -24,14 +24,29 @@
   import { ref, onMounted, onUnmounted } from 'vue'
   import { onValue, ref as dbRef } from 'firebase/database'
   import { database } from '@/firebase'
+  import axios from 'axios'
 
   // 使用者資料
   const users = ref<Record<string, any>>({})
+  // 新增: 座位總數的響應式變數
+  const totalSeats = ref(50) // 預設值為 50
+
+  // 新增: 獲取座位總數的函數
+  const fetchTotalSeats = async () => {
+    try {
+      const response = await axios.get('https://members-backend.alearn13994229.workers.dev/count_members')
+      console.log('API response:', response.data)
+      totalSeats.value = response.data.total  // 修改這裡：取得 total 屬性的值
+      console.log('Total seats set to:', totalSeats.value)
+    } catch (error) {
+      console.error('Error fetching total seats:', error)
+      // 發生錯誤時保持預設值 50
+    }
+  }
 
   // 計算圓形位置
   const getPosition = (index: number) => {
-    const totalSeats = 50
-    // 根據螢幕寬度動態調整半徑
+    // 使用 totalSeats.value 替換固定值
     const getRadius = () => {
       const width = window.innerWidth
       if (width > 1200) return 350
@@ -43,7 +58,7 @@
     }
 
     const radius = getRadius()
-    const angle = ((index - 1) * (360 / totalSeats)) * (Math.PI / 180)
+    const angle = ((index - 1) * (360 / totalSeats.value)) * (Math.PI / 180)
     const x = radius * Math.cos(angle)
     const y = radius * Math.sin(angle)
 
@@ -56,8 +71,11 @@
   const usersRef = dbRef(database, 'users')
   let unsubscribe: (() => void) | null = null
 
-  onMounted(() => {
-    // 監聽 Firebase users 資料變化
+  onMounted(async () => {
+    // 先獲取座位總數
+    await fetchTotalSeats()
+
+    // 原有的 Firebase 監聽邏輯
     unsubscribe = onValue(usersRef, (snapshot) => {
       const data = snapshot.val()
       if (data) {
