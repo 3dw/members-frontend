@@ -361,40 +361,51 @@ onMounted(() => {
 
 .notes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1.5rem;
   align-items: start;
+  padding: 1rem;
 }
 
 .note {
+  aspect-ratio: 1;
   background: white;
-  padding: 1.5rem;
-  border-radius: 1rem;
+  padding: 1.2rem;
+  border-radius: 2px;
   box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    2px 2px 5px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.03);
   transition: all 0.3s ease;
   cursor: move;
   position: relative;
   overflow: hidden;
+  transform-origin: center;
+  min-height: 200px;
 }
 
 .note::before {
+  display: none;
+}
+
+.note::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
+  bottom: 0;
   right: 0;
-  height: 4px;
-  background: inherit;
-  filter: brightness(90%);
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(
+    135deg,
+    transparent 50%,
+    rgba(0, 0, 0, 0.03) 50%
+  );
 }
 
 .note:hover {
-  transform: translateY(-4px);
+  transform: scale(1.02) rotate(1deg);
   box-shadow:
-    0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -4px rgba(0, 0, 0, 0.05);
+    3px 3px 8px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 .note-content {
@@ -403,14 +414,19 @@ onMounted(() => {
   margin-bottom: 1rem;
   white-space: pre-wrap;
   word-break: break-word;
+  font-family: "Helvetica Neue", sans-serif;
 }
 
 .note-footer {
+  position: absolute;
+  bottom: 1rem;
+  left: 1.2rem;
+  right: 1.2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: auto;
-  font-size: 0.875rem;
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.5);
 }
 
 .note-info {
@@ -420,15 +436,13 @@ onMounted(() => {
 }
 
 .like-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
   padding: 0.25rem 0.5rem;
   border: none;
   background: rgba(0, 0, 0, 0.05);
-  border-radius: 1rem;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s;
+  font-size: 0.75rem;
 }
 
 .like-btn:hover {
@@ -458,11 +472,23 @@ onMounted(() => {
   }
 
   .notes-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
   }
 
   .note {
+    min-height: 150px;
     padding: 1rem;
+  }
+
+  .note-content {
+    font-size: 0.875rem;
+  }
+
+  .note-footer {
+    bottom: 0.75rem;
+    left: 1rem;
+    right: 1rem;
   }
 }
 
@@ -481,4 +507,10 @@ textarea:disabled {
   background-color: #f3f4f6;
   cursor: not-allowed;
 }
+
+.note[style*="background-color: #ffd700"] { background-color: #fff740 !important; }
+.note[style*="background-color: #ff69b4"] { background-color: #ff7eb9 !important; }
+.note[style*="background-color: #4169e1"] { background-color: #7afcff !important; }
+.note[style*="background-color: #98fb98"] { background-color: #98ff98 !important; }
+.note[style*="background-color: #dda0dd"] { background-color: #e980fc !important; }
 </style>
