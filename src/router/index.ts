@@ -157,6 +157,11 @@ const router = createRouter({
       component: () => import('../views/ConnectionView.vue')
     },
     {
+      path: '/notes',
+      name: 'NotesView',
+      component: () => import('../views/NotesView.vue')
+    },
+    {
       path: '/:pathMatch(.*)*',
       redirect: '/404'
     }

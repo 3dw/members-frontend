@@ -1,0 +1,26 @@
+{
+    "note1": {
+      "id": "-N1a2b3c4d5e6f7g8h9i0",
+      "content": "我想組一個 Podcast 組",
+      "color": "pink",
+      "timestamp": "2025-04-11T12:34:00",
+      "likes": 3,
+      "user": "匿名"
+    },
+    "note2": {
+      "id": "-N1a2b3c4d5e6f7g8h9i1",
+      "content": "尋找共同製作教育節目的夥伴",
+      "color": "pink",
+      "timestamp": "2025-04-11T14:30:00",
+      "likes": 5,
+      "user": "匿名"
+    },
+    "note3": {
+      "id": "-N1a2b3c4d5e6f7g8h9i2",
+      "content": "想找人一起討論教育創新",
+      "color": "pink",
+      "timestamp": "2025-04-11T16:45:00",
+      "likes": 2,
+      "user": "匿名"
+    }
+  }

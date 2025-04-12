@@ -82,6 +82,9 @@ header
           RouterLink.item(v-if= "uid && devMode", to='/connection', name="ConnectionView")
             i.handshake.icon
             | 接力顯示板
+          RouterLink.item(v-if="uid && devMode", to='/notes', name="NotesView")
+            i.handshake.icon
+            | 數位便利貼牆
           .divider
           button.no-border.ui.item(v-if="uid", @click="logout")
             i.sign-out.icon
