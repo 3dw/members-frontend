@@ -11,13 +11,39 @@
         :style="getPosition(n)"
       )
         .seat-number {{ n }}
-        .user-info(v-if="getSeatUser(n)")
+        .user-info(v-if="getSeatUser(n)" @click="showProfile(getSeatUser(n))")
           img.user-avatar(v-if="getSeatUser(n).photoURL" :src="getSeatUser(n).photoURL")
           .user-name {{ getSeatUser(n).name || '訪客' }}
     .stats
       .stat-item
+        .stat-number {{ totalSeats }}
+        .stat-label 會員總數
+        .stat-accent
+      .stat-item
         .stat-number {{ Object.keys(users).length }}
         .stat-label 認證成員
+        .stat-accent
+
+    //- 添加 Profile 彈窗
+    .profile-modal(v-if="selectedUser" @click.self="closeProfile")
+      .profile-content
+        .profile-header
+          img.profile-avatar(v-if="selectedUser.photoURL" :src="selectedUser.photoURL")
+          .profile-close(@click="closeProfile") ×
+        .profile-info
+          h3.profile-name {{ selectedUser.name || '訪客' }}
+          .profile-detail(v-if="selectedUser.email")
+            .detail-label Email
+            .detail-value {{ selectedUser.email }}
+          .profile-detail(v-if="selectedUser.organization")
+            .detail-label 組織
+            .detail-value {{ selectedUser.organization }}
+          .profile-detail(v-if="selectedUser.role")
+            .detail-label 角色
+            .detail-value {{ selectedUser.role }}
+          .profile-detail
+            .detail-label 加入時間
+            .detail-value {{ formatDate(selectedUser.createdAt) }}
   </template>
 
   <script setup lang="ts">
@@ -98,6 +124,29 @@
     if (!users.value) return null
     const usersList = Object.values(users.value)
     return usersList[seatNumber - 1] || null
+  }
+
+  // 新增: 選中的用戶資料
+  const selectedUser = ref<any>(null)
+
+  // 新增: 顯示 profile 的函數
+  const showProfile = (user: any) => {
+    selectedUser.value = user
+  }
+
+  // 新增: 關閉 profile 的函數
+  const closeProfile = () => {
+    selectedUser.value = null
+  }
+
+  // 新增: 格式化日期的函數
+  const formatDate = (timestamp: number) => {
+    if (!timestamp) return '未知'
+    return new Date(timestamp).toLocaleDateString('zh-TW', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
   }
   </script>
 
@@ -188,6 +237,12 @@
   .user-info {
     text-align: center;
     width: 100%;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+
+  .user-info:hover {
+    transform: scale(1.1);
   }
 
   .user-avatar {
@@ -269,6 +324,12 @@
   }
 
   .stat-label {
+    font-size: 0.875rem;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .stat-accent {
     font-size: 0.875rem;
     color: #64748b;
     font-weight: 500;
@@ -433,6 +494,125 @@
       width: 30px;
       height: 30px;
       margin: -15px;
+    }
+  }
+
+  /* Profile 彈窗樣式 */
+  .profile-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .profile-content {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    padding: 30px;
+    width: 90%;
+    max-width: 400px;
+    position: relative;
+    box-shadow:
+      0 10px 30px rgba(0, 0, 0, 0.2),
+      inset 0 1px 2px rgba(255, 255, 255, 0.5);
+  }
+
+  .profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .profile-close {
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 24px;
+    color: #64748b;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .profile-close:hover {
+    background: #64748b;
+    color: white;
+  }
+
+  .profile-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 20px;
+  }
+
+  .profile-detail {
+    display: flex;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(100, 116, 139, 0.1);
+  }
+
+  .detail-label {
+    width: 100px;
+    color: #64748b;
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+
+  .detail-value {
+    flex: 1;
+    color: #1e293b;
+    font-weight: 500;
+  }
+
+  /* RWD 適配 */
+  @media (max-width: 640px) {
+    .profile-content {
+      width: 95%;
+      padding: 20px;
+    }
+
+    .profile-avatar {
+      width: 60px;
+      height: 60px;
+    }
+
+    .profile-name {
+      font-size: 1.2rem;
+    }
+
+    .detail-label {
+      width: 80px;
+      font-size: 0.8rem;
+    }
+
+    .detail-value {
+      font-size: 0.8rem;
     }
   }
   </style>
