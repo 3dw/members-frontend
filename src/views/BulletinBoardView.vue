@@ -39,7 +39,7 @@
 <script lang="ts">
 import { ref, defineComponent, onMounted, nextTick, computed } from 'vue';
 import { onValue, ref as dbRef, set } from 'firebase/database';
-import { bulletinRef } from '@/firebase';
+import { bulletinRef, database } from '@/firebase';
 
 interface Message {
   author: string;
@@ -89,15 +89,17 @@ export default defineComponent({
       if (!dataLoaded.value) return;
 
       console.log(newMessage.value);
-      messages.value.push({
+      const m_length = messages.value.length;
+      const newMessageObj = {
         author: props.users[props.uid].name || '匿名',
         uid: props.uid || '123',
         date: new Date().toISOString(),
         text: newMessage.value,
         reactions: {}
-      });
+      }
+      messages.value.push(newMessageObj);
       newMessage.value = '';
-      set(bulletinRef, messages.value).then(() => {
+      set(dbRef(database, 'messages/' + m_length), newMessageObj).then(() => {
         console.log('留言成功');
       });
     }
