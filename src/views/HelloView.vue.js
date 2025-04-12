@@ -222,6 +222,7 @@ export default defineComponent({
                 return;
             context.font = font;
             context.textBaseline = 'top';
+            context.textAlign = 'left';
             // 改用字符級別的文本換行邏輯，適合中文
             const lines = [];
             let currentLine = '';
@@ -272,10 +273,8 @@ export default defineComponent({
             context.fill();
             context.fillStyle = textColor;
             lines.forEach((line, index) => {
-                // 計算每行的水平位置，使其在泡泡中居中
-                const lineWidth = context.measureText(line).width;
-                // 這邊的 maxLineWidth 是之前計算過的，所以不會變
-                const lineX = lineWidth / 2 + bubbleX + padding + (maxLineWidth - lineWidth) / 2;
+                // 簡化定位計算，避免混合使用不同的對齊方式
+                const lineX = bubbleX + padding;
                 context.fillText(line, lineX, bubbleY + padding + index * lineHeight);
             });
         }
