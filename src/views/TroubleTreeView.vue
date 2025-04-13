@@ -515,7 +515,7 @@
               .filter((reply: any) => reply.troubleId === troubleId)
               .sort((a: any, b: any) =>
                 new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-              )
+              ) as Reply[]
           } else {
             replies.value = []
           }
