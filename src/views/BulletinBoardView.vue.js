@@ -22,12 +22,20 @@ export default defineComponent({
         })));
         const newMessage = ref('');
         const dataLoaded = ref(false);
-        // 添加 sortedMessages 計算屬性
+        const replyingTo = ref(-1);
+        const replyText = ref('');
+        const editingMessage = ref(-1);
         const sortedMessages = computed(() => {
-            return [...messages.value].sort((a, b) => {
+            return [...messages.value].map((obj, index) => {
+                const newObj = {
+                    ...obj
+                };
+                newObj.actualIndex = index;
+                return newObj;
+            }).sort((a, b) => {
                 const dateA = new Date(a.date);
                 const dateB = new Date(b.date);
-                return dateB.getTime() - dateA.getTime(); // 降序排列，最新的在前面
+                return dateB.getTime() - dateA.getTime();
             });
         });
         const addMessage = () => {
@@ -44,7 +52,7 @@ export default defineComponent({
             };
             messages.value.push(newMessageObj);
             newMessage.value = '';
-            set(dbRef(database, 'messages/' + m_length), newMessageObj).then(() => {
+            set(dbRef(database, 'bulletin/' + m_length), newMessageObj).then(() => {
                 console.log('留言成功');
             });
         };
@@ -78,7 +86,37 @@ export default defineComponent({
                 return `${diffDays} 天前`;
             }
         };
-        // 新增處理反應的方法
+        const toggleReplies = (index) => {
+            if (!props.uid)
+                return;
+            if (messages.value[index].repliesExpanded) {
+                messages.value[index].repliesExpanded = false;
+            }
+            else {
+                messages.value[index].repliesExpanded = true;
+            }
+            // 保存展開狀態到sessionStorage
+            saveRepliesExpandedState();
+        };
+        const toggleReplyReaction = (reply, actualIndex, rIndex, reaction) => {
+            if (!props.uid)
+                return;
+            if (!reply.reactions) {
+                reply.reactions = {};
+            }
+            if (!reply.reactions[reaction]) {
+                reply.reactions[reaction] = {};
+            }
+            if (reply.reactions[reaction][props.uid]) {
+                delete reply.reactions[reaction][props.uid];
+            }
+            else {
+                reply.reactions[reaction][props.uid] = true;
+            }
+            set(dbRef(database, `bulletin/${actualIndex}/replies/${rIndex}/reactions`), reply.reactions).then(() => {
+                console.log('回覆反應更新成功');
+            });
+        };
         const toggleReaction = (message, reaction) => {
             if (!props.uid)
                 return;
@@ -94,10 +132,11 @@ export default defineComponent({
             else {
                 message.reactions[reaction][props.uid] = true;
             }
-            // 更新到 Firebase
-            set(bulletinRef, messages.value).then(() => {
-                console.log('反應更新成功');
-            });
+            if (message.actualIndex !== undefined) {
+                set(dbRef(database, `bulletin/${message.actualIndex}/reactions`), message.reactions).then(() => {
+                    console.log('反應更新成功');
+                });
+            }
         };
         const hasReacted = (message, reaction) => {
             return message.reactions?.[reaction]?.[props.uid] || false;
@@ -105,13 +144,115 @@ export default defineComponent({
         const getReactionCount = (message, reaction) => {
             return Object.keys(message.reactions?.[reaction] || {}).length;
         };
-        // 新增獲取反應者名稱的方法
         const getReactionUsers = (message, reaction) => {
             if (!message.reactions?.[reaction])
                 return '';
             return Object.keys(message.reactions[reaction])
                 .map(uid => props.users[uid]?.name || '匿名用戶')
                 .join('、');
+        };
+        const toggleReplyForm = (index) => {
+            if (!props.uid)
+                return;
+            if (replyingTo.value === index) {
+                replyingTo.value = -1;
+            }
+            else {
+                replyingTo.value = index;
+                replyText.value = '';
+            }
+        };
+        const cancelReply = () => {
+            replyingTo.value = -1;
+            replyText.value = '';
+        };
+        const addReply = (index) => {
+            if (!dataLoaded.value || !props.uid || replyText.value.trim() === '')
+                return;
+            const messageToReply = messages.value[index];
+            if (!messageToReply.replies) {
+                messageToReply.replies = [];
+            }
+            const newReply = {
+                author: props.users[props.uid].name || '匿名',
+                uid: props.uid,
+                date: new Date().toISOString(),
+                text: replyText.value.trim()
+            };
+            messageToReply.replies.push(newReply);
+            replyText.value = '';
+            replyingTo.value = -1;
+            set(dbRef(database, `bulletin/${index}/replies`), messageToReply.replies).then(() => {
+                console.log('回覆新增成功');
+            });
+        };
+        const deleteReply = (messageIndex, replyIndex) => {
+            if (!dataLoaded.value || !props.uid)
+                return;
+            const messageToUpdate = messages.value[messageIndex];
+            if (!messageToUpdate.replies || replyIndex >= messageToUpdate.replies.length)
+                return;
+            // 確認回覆是當前用戶所發的
+            const replyToDelete = messageToUpdate.replies[replyIndex];
+            if (replyToDelete.uid !== props.uid)
+                return;
+            if (window.confirm('確定要刪除這則回覆嗎？')) {
+                // 移除回覆
+                messageToUpdate.replies.splice(replyIndex, 1);
+                // 更新到 Firebase，只更新特定訊息的回覆
+                set(dbRef(database, `bulletin/${messageIndex}/replies`), messageToUpdate.replies).then(() => {
+                    console.log('回覆刪除成功');
+                });
+            }
+        };
+        // 新增保存展開狀態到sessionStorage的方法
+        const saveRepliesExpandedState = () => {
+            const expandedState = {};
+            messages.value.forEach((message, index) => {
+                if (message.repliesExpanded) {
+                    expandedState[index] = true;
+                }
+            });
+            sessionStorage.setItem('repliesExpandedState', JSON.stringify(expandedState));
+        };
+        // 新增從sessionStorage恢復展開狀態的方法
+        const restoreRepliesExpandedState = () => {
+            const storedState = sessionStorage.getItem('repliesExpandedState');
+            if (storedState) {
+                try {
+                    const expandedState = JSON.parse(storedState);
+                    messages.value.forEach((message, index) => {
+                        message.repliesExpanded = expandedState[index] || false;
+                    });
+                }
+                catch (e) {
+                    console.error('恢復展開狀態失敗', e);
+                }
+            }
+        };
+        const editMessage = (index) => {
+            if (!dataLoaded.value || !props.uid)
+                return;
+            const messageToEdit = messages.value[index];
+            // 確認是用戶自己的留言且沒有回覆
+            if (messageToEdit.uid !== props.uid || (messageToEdit.replies && messageToEdit.replies.length > 0))
+                return;
+            // 取得編輯內容（這裡可以使用 prompt，在實際使用時建議更換為 modal 或表單）
+            const editedText = prompt('編輯留言', messageToEdit.text);
+            if (editedText !== null && editedText.trim() !== '') {
+                // 更新留言內容
+                messageToEdit.text = editedText.trim();
+                // 添加更新時間戳
+                messageToEdit.updated = new Date().toISOString();
+                // 更新到 Firebase
+                set(dbRef(database, `bulletin/${index}/text`), editedText.trim()).then(() => {
+                    console.log('留言編輯成功');
+                });
+                // 更新 updated 欄位到 Firebase
+                set(dbRef(database, `bulletin/${index}/updated`), messageToEdit.updated).then(() => {
+                    console.log('更新時間記錄成功');
+                });
+            }
         };
         onMounted(() => {
             console.log('mounted');
@@ -123,14 +264,23 @@ export default defineComponent({
                     uid: message.uid,
                     date: message.date,
                     text: message.text,
-                    reactions: message.reactions || {}
+                    updated: message.updated,
+                    reactions: message.reactions || {},
+                    replies: message.replies ? message.replies.map((reply) => ({
+                        author: reply.author,
+                        uid: reply.uid,
+                        date: reply.date,
+                        text: reply.text,
+                        reactions: reply.reactions || {}
+                    })) : []
                 }));
                 dataLoaded.value = true;
+                // 在數據載入後恢復展開狀態
+                restoreRepliesExpandedState();
             });
             setInterval(async () => {
                 console.log('tick');
                 await nextTick();
-                // 更新 messages 的狀態以觸發重新渲染
                 messages.value = [...messages.value];
             }, 60 * 1000);
         });
@@ -142,10 +292,21 @@ export default defineComponent({
             toggleLogin,
             sortedMessages,
             toggleReaction,
+            toggleReplyReaction,
             hasReacted,
             getReactionCount,
             getReactionUsers,
-            dataLoaded
+            dataLoaded,
+            replyingTo,
+            replyText,
+            toggleReplyForm,
+            addReply,
+            cancelReply,
+            toggleReplies,
+            deleteReply,
+            saveRepliesExpandedState,
+            restoreRepliesExpandedState,
+            editMessage
         };
     }
 });

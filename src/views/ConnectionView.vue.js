@@ -1,13 +1,28 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { onValue, ref as dbRef } from 'firebase/database';
 import { database } from '@/firebase';
+import axios from 'axios';
 const { defineProps, defineSlots, defineEmits, defineExpose, defineModel, defineOptions, withDefaults, } = await import('vue');
 // 使用者資料
 const users = ref({});
+// 新增: 座位總數的響應式變數
+const totalSeats = ref(50); // 預設值為 50
+// 新增: 獲取座位總數的函數
+const fetchTotalSeats = async () => {
+    try {
+        const response = await axios.get('https://members-backend.alearn13994229.workers.dev/count_members');
+        console.log('API response:', response.data);
+        totalSeats.value = response.data.total; // 修改這裡：取得 total 屬性的值
+        console.log('Total seats set to:', totalSeats.value);
+    }
+    catch (error) {
+        console.error('Error fetching total seats:', error);
+        // 發生錯誤時保持預設值 50
+    }
+};
 // 計算圓形位置
 const getPosition = (index) => {
-    const totalSeats = 50;
-    // 根據螢幕寬度動態調整半徑
+    // 使用 totalSeats.value 替換固定值
     const getRadius = () => {
         const width = window.innerWidth;
         if (width > 1200)
@@ -23,7 +38,7 @@ const getPosition = (index) => {
         return 130;
     };
     const radius = getRadius();
-    const angle = ((index - 1) * (360 / totalSeats)) * (Math.PI / 180);
+    const angle = ((index - 1) * (360 / totalSeats.value)) * (Math.PI / 180);
     const x = radius * Math.cos(angle);
     const y = radius * Math.sin(angle);
     return {
@@ -33,8 +48,10 @@ const getPosition = (index) => {
 // 從 Firebase 讀取使用者資料
 const usersRef = dbRef(database, 'users');
 let unsubscribe = null;
-onMounted(() => {
-    // 監聽 Firebase users 資料變化
+onMounted(async () => {
+    // 先獲取座位總數
+    await fetchTotalSeats();
+    // 原有的 Firebase 監聽邏輯
     unsubscribe = onValue(usersRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
@@ -57,6 +74,26 @@ const getSeatUser = (seatNumber) => {
     const usersList = Object.values(users.value);
     return usersList[seatNumber - 1] || null;
 };
+// 新增: 選中的用戶資料
+const selectedUser = ref(null);
+// 新增: 顯示 profile 的函數
+const showProfile = (user) => {
+    selectedUser.value = user;
+};
+// 新增: 關閉 profile 的函數
+const closeProfile = () => {
+    selectedUser.value = null;
+};
+// 新增: 格式化日期的函數
+const formatDate = (timestamp) => {
+    if (!timestamp)
+        return '未知';
+    return new Date(timestamp).toLocaleDateString('zh-TW', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+};
 const __VLS_fnComponent = (await import('vue')).defineComponent({});
 ;
 let __VLS_functionalComponentProps;
@@ -75,6 +112,7 @@ function __VLS_template() {
     let __VLS_directives;
     let __VLS_styleScopedClasses;
     __VLS_styleScopedClasses['seat'];
+    __VLS_styleScopedClasses['user-info'];
     __VLS_styleScopedClasses['seat'];
     __VLS_styleScopedClasses['seat'];
     __VLS_styleScopedClasses['occupied'];
@@ -109,6 +147,12 @@ function __VLS_template() {
     __VLS_styleScopedClasses['stats'];
     __VLS_styleScopedClasses['circle-container'];
     __VLS_styleScopedClasses['seat'];
+    __VLS_styleScopedClasses['profile-close'];
+    __VLS_styleScopedClasses['profile-content'];
+    __VLS_styleScopedClasses['profile-avatar'];
+    __VLS_styleScopedClasses['profile-name'];
+    __VLS_styleScopedClasses['detail-label'];
+    __VLS_styleScopedClasses['detail-value'];
     // CSS variable injection 
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
