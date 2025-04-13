@@ -27,6 +27,39 @@
                   | {{ getReactionUsers(message, emoji) }}
                 span.emoji {{ emoji }}
                 span.count {{ getReactionCount(message, emoji) }}
+          .ui.buttons
+            button.ui.tiny.basic.blue.button(@click="toggleReplyForm(message.actualIndex)")
+              | 回覆&nbsp;&nbsp;
+              i.reply.icon
+            button.ui.tiny.basic.orange.button(@click="toggleReplies(message.actualIndex)")
+              span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開&nbsp;&nbsp;
+                i.expand.icon
+              span(v-else) 收起&nbsp;&nbsp;
+                i.chevron.up.icon
+
+          .replies(v-if="message.replies && message.replies.length > 0")
+            .unexpended(v-if="!message.repliesExpanded")
+              | 共有{{ message.replies.length }}則回覆
+            .expended(v-else)
+              .reply(v-for="(reply, rIndex) in message.replies" :key="rIndex")
+                .ui.divider
+                .content
+                  img.ui.avatar.image.small(v-if="users && users[reply.uid] && users[reply.uid].photoURL" :src="users[reply.uid].photoURL")
+                  .author {{ reply.author }}
+                  .metadata
+                    .date {{ parseDate(reply.date) }}
+                  .text {{ reply.text }}
+                  .actions(v-if="reply.uid === uid")
+                    button.ui.tiny.basic.red.button(@click="deleteReply(message.actualIndex, rIndex)")
+                      i.trash.icon
+                      | 刪除
+
+          .ui.form.reply-form(v-if="replyingTo === message.actualIndex")
+            .ui.divider
+            textarea(v-model="replyText" class="reply-textarea" rows="2" cols="50" placeholder="輸入回覆...")
+            .actions
+              button.ui.primary.button(@click="addReply(message.actualIndex)") 發送
+              button.ui.button(@click="cancelReply") 取消
 
     .ui.form.reply.column(v-if="uid")
       .ui.divider.thin-only
@@ -51,6 +84,16 @@ interface Message {
       [uid: string]: boolean;
     };
   };
+  replies?: Reply[];
+  repliesExpanded?: boolean;
+  actualIndex?: number;
+}
+
+interface Reply {
+  author: string;
+  uid: string;
+  date: string;
+  text: string;
 }
 
 export default defineComponent({
@@ -75,13 +118,20 @@ export default defineComponent({
 
     const newMessage = ref('');
     const dataLoaded = ref(false);
+    const replyingTo = ref(-1);
+    const replyText = ref('');
 
-    // 添加 sortedMessages 計算屬性
     const sortedMessages = computed(() => {
-      return [...messages.value].sort((a, b) => {
+      return [...messages.value].map((obj, index) => {
+        const newObj = {
+          ...obj
+        }
+        newObj.actualIndex = index;
+        return newObj;
+      }).sort((a, b) => {
         const dateA = new Date(a.date);
         const dateB = new Date(b.date);
-        return dateB.getTime() - dateA.getTime(); // 降序排列，最新的在前面
+        return dateB.getTime() - dateA.getTime();
       });
     });
 
@@ -135,7 +185,16 @@ export default defineComponent({
       }
     }
 
-    // 新增處理反應的方法
+    const toggleReplies = (index: number) => {
+      if (!props.uid) return;
+
+      if (messages.value[index].repliesExpanded) {
+        messages.value[index].repliesExpanded = false;
+      } else {
+        messages.value[index].repliesExpanded = true;
+      }
+    }
+
     const toggleReaction = (message: Message, reaction: string) => {
       if (!props.uid) return;
 
@@ -153,10 +212,11 @@ export default defineComponent({
         message.reactions[reaction][props.uid] = true;
       }
 
-      // 更新到 Firebase
-      set(bulletinRef, messages.value).then(() => {
-        console.log('反應更新成功');
-      });
+      if (message.actualIndex !== undefined) {
+        set(dbRef(database, `messages/${message.actualIndex}/reactions`), message.reactions).then(() => {
+          console.log('反應更新成功');
+        });
+      }
     };
 
     const hasReacted = (message: Message, reaction: string) => {
@@ -167,13 +227,75 @@ export default defineComponent({
       return Object.keys(message.reactions?.[reaction] || {}).length;
     };
 
-    // 新增獲取反應者名稱的方法
     const getReactionUsers = (message: Message, reaction: string): string => {
       if (!message.reactions?.[reaction]) return '';
 
       return Object.keys(message.reactions[reaction])
         .map(uid => props.users[uid]?.name || '匿名用戶')
         .join('、');
+    };
+
+    const toggleReplyForm = (index: number) => {
+      if (!props.uid) return;
+
+      if (replyingTo.value === index) {
+        replyingTo.value = -1;
+      } else {
+        replyingTo.value = index;
+        replyText.value = '';
+      }
+    };
+
+    const cancelReply = () => {
+      replyingTo.value = -1;
+      replyText.value = '';
+    };
+
+    const addReply = (index: number) => {
+      if (!dataLoaded.value || !props.uid || replyText.value.trim() === '') return;
+
+      const messageToReply = messages.value[index];
+
+      if (!messageToReply.replies) {
+        messageToReply.replies = [];
+      }
+
+      const newReply: Reply = {
+        author: props.users[props.uid].name || '匿名',
+        uid: props.uid,
+        date: new Date().toISOString(),
+        text: replyText.value.trim()
+      };
+
+      messageToReply.replies.push(newReply);
+      replyText.value = '';
+      replyingTo.value = -1;
+
+      set(dbRef(database, `bulletin/${index}/replies`), messageToReply.replies).then(() => {
+        console.log('回覆新增成功');
+      });
+    };
+
+    const deleteReply = (messageIndex: number, replyIndex: number) => {
+      if (!dataLoaded.value || !props.uid) return;
+
+      const messageToUpdate = messages.value[messageIndex];
+
+      if (!messageToUpdate.replies || replyIndex >= messageToUpdate.replies.length) return;
+
+      // 確認回覆是當前用戶所發的
+      const replyToDelete = messageToUpdate.replies[replyIndex];
+      if (replyToDelete.uid !== props.uid) return;
+
+      if (window.confirm('確定要刪除這則回覆嗎？')) {
+        // 移除回覆
+        messageToUpdate.replies.splice(replyIndex, 1);
+
+      // 更新到 Firebase，只更新特定訊息的回覆
+      set(dbRef(database, `bulletin/${messageIndex}/replies`), messageToUpdate.replies).then(() => {
+          console.log('回覆刪除成功');
+        });
+      }
     };
 
     onMounted(() => {
@@ -186,14 +308,14 @@ export default defineComponent({
           uid: message.uid,
           date: message.date,
           text: message.text,
-          reactions: message.reactions || {}
+          reactions: message.reactions || {},
+          replies: message.replies || []
         }));
         dataLoaded.value = true;
       });
       setInterval(async () => {
         console.log('tick');
         await nextTick();
-        // 更新 messages 的狀態以觸發重新渲染
         messages.value = [...messages.value];
       }, 60 * 1000);
     });
@@ -209,7 +331,14 @@ export default defineComponent({
       hasReacted,
       getReactionCount,
       getReactionUsers,
-      dataLoaded
+      dataLoaded,
+      replyingTo,
+      replyText,
+      toggleReplyForm,
+      addReply,
+      cancelReply,
+      toggleReplies,
+      deleteReply
     }
   }
 })
@@ -256,7 +385,6 @@ export default defineComponent({
   color: #333;
 }
 
-/* 具有懸停能力的設備（通常是桌面電腦）可以選擇文字 */
 @media (hover: hover) {
   .ui.comments .comment .text {
     user-select: text;
@@ -266,7 +394,6 @@ export default defineComponent({
   }
 }
 
-/* 觸控設備（手機和平板）不能選擇文字 */
 @media (hover: none) {
   .ui.comments .comment .text {
     user-select: none;
@@ -274,6 +401,12 @@ export default defineComponent({
     -moz-user-select: none;
     -ms-user-select: none;
   }
+}
+
+
+.replies {
+  margin-top: 1rem;
+  margin-left: 2rem;
 }
 
 .ui.form.reply {
