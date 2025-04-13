@@ -14,6 +14,7 @@
           .author {{ message.author }}
           .metadata
             .date {{ parseDate(message.date) }}
+              span.updated(v-if="message.updated") ({{ parseDate(message.updated) }}已更新)
           .text {{ message.text }}
           .actions
             .reaction-buttons
@@ -36,6 +37,9 @@
                 i.expand.icon
               span(v-else) 收起&nbsp;&nbsp;
                 i.chevron.up.icon
+            button.ui.tiny.basic.purple.button(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="editMessage(message.actualIndex)")
+              i.edit.icon
+              span.fat-only 編輯
 
           .replies(v-if="message.replies && message.replies.length > 0")
             .unexpended(v-if="!message.repliesExpanded")
@@ -58,11 +62,22 @@
                         @click="toggleReplyReaction(reply, message.actualIndex, rIndex, emoji)"
                         :class="{ active: hasReacted(reply, emoji) }"
                       )
+                        .reaction-tooltip(v-if="getReactionCount(reply, emoji) > 0")
+                          | {{ getReactionUsers(reply, emoji) }}
                         span.emoji {{ emoji }}
                         span.count {{ getReactionCount(reply, emoji) }}
-                  button.ui.tiny.basic.red.button(@click="deleteReply(message.actualIndex, rIndex)")
-                    i.trash.icon
-                    | 刪除
+                  .ui.buttons
+                    button.ui.tiny.basic.blue.button(@click="toggleReplyForm(message.actualIndex)")
+                      | 回覆&nbsp;&nbsp;
+                      i.reply.icon
+                    button.ui.tiny.basic.orange.button(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
+                      span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開&nbsp;&nbsp;
+                        i.expand.icon
+                      span(v-else) 收起&nbsp;&nbsp;
+                        i.chevron.up.icon
+                    button.ui.tiny.basic.red.button(@click="deleteReply(message.actualIndex, rIndex)")
+                      i.trash.icon
+                      span.fat-only 刪除
 
           .ui.form.reply-form(v-if="replyingTo === message.actualIndex")
             .ui.divider
@@ -88,6 +103,7 @@ interface Message {
   author: string;
   uid: string;
   date: string;
+  updated?: string;
   text: string;
   reactions: {
     [key: string]: {
@@ -135,6 +151,7 @@ export default defineComponent({
     const dataLoaded = ref(false);
     const replyingTo = ref(-1);
     const replyText = ref('');
+    const editingMessage = ref(-1);
 
     const sortedMessages = computed(() => {
       return [...messages.value].map((obj, index) => {
@@ -208,6 +225,9 @@ export default defineComponent({
       } else {
         messages.value[index].repliesExpanded = true;
       }
+
+      // 保存展開狀態到sessionStorage
+      saveRepliesExpandedState();
     }
 
     const toggleReplyReaction = (reply: Reply, actualIndex: number, rIndex: number, reaction: string) => {
@@ -335,6 +355,60 @@ export default defineComponent({
       }
     };
 
+    // 新增保存展開狀態到sessionStorage的方法
+    const saveRepliesExpandedState = () => {
+      const expandedState: Record<number, boolean> = {};
+      messages.value.forEach((message, index) => {
+        if (message.repliesExpanded) {
+          expandedState[index] = true;
+        }
+      });
+      sessionStorage.setItem('repliesExpandedState', JSON.stringify(expandedState));
+    };
+
+    // 新增從sessionStorage恢復展開狀態的方法
+    const restoreRepliesExpandedState = () => {
+      const storedState = sessionStorage.getItem('repliesExpandedState');
+      if (storedState) {
+        try {
+          const expandedState = JSON.parse(storedState) as Record<number, boolean>;
+          messages.value.forEach((message, index) => {
+            message.repliesExpanded = expandedState[index] || false;
+          });
+        } catch (e) {
+          console.error('恢復展開狀態失敗', e);
+        }
+      }
+    };
+
+    const editMessage = (index: number) => {
+      if (!dataLoaded.value || !props.uid) return;
+
+      const messageToEdit = messages.value[index];
+
+      // 確認是用戶自己的留言且沒有回覆
+      if (messageToEdit.uid !== props.uid || (messageToEdit.replies && messageToEdit.replies.length > 0)) return;
+
+      // 取得編輯內容（這裡可以使用 prompt，在實際使用時建議更換為 modal 或表單）
+      const editedText = prompt('編輯留言', messageToEdit.text);
+
+      if (editedText !== null && editedText.trim() !== '') {
+        // 更新留言內容
+        messageToEdit.text = editedText.trim();
+        // 添加更新時間戳
+        messageToEdit.updated = new Date().toISOString();
+
+        // 更新到 Firebase
+        set(dbRef(database, `bulletin/${index}/text`), editedText.trim()).then(() => {
+          console.log('留言編輯成功');
+        });
+        // 更新 updated 欄位到 Firebase
+        set(dbRef(database, `bulletin/${index}/updated`), messageToEdit.updated).then(() => {
+          console.log('更新時間記錄成功');
+        });
+      }
+    };
+
     onMounted(() => {
       console.log('mounted');
       onValue(bulletinRef, (snapshot) => {
@@ -345,10 +419,14 @@ export default defineComponent({
           uid: message.uid,
           date: message.date,
           text: message.text,
+          updated: message.updated,
           reactions: message.reactions || {},
           replies: message.replies || []
         }));
         dataLoaded.value = true;
+
+        // 在數據載入後恢復展開狀態
+        restoreRepliesExpandedState();
       });
       setInterval(async () => {
         console.log('tick');
@@ -376,7 +454,10 @@ export default defineComponent({
       addReply,
       cancelReply,
       toggleReplies,
-      deleteReply
+      deleteReply,
+      saveRepliesExpandedState,
+      restoreRepliesExpandedState,
+      editMessage
     }
   }
 })
