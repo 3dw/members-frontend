@@ -31,7 +31,7 @@
             button.ui.tiny.basic.blue.button(@click="toggleReplyForm(message.actualIndex)")
               | 回覆&nbsp;&nbsp;
               i.reply.icon
-            button.ui.tiny.basic.orange.button(@click="toggleReplies(message.actualIndex)")
+            button.ui.tiny.basic.orange.button(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
               span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開&nbsp;&nbsp;
                 i.expand.icon
               span(v-else) 收起&nbsp;&nbsp;
@@ -50,9 +50,19 @@
                     .date {{ parseDate(reply.date) }}
                   .text {{ reply.text }}
                   .actions(v-if="reply.uid === uid")
-                    button.ui.tiny.basic.red.button(@click="deleteReply(message.actualIndex, rIndex)")
-                      i.trash.icon
-                      | 刪除
+                    // 加入emoji回覆
+                    .reaction-buttons
+                      button.reaction-btn(
+                        v-for="emoji in ['👍', '❤️', '🙏', '🫡', '❤️‍🔥', '😢']"
+                        :key="emoji"
+                        @click="toggleReplyReaction(reply, message.actualIndex, rIndex, emoji)"
+                        :class="{ active: hasReacted(reply, emoji) }"
+                      )
+                        span.emoji {{ emoji }}
+                        span.count {{ getReactionCount(reply, emoji) }}
+                  button.ui.tiny.basic.red.button(@click="deleteReply(message.actualIndex, rIndex)")
+                    i.trash.icon
+                    | 刪除
 
           .ui.form.reply-form(v-if="replyingTo === message.actualIndex")
             .ui.divider
@@ -94,6 +104,11 @@ interface Reply {
   uid: string;
   date: string;
   text: string;
+  reactions?: {
+    [key: string]: {
+      [uid: string]: boolean;
+    };
+  };
 }
 
 export default defineComponent({
@@ -149,7 +164,7 @@ export default defineComponent({
       }
       messages.value.push(newMessageObj);
       newMessage.value = '';
-      set(dbRef(database, 'messages/' + m_length), newMessageObj).then(() => {
+      set(dbRef(database, 'bulletin/' + m_length), newMessageObj).then(() => {
         console.log('留言成功');
       });
     }
@@ -195,6 +210,28 @@ export default defineComponent({
       }
     }
 
+    const toggleReplyReaction = (reply: Reply, actualIndex: number, rIndex: number, reaction: string) => {
+      if (!props.uid) return;
+
+      if (!reply.reactions) {
+        reply.reactions = {};
+      }
+
+      if (!reply.reactions[reaction]) {
+        reply.reactions[reaction] = {};
+      }
+
+      if (reply.reactions[reaction][props.uid]) {
+        delete reply.reactions[reaction][props.uid];
+      } else {
+        reply.reactions[reaction][props.uid] = true;
+      }
+
+      set(dbRef(database, `bulletin/${actualIndex}/replies/${rIndex}/reactions`), reply.reactions).then(() => {
+        console.log('回覆反應更新成功');
+      });
+    }
+
     const toggleReaction = (message: Message, reaction: string) => {
       if (!props.uid) return;
 
@@ -213,7 +250,7 @@ export default defineComponent({
       }
 
       if (message.actualIndex !== undefined) {
-        set(dbRef(database, `messages/${message.actualIndex}/reactions`), message.reactions).then(() => {
+        set(dbRef(database, `bulletin/${message.actualIndex}/reactions`), message.reactions).then(() => {
           console.log('反應更新成功');
         });
       }
@@ -328,6 +365,7 @@ export default defineComponent({
       toggleLogin,
       sortedMessages,
       toggleReaction,
+      toggleReplyReaction,
       hasReacted,
       getReactionCount,
       getReactionUsers,
