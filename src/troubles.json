@@ -1,0 +1,67 @@
+{
+  "trouble1": {
+    "id": "trouble1",
+    "content": "最近工作壓力很大，總是睡不好，感覺身心俱疲。我嘗試過冥想和運動，但效果不大。有沒有其他方法可以幫助我紓解壓力並改善睡眠品質？",
+    "category": "health",
+    "timestamp": "2025-04-10T08:30:00.000Z",
+    "empathies": 7,
+    "replyCount": 2,
+    "replies": {
+      "reply1": {
+        "content": "建議可以試試睡前泡溫和的花草茶，例如洋甘菊或薰衣草茶，有助於放鬆。",
+        "timestamp": "2025-04-10T09:15:00.000Z",
+        "helpful": 3
+      },
+      "reply2": {
+        "content": "我之前也有類似困擾，後來找到了「4-7-8呼吸法」很有效，可以上網搜尋試試看。",
+        "timestamp": "2025-04-10T10:20:00.000Z",
+        "helpful": 5
+      }
+    }
+  },
+  "trouble2": {
+    "id": "trouble2",
+    "content": "我和我最好的朋友最近發生爭執，已經一週沒有說話了。我不確定是否該主動和好，或者等她來找我。我真的很珍惜這段友情，不想失去她。",
+    "category": "relationship",
+    "timestamp": "2025-04-11T14:45:00.000Z",
+    "empathies": 12,
+    "replyCount": 3,
+    "replies": {
+      "reply1": {
+        "content": "真誠的溝通最重要，建議寫下你的感受，然後找個適當的時機主動約她聊聊。",
+        "timestamp": "2025-04-11T15:30:00.000Z",
+        "helpful": 8
+      },
+      "reply2": {
+        "content": "珍惜的友情值得主動，或許可以先傳訊息說想她了，打開話匣子。",
+        "timestamp": "2025-04-11T16:45:00.000Z",
+        "helpful": 6
+      },
+      "reply3": {
+        "content": "有時候等待反而會讓誤會加深，不如勇敢踏出第一步。",
+        "timestamp": "2025-04-11T18:20:00.000Z",
+        "helpful": 4
+      }
+    }
+  },
+  "trouble3": {
+    "id": "trouble3",
+    "content": "最近在考慮轉職，但對新領域完全沒有經驗，不知道該如何開始準備。擔心年紀漸長，轉職會不會太冒險了？",
+    "category": "career",
+    "timestamp": "2025-04-12T10:15:00.000Z",
+    "empathies": 15,
+    "replyCount": 2,
+    "replies": {
+      "reply1": {
+        "content": "建議先利用下班時間自學或參加線上課程，累積一些基礎知識再做決定。",
+        "timestamp": "2025-04-12T11:30:00.000Z",
+        "helpful": 7
+      },
+      "reply2": {
+        "content": "轉職沒有年齡限制，重要的是你的熱情和學習能力。可以先從接觸相關社群開始。",
+        "timestamp": "2025-04-12T13:45:00.000Z",
+        "helpful": 9
+      }
+    }
+  }
+}
