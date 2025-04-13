@@ -421,7 +421,13 @@ export default defineComponent({
           text: message.text,
           updated: message.updated,
           reactions: message.reactions || {},
-          replies: message.replies || []
+          replies: message.replies ? message.replies.map((reply: any): Reply => ({
+            author: reply.author,
+            uid: reply.uid,
+            date: reply.date,
+            text: reply.text,
+            reactions: reply.reactions || {}
+          })) : []
         }));
         dataLoaded.value = true;
 
