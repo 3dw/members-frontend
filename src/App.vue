@@ -85,6 +85,9 @@ header
           RouterLink.item(v-if="uid && devMode", to='/notes', name="NotesView")
             i.handshake.icon
             | 數位便利貼牆
+          RouterLink.item(v-if="uid && devMode", to='/troubletree', name="TroubleTreeView")
+            i.handshake.icon
+            | 煩惱樹屋
           .divider
           button.no-border.ui.item(v-if="uid", @click="logout")
             i.sign-out.icon

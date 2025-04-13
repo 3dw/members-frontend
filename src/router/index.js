@@ -161,6 +161,11 @@ const router = createRouter({
             component: () => import('../views/NotesView.vue')
         },
         {
+            path: '/troubletree',
+            name: 'TroubleTreeView',
+            component: () => import('../views/TroubleTreeView.vue')
+        },
+        {
             path: '/:pathMatch(.*)*',
             redirect: '/404'
         }
