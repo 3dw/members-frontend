@@ -39,7 +39,7 @@
                 i.chevron.up.icon
             button.ui.tiny.basic.purple.button(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="editMessage(message.actualIndex)")
               i.edit.icon
-              span.fat-only 編輯
+              span 編輯
 
           .replies(v-if="message.replies && message.replies.length > 0")
             .unexpended(v-if="!message.repliesExpanded")
