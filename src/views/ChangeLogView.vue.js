@@ -23,7 +23,16 @@ export default (await import('vue')).defineComponent({
             data,
         };
     },
-    methods: {},
+    computed: {
+        reversedData() {
+            return this.data.slice().reverse();
+        },
+    },
+    methods: {
+        parseDate(date) {
+            return new Date(date).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        },
+    },
 });
 function __VLS_template() {
     const __VLS_ctx = {};

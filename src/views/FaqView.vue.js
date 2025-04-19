@@ -132,6 +132,13 @@ export default defineComponent({
             const keyword = this.escapeHtml(this.searchKeyword.toLowerCase().trim());
             const regex = new RegExp(`(${keyword})`, 'gi');
             return escapedText.replace(regex, '<span class="highlight">$1</span>');
+        },
+        showCategory(category) {
+            console.log(category);
+            this.selectedCategory = category;
+            this.$nextTick(() => {
+                this.searchKeyword = '';
+            });
         }
     }
 });
@@ -149,6 +156,7 @@ function __VLS_template() {
     };
     let __VLS_directives;
     let __VLS_styleScopedClasses;
+    __VLS_styleScopedClasses['clickable'];
     // CSS variable injection 
     // CSS variable injection end 
     let __VLS_resolvedLocalAndGlobalComponents;
