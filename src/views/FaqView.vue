@@ -1,74 +1,78 @@
 <template lang="pug">
 div.faq-container
   h2.ui.header 常見問題
-  .ui.container
-    form.ui.form
-      .two.stackable.fields
-        .field(style="max-width:150px;")
-          label 類別篩選
-          select.ui.dropdown(v-model="selectedCategory")
-            option(v-for="category in categories" :value="category") {{ category }}
-        .field
-          label 關鍵字篩選
-          .ui.icon.input
-            input(
-              type="text"
-              v-model="searchKeyword"
-              placeholder="搜尋常見問題..."
-            )
-            i.search.icon
-    table.ui.celled.table
-      thead
-        tr
-          th 類別
-          th 問題
-          th 回答
-          th 相關連結
-          th 操作
-      tbody
-        tr(v-for="item in filteredAndSortedFaqItems" :key="item.id")
-          td(v-html="highlightText(item.category)")
-          td(v-html="highlightText(item.question)")
-          td.answer-cell(v-html="highlightText(parseAnswer(item.answer))")
-          td.answer-cell
-            .ui.bulleted.list(v-if="item.links && parseLinks(item.links).length > 0")
-              .item(v-for="link in parseLinks(item.links)" :key="link.h")
-                a(:href="link.h" target="_blank" rel="noopener noreferrer") {{ link.t }}
-                br
-                button.ui.button.mini.circular.red.icon(v-if="uid" type="button" @click="deleteLink(item.id, link.h)")
+
+  form.ui.form
+    .two.stackable.fields
+      .field(style="max-width:150px;")
+        label 類別篩選
+        select.ui.dropdown(v-model="selectedCategory")
+          option(v-for="category in categories" :value="category") {{ category }}
+      .field
+        label 關鍵字篩選
+        .ui.icon.input
+          input(
+            type="text"
+            v-model="searchKeyword"
+            placeholder="搜尋常見問題..."
+          )
+          i.search.icon
+  table.ui.celled.table
+    thead
+      tr
+        th.collapsing 類別
+        th 問題
+        th 回答
+        th 相關連結
+        th 操作
+    tbody
+      tr(v-for="item in filteredAndSortedFaqItems" :key="item.id")
+        td.collapsing.clickable(v-html="highlightText(item.category)" @click="showCategory(item.category)")
+        td(v-html="highlightText(item.question)")
+        td.answer-cell(v-html="highlightText(parseAnswer(item.answer))")
+        td.answer-cell
+          .ui.bulleted.divided.list(v-if="item.links && parseLinks(item.links).length > 0")
+            .item(v-for="link in parseLinks(item.links)" :key="link.h")
+              a(:href="link.h" target="_blank" rel="noopener noreferrer") {{ link.t }}
+              br
+              .ui.buttons(style="margin: 0.8rem 0;")
+                a.ui.basic.teal.button(v-if="link.h" :href="link.h" target="_blank" rel="noopener noreferrer")
+                  i.external.link.icon
+                  | 測試
+                button.ui.button.mini.basic.red.icon(v-if="uid" type="button" @click="deleteLink(item.id, link.h)")
                   i.trash.icon
                   | 刪除
-            .item.ui.divider
-            .item
-              button.ui.button.mini.circular.orange.icon(v-if="uid" type="button" @click="showAddLinkId = item.id")
-                i.plus.icon
-                | 新增
-            .item(v-if="showAddLinkId === item.id")
-              .ui.form
-                input(type="text" v-model="newLinkText" placeholder="連結名稱")
-                input(type="text" v-model="newLinkHref" placeholder="連結網址")
-                br
-                .ui.buttons
-                  a.ui.basic.primary.button(v-if="newLinkHref" :href="newLinkHref" target="_blank" rel="noopener noreferrer")
-                    img(:src="'https://www.google.com/s2/favicons?domain=' + newLinkHref" alt="測試連結")
-                    | 測試連結
-                  button.ui.button.primary(type="button" @click.prevent="addLink(item.id)")
-                    i.plus.icon
-                    | 新增
-          td
-            .ui.vertical.buttons
-              // button.ui.button.orange(v-if="!uid" type="button" @click="toggleLogin")
-              //   i.user.icon
-              //   | 登入/註冊
-              button.ui.button.primary(v-if="uid" type="button" @click="editFaq(item.id)")
-                i.pencil.icon
-                | 編輯
-              a.ui.basic.button.secondary(:href="`https://map.alearn.org.tw/ans/${item.id}`")
-                | 前往
-                i.chevron.right.icon
-            // button.ui.button.red.disabled(type="button" @click="deleteFaq(item.id)")
-            //   i.trash.icon
-            //   | 刪除
+          .item.ui.divider
+          .item
+            button.ui.button.mini.circular.orange.icon(v-if="uid && showAddLinkId !== item.id" type="button" @click="showAddLinkId = item.id")
+              i.plus.icon
+              | 新增連結
+          .item(v-if="showAddLinkId === item.id")
+            .ui.form
+              input(type="text" v-model="newLinkText" placeholder="連結名稱")
+              input(type="text" v-model="newLinkHref" placeholder="連結網址")
+              br
+              .ui.buttons
+                a.ui.basic.primary.button(v-if="newLinkHref" :href="newLinkHref" target="_blank" rel="noopener noreferrer")
+                  img(:src="'https://www.google.com/s2/favicons?domain=' + newLinkHref" alt="測試連結")
+                  | 測試連結
+                button.ui.button.primary(type="button" @click.prevent="addLink(item.id)")
+                  i.plus.icon
+                  | 新增連結
+        td
+          .ui.vertical.buttons
+            // button.ui.button.orange(v-if="!uid" type="button" @click="toggleLogin")
+            //   i.user.icon
+            //   | 登入/註冊
+            button.ui.button.primary(v-if="uid" type="button" @click="editFaq(item.id)")
+              i.pencil.icon
+              | 編輯
+            a.ui.basic.button.secondary(:href="`https://map.alearn.org.tw/ans/${item.id}`")
+              | 前往
+              i.chevron.right.icon
+          // button.ui.button.red.disabled(type="button" @click="deleteFaq(item.id)")
+          //   i.trash.icon
+          //   | 刪除
 </template>
 
 <script lang="ts">
@@ -226,6 +230,13 @@ export default defineComponent({
       const regex = new RegExp(`(${keyword})`, 'gi')
 
       return escapedText.replace(regex, '<span class="highlight">$1</span>')
+    },
+    showCategory(category: string) {
+      console.log(category)
+      this.selectedCategory = category
+      this.$nextTick(() => {
+        this.searchKeyword = ''
+      })
     }
   }
 })
@@ -237,7 +248,7 @@ export default defineComponent({
 }
 
 .answer-cell {
-  min-width: 20rem;
+  min-width: 16rem;
   white-space: pre-line;
 }
 
@@ -245,5 +256,18 @@ th, td {
   min-width: 9rem;
   font-size: 1.2rem;
 }
+
+.collapsing {
+  min-width: 0;
+}
+
+.clickable {
+  transition: background-color 0.3s ease;
+}
+
+.clickable:hover {
+  background-color: #f0f0f0;
+}
+
 
 </style>

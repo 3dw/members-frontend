@@ -52,9 +52,15 @@ header
           RouterLink.item(to="/bulletin_board")
             i.comments.icon
             | 留言板
+          RouterLink.item(to='/faq', name="faq")
+            i.help.icon
+            | 自學FAQ協作
           RouterLink.item(v-if="uid", to='/create_faq', name="create-faq")
             i.plus.icon
             | 新增問答
+          RouterLink.item(v-if="uid", to='/changelog', name="changelog")
+            i.history.icon
+            | 變更紀錄
           .divider
           RouterLink.item(to="/profile")
             i.flag.icon
@@ -66,9 +72,6 @@ header
           RouterLink.item(v-if="uid", to='/githubembeded', name="githubembeded")
             i.linkify.icon
             | 自促會Github開源專案
-          RouterLink.item(v-if="uid", to='/changelog', name="changelog")
-            i.history.icon
-            | 變更紀錄
           RouterLink.item(v-if="uid", to='/privacy-policy', name="privacy")
             i.lock.icon
             | 隱私權政策
