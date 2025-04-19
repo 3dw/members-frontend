@@ -220,7 +220,7 @@ export default defineComponent({
       email: '',
       emailVerified: false,
       devMode: false,
-      zoom: 13,
+      zoom: 7,
       center: [23.5330, 121.0654]
     }
   },
