@@ -340,6 +340,12 @@ export default defineComponent({
         console.log('登入成功：', user);
         this.updateUserData(user);
 
+        // 強制更新視圖
+        this.$forceUpdate();
+
+        // 使用 nextTick 確保視圖更新完成
+        await this.$nextTick();
+
         if (autoredirect && user.emailVerified) {
           this.$nextTick().then(() => {
             this.$router.push('/profile');
