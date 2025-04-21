@@ -151,7 +151,7 @@ header
     i.linkify.icon
     | 舊版網站
 .ui.sidebar.bg(:class="{'hidden': !sidebarVisible}", @click="toggleSidebar")
-.ui.container
+.ui.container#main-container
   RouterView(
     @toggleLogin="toggleLogin",
     @locate="locate",
