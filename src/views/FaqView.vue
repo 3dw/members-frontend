@@ -2,6 +2,14 @@
 div.faq-container
   form.ui.form#faq-form
     h2.ui.header 常見問題
+      .filler
+      .ui.buttons(v-if="uid")
+        router-link.ui.button.basic.orange(to="/create_faq")
+          i.plus.icon
+          | 新增問答
+        router-link.ui.button.basic.teal(to="/changelog")
+          i.history.icon
+          | 變更紀錄
     .two.stackable.fields
       .field(style="max-width:150px;")
         label 類別篩選
@@ -72,14 +80,8 @@ div.faq-container
           // button.ui.button.red.disabled(type="button" @click="deleteFaq(item.id)")
           //   i.trash.icon
           //   | 刪除
-  .ui.segment
-    .ui.buttons
-      router-link.ui.button.basic.orange(to="/create_faq")
-        i.plus.icon
-        | 新增問答
-      router-link.ui.button.basic.teal(to="/changelog")
-        i.history.icon
-        | 變更紀錄
+
+
 </template>
 
 <script lang="ts">
