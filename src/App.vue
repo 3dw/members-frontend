@@ -101,7 +101,7 @@ header
   RouterLink.item(to='/', exact='', name="home")
     i.home.icon
     | 首頁
-  RouterLink.item(to='/admin', name="admin", v-if="uid && user.isAdmin")
+  RouterLink.item(to='/admin', name="admin", v-if="uid && user && user.isAdmin")
     i.cogs.icon
     | 管理
   RouterLink.item(to='/about', name="about")

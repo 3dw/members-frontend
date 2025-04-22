@@ -258,6 +258,7 @@ export default {
           this.members = response.data;
         })
         .catch(error => {
+          window.alert('密碼錯誤')
           console.error('讀取會員資料時出錯', error);
         });
     },
@@ -412,5 +413,9 @@ th, td {
 .description {
   white-space: pre-wrap;
   min-width: 200px;
+}
+
+input {
+  background-color: #fff;
 }
 </style>
