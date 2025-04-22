@@ -46,7 +46,8 @@ div.faq-container
               .ui.buttons(style="margin: 0.8rem 0;")
                 a.ui.basic.teal.button(v-if="link.h" :href="link.h" target="_blank" rel="noopener noreferrer")
                   i.external.link.icon
-                  | 測試
+                  span(v-if="uid") 測試連結
+                  span(v-else) 前往網站
                 button.ui.button.mini.basic.red.icon(v-if="uid" type="button" @click="deleteLink(item.id, link.h)")
                   i.trash.icon
                   | 刪除
