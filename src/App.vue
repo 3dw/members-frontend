@@ -64,7 +64,7 @@ header
           .divider
           RouterLink.item(to="/profile")
             i.flag.icon
-            | 我的旗幟
+            | 自我介紹
           RouterLink.item(v-if="uid", to="/maps", name="maps")
             i.map.icon
             | 互助地圖
@@ -81,7 +81,7 @@ header
           .divider
           RouterLink.item(v-if="uid", to='/slido', name="slidoMeeting")
             i.comments.icon
-            | Slido問答區(暫時)
+            | Slido(會員大會使用)
           RouterLink.item(v-if="uid", to='/hello', name="HelloView")
             i.handshake.icon
             | 池塘打招呼

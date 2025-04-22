@@ -122,7 +122,7 @@
         .field(:class="{error: badAge(root.learner_birth), warning: !root.learner_birth}")
           label.required 出生年份
           input(type='text' v-model='root.learner_birth' placeholder="請輸入出生年份")
-        span(v-if='root.learner_birth') 您已經大約 {{ toAge(root.learner_birth) }} 歲
+        span(v-if='root.learner_birth') 您大約 {{ toAge(root.learner_birth) }} 歲
         .ui.warning.message(v-if="!root.learner_birth")
           .header 出生年份未填寫
           p 請填寫出生年份。
@@ -134,7 +134,7 @@
           span
             input(v-model='root.child_birth' type='text' placeholder="請輸入子女出生年份")
             br
-            span(v-if='root.child_birth') 您的孩子已經 {{ toAge(root.child_birth) }} 歲
+            span(v-if='root.child_birth') 您的孩子大約 {{ toAge(root.child_birth) }} 歲
             .ui.divider
             span(style="margin-left: 15px;") 最小孩子出生年份
               br
