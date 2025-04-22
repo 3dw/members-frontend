@@ -91,7 +91,11 @@
           br
     .filler
     .ui.bottom.attached.stackable.buttons(v-if ="h.latlngColumn", :class="{vertical: !full || thin}")
-      .ui.purple.button(@click="locate(h, true)")
+      router-link.ui.orange.basic.button(to="/match_time")
+        i.calendar.icon
+        | 找夥伴
+
+      button.ui.purple.basic.button(@click="locate(h, true)")
         i.map.icon
         | 查看地圖
 </template>

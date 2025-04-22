@@ -4,6 +4,9 @@
     // 加入文字說明
     h2.ui.header 找夥伴
     p 以下是有登錄協作平台的會員資料，您可以搜尋名稱或資訊，找到夥伴。
+    p 歡迎您
+      router-link(to="/profile") 登錄您的資訊
+      | ，參與「找夥伴」。
   .ui.row(v-if="!uid && (!users || toList(users).length == 0)")
         .sixteen.wide.column
           .ui.huge.buttons
