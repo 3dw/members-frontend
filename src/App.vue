@@ -68,6 +68,9 @@ header
           RouterLink.item(v-if="uid", to="/maps", name="maps")
             i.map.icon
             | 互助地圖
+          RouterLink.item(to="/match_time")
+            i.calendar.icon
+            | 找夥伴
           .divider
           RouterLink.item(v-if="uid", to='/githubembeded', name="githubembeded")
             i.linkify.icon

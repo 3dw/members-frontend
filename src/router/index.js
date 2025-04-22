@@ -10,6 +10,11 @@ const router = createRouter({
             component: HomeView
         },
         {
+            path: '/match_time',
+            name: 'MatchTimeView',
+            component: () => import('../views/MatchTimeView.vue')
+        },
+        {
             path: '/bulletin_board',
             name: 'BulletinBoardView',
             component: () => import('../views/BulletinBoardView.vue')
