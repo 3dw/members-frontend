@@ -6,7 +6,7 @@
         .ui.description 即時互動問答區
       .slido-wrapper
         iframe.slido-frame(
-          :src="slidoUrl"
+          :src="nextSlidoUrl"
           frameborder="0"
           allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
           allowfullscreen
@@ -23,7 +23,7 @@
     },
     data() {
       return {
-        slidoUrl: "https://app.sli.do/event/aoRXFjBrHEc8TQ2HR58R3j",
+        // slidoUrl: "https://app.sli.do/event/aoRXFjBrHEc8TQ2HR58R3j",
         nextSlidoUrl: "https://app.sli.do/event/v1x1umndx6tkuJyEeqnigJ"
       }
     }
