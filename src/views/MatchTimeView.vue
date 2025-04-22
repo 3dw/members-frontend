@@ -1,5 +1,9 @@
 <template lang="pug">
 .hello
+  .ui.success.message
+    // 加入文字說明
+    h2.ui.header 找夥伴
+    p 以下是有登錄協作平台的會員資料，您可以搜尋名稱或資訊，找到夥伴。
   .ui.row(v-if="!uid && (!users || toList(users).length == 0)")
         .sixteen.wide.column
           .ui.huge.buttons
@@ -15,13 +19,14 @@
           input(type="text", v-model="search", placeholder="搜尋名稱或資訊")
           i.search.icon
     table.ui.celled.striped.collapsing.stackable.table
-      thead
+      thead.fat-only
         tr
           th 夥伴
           th 需求
           th 可分享
           th 有空的時間
           th 聯絡方式
+      tbody
         tr(v-for="user in filteredUsers" :key="user.id")
           td(style="display: flex; align-items: center;")
             router-link(:to="`/flag/${user.uid}`", style="text-decoration: none; display: flex; align-items: center;")
