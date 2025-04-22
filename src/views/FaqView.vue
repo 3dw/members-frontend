@@ -1,24 +1,23 @@
 <template lang="pug">
 div.faq-container
-  h2.ui.header 常見問題
-
-  form.ui.form
+  form.ui.form#faq-form
+    h2.ui.header 常見問題
     .two.stackable.fields
       .field(style="max-width:150px;")
         label 類別篩選
-        select.ui.dropdown(v-model="selectedCategory")
-          option(v-for="category in categories" :value="category") {{ category }}
-      .field
-        label 關鍵字篩選
-        .ui.icon.input
-          input(
-            type="text"
-            v-model="searchKeyword"
-            placeholder="搜尋常見問題..."
-          )
-          i.search.icon
+      select.ui.dropdown(v-model="selectedCategory")
+        option(v-for="category in categories" :value="category") {{ category }}
+    .field
+      label 關鍵字篩選
+      .ui.icon.input
+        input(
+          type="text"
+          v-model="searchKeyword"
+          placeholder="搜尋常見問題..."
+        )
+        i.search.icon
   table.ui.celled.table
-    thead
+    thead.fat-only
       tr
         th.collapsing 類別
         th 問題
@@ -73,6 +72,14 @@ div.faq-container
           // button.ui.button.red.disabled(type="button" @click="deleteFaq(item.id)")
           //   i.trash.icon
           //   | 刪除
+  .ui.segment
+    .ui.buttons
+      router-link.ui.button.basic.orange(to="/create_faq")
+        i.plus.icon
+        | 新增問答
+      router-link.ui.button.basic.teal(to="/changelog")
+        i.history.icon
+        | 變更紀錄
 </template>
 
 <script lang="ts">
@@ -267,6 +274,10 @@ th, td {
 
 .clickable:hover {
   background-color: #f0f0f0;
+}
+
+#faq-form {
+  padding: 0 1rem;
 }
 
 

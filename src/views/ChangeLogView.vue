@@ -12,9 +12,10 @@ main.ui.container
         td {{ parseDate(item.date) }}
         td {{ item.text }}
         td
-          img(:src="users && users[item.uid] && users[item.uid].photoURL || 'https://cdn.jsdelivr.net/npm/semantic-ui@2.4.1/dist/images/user.png'" style="width: 24px; height: 24px; border-radius: 50%;")
+          img(v-if ="users && users[item.uid] && users[item.uid].photoURL",
+          :src="users && users[item.uid] && users[item.uid].photoURL" style="width: 24px; height: 24px; border-radius: 50%;")
           br
-          | {{ users && users[item.uid] && users[item.uid].name || item.uid }}
+          | {{ users && users[item.uid] && users[item.uid].name || '匿名' }}
 
   .ui.segment
     router-link.ui.basic.green.button(to="/faq")
