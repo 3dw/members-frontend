@@ -49,9 +49,16 @@ header
         i.user.icon(v-else)
         i.caret.down.icon
         .menu
-          RouterLink.item(to="/bulletin_board")
-            i.comments.icon
-            | 留言板
+          RouterLink.item(to="/profile")
+            i.flag.icon
+            | 自我介紹
+          RouterLink.item(v-if="uid", to="/maps", name="maps")
+            i.map.icon
+            | 會員地圖
+          RouterLink.item(to="/match_time")
+            i.calendar.icon
+            | 找夥伴
+          .divider
           RouterLink.item(to='/faq', name="faq")
             i.help.icon
             | 自學FAQ協作
@@ -62,15 +69,15 @@ header
             i.history.icon
             | 變更紀錄
           .divider
-          RouterLink.item(to="/profile")
-            i.flag.icon
-            | 自我介紹
-          RouterLink.item(v-if="uid", to="/maps", name="maps")
-            i.map.icon
-            | 互助地圖
-          RouterLink.item(to="/match_time")
-            i.calendar.icon
-            | 找夥伴
+          RouterLink.item(to="/bulletin_board")
+            i.comments.icon
+            | 會員討論區
+          RouterLink.item(v-if="uid", to='/slido', name="slidoMeeting")
+            i.question.icon
+            | Slido(會員大會使用)
+          RouterLink.item(v-if="uid", to='/hello', name="HelloView")
+            i.handshake.icon
+            | 池塘打招呼
           .divider
           RouterLink.item(v-if="uid", to='/githubembeded', name="githubembeded")
             i.linkify.icon
@@ -78,13 +85,7 @@ header
           RouterLink.item(v-if="uid", to='/privacy-policy', name="privacy")
             i.lock.icon
             | 隱私權政策
-          .divider
-          RouterLink.item(v-if="uid", to='/slido', name="slidoMeeting")
-            i.comments.icon
-            | Slido(會員大會使用)
-          RouterLink.item(v-if="uid", to='/hello', name="HelloView")
-            i.handshake.icon
-            | 池塘打招呼
+          .divider(v-if="uid && devMode")
           RouterLink.item(v-if= "uid && devMode", to='/connection', name="ConnectionView")
             i.handshake.icon
             | 接力顯示板
