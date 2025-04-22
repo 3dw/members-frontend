@@ -2,6 +2,7 @@
 div.faq-container
   form.ui.form#faq-form
     h2.ui.header 常見問題
+      span(v-if="uid", style="font-weight:700;") 協作
       .filler
       .ui.buttons(v-if="uid")
         router-link.ui.button.basic.orange(to="/create_faq")
