@@ -36,8 +36,12 @@ div.faq-container
     tbody
       tr(v-for="item in filteredAndSortedFaqItems" :key="item.id")
         td.collapsing.clickable(v-html="highlightText(item.category)" @click="showCategory(item.category)")
-        td(v-html="highlightText(item.question)")
-        td.answer-cell(v-html="highlightText(parseAnswer(item.answer))")
+        td
+          span.thin-only Q:
+          span(v-html="highlightText(item.question)")
+        td.answer-cell
+          span.thin-only A:
+          span(v-html="highlightText(parseAnswer(item.answer))")
         td.answer-cell
           .ui.bulleted.divided.list(v-if="item.links && parseLinks(item.links).length > 0")
             .item(v-for="link in parseLinks(item.links)" :key="link.h")

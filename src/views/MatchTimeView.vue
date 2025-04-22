@@ -36,10 +36,18 @@
               img(:src="user.photoURL" style="width: 32px; height: 32px; border-radius: 50%;")
               | &nbsp;&nbsp;
               span(v-html="highlightText(user.name, search)")
-          td(v-html="highlightText(user.ask, search)")
-          td(v-html="highlightText(user.share, search)")
-          td(v-html="highlightText(user.freetime, search)")
-          td(v-html="highlightText(user.connect_me, search)")
+          td
+            span.thin-only 需求：
+            span(v-html="highlightText(user.ask, search)")
+          td
+            span.thin-only 可分享：
+            span(v-html="highlightText(user.share, search)")
+          td
+            span.thin-only 有空的時間：
+            span(v-html="highlightText(user.freetime, search)")
+          td
+            span.thin-only 聯絡方式：
+            span(v-html="highlightText(user.connect_me, search)")
 </template>
 
 <script lang="ts">
