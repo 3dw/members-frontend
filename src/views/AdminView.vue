@@ -9,7 +9,12 @@ main.ui.segment.container(v-if = "uid && user && user.isAdmin")
   .ui.segment(v-if="action === '會員管理'")
     h2.ui.header 會員管理
     .ui.segment
-      button.ui.basic.primary.button(@click="listMembers(null)")
+      .ui.field
+        label 密碼
+        .ui.input
+          input(type="password" v-model="password" placeholder="請輸入密碼")
+      br
+      button.ui.basic.primary.button(@click="listMembers(password)")
         i.users.icon
         | 列出所有會員
 
