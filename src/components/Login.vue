@@ -9,6 +9,11 @@
             | 登入您的帳號
           //- Email & Password Login Form
           form.ui.form.segment(style="border-radius: 10px; padding: 15px; background-color: #f0f0f0;")
+
+            p(style="text-align: left; margin-top: 10px; font-size: 1.2em; color: #666;") 初次使用請按「註冊」
+            p(style="text-align: left; font-size: 1em; color: #666;") 收到認證信，請擊信上連結後，再按「登入」
+
+
             .field
               .ui.left.icon.input
                 i.envelope.icon
@@ -19,9 +24,11 @@
                 i.lock.icon
                 input(type="password" name="user_password" placeholder="Password", style="font-size: 14px;", v-model="user_password", autocomplete, @click.stop)
 
-            .ui.fluid.large.button(@click.prevent="loginWithEmail", style="background-color: #e47e10 ; color: white; font-weight: bold;", :class="{disabled: isInApp}") 登入
+            .ui.fluid.buttons
+              button.ui.large.green.button#register-btn(@click.stop.prevent="registerWithEmail", :class="{disabled: isInApp}") 註冊
+              button.ui.large.orange.button#login-btn(@click.prevent="loginWithEmail", :class="{disabled: isInApp}") 登入
 
-            a.small.forgot-password(@click="resetPassword") 忘記密碼
+            a.small.forgot-password(@click="resetPassword") 忘記密碼?
 
           form.ui.large.form
             .ui.segment(style="border: none; padding-top: 10px;")
@@ -29,9 +36,6 @@
                 .ui.checkbox(@click.stop)
                   input(type="checkbox" v-model="keeploggedin")
                   label 保持登入狀態
-
-            p 新用戶？按此
-              button.ui.large.basic.button#register-btn(@click.stop.prevent="registerWithEmail", :class="{disabled: isInApp}") 註冊
 </template>
 
 <script lang="ts">
@@ -94,7 +98,7 @@ export default defineComponent({
       console.log('Register clicked');
 
       if (!users_email.value || !user_password.value) {
-        window.alert('請先填寫email和密碼');
+        window.alert('請先填寫會員email和自訂密碼');
         return;
       }
 
@@ -203,22 +207,6 @@ export default defineComponent({
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.ui.button {
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.ui.button:hover {
-  transform: translateY(-1px);
-}
-
-.ui.large.button {
-  background-color: #444;
-  color: white;
-}
-
-.ui.large.button:hover {
-  background-color: #333;
-}
 
 .ui.horizontal.divider {
   color: #ccc;
@@ -242,8 +230,7 @@ h2.ui.header {
 }
 
 #register-btn {
-  margin-left: .6em;
-  border: 1px solid #333;
+  color: #fff !important;
 }
 
 </style>
