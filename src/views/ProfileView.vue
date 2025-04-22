@@ -120,7 +120,7 @@
             option(value='') -- 請選擇類型 --
             option(v-for="t in ['準會員', '一般會員', '志工', '教師', '其他']", :value="t") {{ t }}
         .field(:class="{error: badAge(root.learner_birth), warning: !root.learner_birth}")
-          label.required 出生年份
+          label.required 出生年份(西元)
           input(type='text' v-model='root.learner_birth' placeholder="請輸入出生年份")
         span(v-if='root.learner_birth') 您大約 {{ toAge(root.learner_birth) }} 歲
         .ui.warning.message(v-if="!root.learner_birth")
@@ -147,7 +147,7 @@
               label.required 興趣
               input(v-model='root.learner_habit' placeholder="請輸入興趣")
             .field
-              label.required 分享
+              label.required 可分享的領域或專長
               input(v-model='root.share' placeholder="請輸入分享")
             .field
               label 尋找
@@ -642,6 +642,11 @@ export default {
     content: "*";
     color: #FF3B30;
     margin-left: 0.25rem;
+  }
+
+  i.red.star::before {
+    content: "*";
+    color: #FF3B30;
   }
 
   .ui.button {

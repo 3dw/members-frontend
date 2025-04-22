@@ -25,26 +25,38 @@
       thead.fat-only
         tr
           th 夥伴
+          th 興趣
           th 需求
           th 可分享
-          th 有空的時間
+          th 自我介紹
           th 聯絡方式
       tbody
         tr(v-for="user in filteredUsers" :key="user.id")
           td(style="display: flex; align-items: center;")
-            router-link(:to="`/flag/${user.uid}`", style="text-decoration: none; display: flex; align-items: center;")
+            router-link(v-if = "user.uid" :to="`/flag/${user.uid}`", style="text-decoration: none; display: flex; align-items: center;")
+              img(:src="user.photoURL" style="width: 32px; height: 32px; border-radius: 50%;")
+              | &nbsp;&nbsp;
+              span(v-html="highlightText(user.name, search)")
+            span(v-else, style="text-decoration: none; display: flex; align-items: center;")
               img(:src="user.photoURL" style="width: 32px; height: 32px; border-radius: 50%;")
               | &nbsp;&nbsp;
               span(v-html="highlightText(user.name, search)")
           td
-            span.thin-only 需求：
-            span(v-html="highlightText(user.ask, search)")
+            .normal-cell
+              span.thin-only 興趣：
+              span(v-html="highlightText(user.learner_habit, search)")
           td
-            span.thin-only 可分享：
-            span(v-html="highlightText(user.share, search)")
+            .normal-cell
+              span.thin-only 需求：
+              span(v-html="highlightText(user.ask, search)")
           td
-            span.thin-only 有空的時間：
-            span(v-html="highlightText(user.freetime, search)")
+            .normal-cell
+              span.thin-only 可分享：
+              span(v-html="highlightText(user.share, search)")
+          td
+            .note-cell
+              span.thin-only 自我介紹：
+              span(v-html="highlightText(user.note, search)")
           td
             span.thin-only 聯絡方式：
             span(v-html="highlightText(user.connect_me, search)")
@@ -98,8 +110,11 @@ export default defineComponent({
           (user.ask && user.ask.includes(search.value)) ||
           (user.share && user.share.includes(search.value)) ||
           (user.connect_me && user.connect_me.includes(search.value)) ||
-          (user.freetime && user.freetime.includes(search.value))
+          (user.learner_habit && user.learner_habit.includes(search.value)) ||
+          (user.note && user.note.includes(search.value))
         );
+      }).slice().sort((a: any, b: any) => {
+        return a.name.localeCompare(b.name);
       });
     });
     return {
@@ -118,5 +133,21 @@ export default defineComponent({
   background-color: #ffeb3b;
   padding: 2px;
   border-radius: 2px;
+}
+
+.normal-cell {
+  width: 120px;
+}
+
+.note-cell {
+  width: 140px;
+  max-height: 6em !important;
+  overflow-y: auto;
+}
+
+@media screen and (max-width: 768px) {
+  .note-cell, .normal-cell {
+    width: 100%;
+  }
 }
 </style>
