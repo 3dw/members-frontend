@@ -1,5 +1,5 @@
 <template lang="pug">
-  .hello
+  .user-card
     router-link(v-if="clickable" :to="'/flag/'+ (h.uid || h.idx)")
       .image
         h3.ui.header
@@ -195,7 +195,9 @@ export default defineComponent({
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.hello {
+.user-card {
+  margin: 0;
+  padding: 0;
   position: relative;
   z-index: 1;
   height: 100%;
@@ -218,7 +220,8 @@ p {
   white-space: pre-line;
   font-size: 16px;
   text-align: left;
-  padding: 0.5em 1em; /* 內邊距 */
+  margin: 0;
+  padding: 0.2em 1em; /* 內邊距 */
   color: #333;
   cursor: text;
 }
