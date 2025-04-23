@@ -450,9 +450,10 @@ export default {
       this.$emit('locate', this.root, false)
     },
     confirmDelete() {
-      if (window.confirm('確認要刪除旗幟嗎？此動作無法復原。')) {
-        this.deleteFlag();
-      }
+      window.alert('此功能尚未開放，若要刪除旗幟，請聯繫管理員bestian@gmail.com')
+  //      if (window.confirm('確認要刪除旗幟嗎？此動作無法復原。')) {
+  //      this.deleteFlag();
+  //    }
     },
     deleteFlag() {
       const uid = this.uid;
