@@ -13,11 +13,15 @@
     .ui.grid.container
       .ui.row.thin-only
         .ui.column
-          .ui.massive.blue.button(v-show="uid && !editing" @click="startEdit")
-            i.edit.icon
-            | 我要
-            span(v-if="isNew") 升旗
-            span(v-else) 更新資料
+          .ui.vertical.buttons
+            .ui.huge.blue.button(v-show="uid && !editing" @click="startEdit")
+              i.edit.icon
+              | 我要
+              span(v-if="isNew") 升旗
+              span(v-else) 更新資料
+            .ui.huge.purple.basic.button(v-show="uid && !editing" @click="exportData")
+              i.download.icon
+              | 匯出自學2.0格式資料
       .ui.stackable.two.column.row(v-if="!editing")
         .ten.wide.column(v-show="!isNew")
           .ui.fluid.card.container(v-show="!isNew && !editing")
@@ -27,11 +31,15 @@
         .filler(v-if="isNew")
 
         .six.wide.column.fat-only
-          .ui.massive.blue.button(v-show="uid && !editing" @click="startEdit")
-            i.edit.icon
-            | 我要
-            span(v-if="isNew") 升旗
-            span(v-else) 更新資料
+          .ui.vertical.buttons
+            .ui.massive.blue.button(v-show="uid && !editing" @click="startEdit")
+              i.edit.icon
+              | 我要
+              span(v-if="isNew") 升旗
+              span(v-else) 更新資料
+            .ui.massive.purple.basic.button(v-show="uid && !editing" @click="exportData")
+              i.download.icon
+              | 匯出自學2.0格式資料
 
         .filler(v-if="isNew")
 
@@ -42,6 +50,14 @@
 
       form#main-form.ui.form.error.warning.success(v-show="editing")
         h2.ui.header 填寫資料
+        button.ui.basic.purple.button(@click.prevent="$refs.fileInput.click()", v-show="!fileUploaded")
+          i.file.icon
+          | 匯入自學2.0格式資料
+        input(type="file" ref="fileInput" @change="handleFileChange", style="display: none")
+        button.ui.purple.button(v-show="fileUploaded" @click.prevent="importData()", :class="{disabled: !fileUploaded}")
+          i.file.icon
+          | 確認匯入
+        .ui.divider
         .sub.header
           | 請填寫以下資料
           br
@@ -52,7 +68,7 @@
         .field
           label 大頭貼
           .ui.center.aligned.segment
-            img.ui.centered.medium.round.image(
+            img.ui.centered.small.round.image(
               :src="root.photoURL || 'https://we.alearn.org.tw/logo-new.png'"
               style="max-width: 200px;"
             )
@@ -222,6 +238,8 @@ export default {
   },
   data () {
     return {
+      fileInput: null,
+      fileUploaded: false,
       agree: false,
       root: {
         latlngColumn: '23.5330,121.0654' // Default to Center of Taiwan
@@ -251,6 +269,105 @@ export default {
     }
   },
   methods: {
+    handleFileChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        this.fileInput = file;
+        this.fileUploaded = true;
+      }
+    },
+    exportData() {
+      console.log('匯出資料');
+      const data = {
+        name: this.root.name,
+        email: this.root.email,
+        address: this.root.address,
+        connect_me: this.root.connect_me,
+        learner_birth: this.root.learner_birth,
+        learner_habit: this.root.learner_habit,
+        latlngColumn: this.root.latlngColumn,
+        child_birth: this.root.child_birth || '',
+        child_birth2: this.root.child_birth2 || '',
+        share: this.root.share,
+        ask: this.root.ask,
+        price: this.root.price,
+        note: this.root.note,
+      }
+      console.log(data);
+      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    },
+
+    importData() {
+      if (!this.fileInput) {
+        alert('請先選擇檔案');
+        return;
+      }
+
+      console.log('開始匯入資料');
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+
+          // 驗證必要欄位
+          const requiredFields = ['name', 'email', 'address', 'connect_me', 'learner_birth', 'learner_habit', 'share', 'note'];
+          const missingFields = requiredFields.filter(field => !data[field]);
+
+          if (missingFields.length > 0) {
+            alert(`匯入的資料缺少必要欄位：${missingFields.join(', ')}`);
+            return;
+          }
+
+          // 更新資料
+          this.root = {
+            ...this.root,
+            name: data.name,
+            email: data.email,
+            address: data.address,
+            connect_me: data.connect_me,
+            learner_birth: data.learner_birth,
+            learner_habit: data.learner_habit,
+            child_birth: data.child_birth || '',
+            child_birth2: data.child_birth2 || '',
+            latlngColumn: data.latlngColumn || '23.5330,121.0654',
+            share: data.share,
+            ask: data.ask || '',
+            price: data.price || '',
+            note: data.note
+          };
+
+          // 如果地址有更新，需要重新初始化地圖
+          if (this.map && data.latlngColumn) {
+            this.setMapAndMarker();
+          }
+
+          this.$forceUpdate();
+          alert('資料匯入成功');
+
+          // 重置檔案輸入狀態
+          this.fileInput = null;
+          this.fileUploaded = false;
+          this.$refs.fileInput.value = ''; // 清空檔案輸入框
+        } catch (error) {
+          console.error('JSON 解析錯誤:', error);
+          alert('匯入的檔案格式不正確，請確認是否為有效的 JSON 檔案');
+        }
+      };
+
+      reader.onerror = () => {
+        console.error('檔案讀取失敗');
+        alert('檔案讀取失敗，請重試');
+      };
+
+      reader.readAsText(this.fileInput);
+    },
 
     isValid() {
       if (!this.root.note || this.root.note.length < 20) {
@@ -650,25 +767,6 @@ export default {
     color: #FF3B30;
   }
 
-  .ui.button {
-    border-radius: 8px;
-    padding: 0.8rem 1.5rem;
-    font-weight: 600;
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-
-  .ui.massive.blue.button {
-    background-color: #0066FF;
-    color: white;
-    border: none;
-  }
-
-  .ui.massive.blue.button:hover {
-    background-color: #0052cc;
-    transform: translateY(-1px);
-  }
-
   .ui.warning.message,
   .ui.error.message,
   .ui.success.message {
@@ -711,18 +809,6 @@ export default {
     border-radius: 50%;
     border: 3px solid #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .ui.basic.button {
-    background: transparent;
-    border: 2px solid #0066FF;
-    color: #0066FF;
-    margin-top: 1rem;
-  }
-
-  .ui.basic.button:hover {
-    background-color: #0066FF;
-    color: white;
   }
 
   @media (max-width: 768px) {
