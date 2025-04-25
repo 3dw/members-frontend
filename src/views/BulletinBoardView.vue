@@ -8,7 +8,7 @@
         button.ui.large.green.basic.button(@click="toggleLogin") 登入
 
     .ui.comments.flex-column.column(v-if="uid")
-      .comment(v-for="(message, index) in sortedMessages" :key="index")
+      .comment(v-for="(message, index) in sortedMessages.slice(0, maxShowMessages)" :key="index")
         .content
           img.ui.avatar.image(v-if="users && users[message.uid] && users[message.uid].photoURL" :src="users[message.uid].photoURL")
           .author {{ message.author }}
@@ -40,6 +40,11 @@
               )
                 i.file.icon
                 | {{ file.name }}
+          .hrefs(v-if="message.hrefs && message.hrefs.length > 0")
+            a.ui.mini.basic.button.no-border.text-underline(v-for="(href, index) in message.hrefs" :key="index" :href="href" target="_blank")
+              img(:src="'https://www.google.com/s2/favicons?domain=' + href" title='連結網址' alt='連結網址')
+              span(v-if="href.length > 40") {{ href.slice(0, 20) }}...
+              span(v-else) {{ href }}
           .ui.buttons
             button.ui.tiny.basic.blue.button(@click="toggleReplyForm(message.actualIndex)")
               | 回覆&nbsp;&nbsp;
@@ -98,6 +103,15 @@
               button.ui.primary.button(@click="addReply(message.actualIndex)") 發送
               button.ui.button(@click="cancelReply") 取消
 
+      .show-more-messages(v-if="sortedMessages.length > maxShowMessages")
+        button.ui.basic.orange.button(@click="showMoreMessages")
+          i.chevron.down.icon
+          | 顯示更多留言
+      .show-less-messages(v-if="sortedMessages.length <= maxShowMessages && sortedMessages.length > 5")
+        button.ui.basic.orange.button(@click="showLessMessages")
+          i.chevron.up.icon
+          | 顯示更少留言
+
     .ui.form.reply.column(v-if="uid")
       .ui.divider.thin-only
       .field
@@ -119,6 +133,28 @@
               .content
                 a(:href="file.url" target="_blank") {{ file.name }}
                 .ui.mini.red.button(@click="removeAttachment(index)") 刪除
+
+      .field
+        label
+          i.linkify.icon
+          | 附加連結(可選)
+
+        .ui.list(v-if="newMessageHrefs && newMessageHrefs.length > 0")
+          .item(v-for="(href, index) in newMessageHrefs" :key="index")
+            .content
+              img(:src="'https://www.google.com/s2/favicons?domain=' + href" title='連結網址' alt='連結網址')
+              a(:href="href" target="_blank" rel="noopener noreferrer") {{ href.length > 40 ? href.slice(0, 20) + '...' : href }}
+              .ui.mini.red.basic.button(@click="removeHrefByIndex(index)")
+                i.trash.icon
+                span 刪除
+        input(type="text" v-model="newMessageHref" placeholder="輸入連結")
+        .ui.buttons(v-if="newMessageHref && newMessageHref.length > 0")
+          a.ui.mini.basic.button(:href="newMessageHref" target="_blank" rel="noopener noreferrer")
+            img(:src="'https://www.google.com/s2/favicons?domain=' + newMessageHref" title='連結網址' alt='連結網址')
+            | 連結預覽
+          .ui.mini.basic.green.button(@click="addHref")
+            i.plus.icon
+            | 新增連結
       .ui.primary.submit.button(@click="addMessage") 留言
 </template>
 
@@ -142,6 +178,7 @@ interface Message {
   repliesExpanded?: boolean;
   actualIndex?: number;
   attachments?: Array<{name: string, url: string, size: number, type: string}>;
+  hrefs?: string[];
 }
 
 interface Reply {
@@ -168,6 +205,8 @@ export default defineComponent({
     }
   },
   setup(props, { emit }) {
+
+    const maxShowMessages = ref(5);
     const messages = ref<Message[]>([
       { author: 'AliceS', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
       { author: 'BobS', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
@@ -177,6 +216,8 @@ export default defineComponent({
     })));
 
     const newMessage = ref('');
+    const newMessageHref = ref('');
+    const newMessageHrefs = ref<string[]>([]);
     const dataLoaded = ref(false);
     const replyingTo = ref(-1);
     const replyText = ref('');
@@ -199,20 +240,35 @@ export default defineComponent({
     });
 
     const addMessage = () => {
+      if (newMessageHref.value) {
+        newMessageHrefs.value.push(newMessageHref.value);
+        newMessageHref.value = '';
+      }
       if (!dataLoaded.value) return;
 
       console.log(newMessage.value);
       const m_length = messages.value.length;
-      const newMessageObj = {
+      const newMessageObj: Message = {
         author: props.users[props.uid].name || '匿名',
         uid: props.uid || '123',
         date: new Date().toISOString(),
         text: newMessage.value,
         reactions: {},
-        attachments: newMessageAttachments.value.length > 0 ? newMessageAttachments.value : undefined
       }
+
+      // 只有在有附加檔案時才加入 attachments 欄位
+      if (newMessageAttachments.value.length > 0) {
+        newMessageObj.attachments = newMessageAttachments.value;
+      }
+
+      // 只有在有連結時才加入 hrefs 欄位
+      if (newMessageHrefs.value.length > 0) {
+        newMessageObj.hrefs = newMessageHrefs.value;
+      }
+
       messages.value.push(newMessageObj);
       newMessage.value = '';
+      newMessageHrefs.value = [];
       newMessageAttachments.value = [];
       set(dbRef(database, 'bulletin/' + m_length), newMessageObj).then(() => {
         console.log('留言成功');
@@ -516,6 +572,7 @@ export default defineComponent({
             text: reply.text,
             reactions: reply.reactions || {}
           })) : [],
+          hrefs: message.hrefs || [],
           attachments: message.attachments || []
         }));
         dataLoaded.value = true;
@@ -530,9 +587,44 @@ export default defineComponent({
       }, 60 * 1000);
     });
 
+    const addHref = () => {
+      if (newMessageHref.value) {
+        // 檢查是否為有效的 URL
+        try {
+          new URL(newMessageHref.value);
+          newMessageHrefs.value.push(newMessageHref.value);
+          newMessageHref.value = '';
+        } catch (e) {
+          alert('請輸入有效的網址');
+        }
+      }
+    };
+
+    const removeHref = () => {
+      if (newMessageHrefs.value.length > 0) {
+        newMessageHrefs.value.pop();
+      }
+    };
+
+    const removeHrefByIndex = (index: number) => {
+      newMessageHrefs.value.splice(index, 1);
+    };
+
+    const showMoreMessages = () => {
+      maxShowMessages.value += 10;
+    };
+
+    const showLessMessages = () => {
+      maxShowMessages.value -= 10;
+    };
+
     return {
+      maxShowMessages,
+      showMoreMessages,
+      showLessMessages,
       messages,
       newMessage,
+      newMessageHref,
       addMessage,
       parseDate,
       toggleLogin,
@@ -553,10 +645,15 @@ export default defineComponent({
       saveRepliesExpandedState,
       restoreRepliesExpandedState,
       editMessage,
+      editingMessage,
       uploadingFile,
       newMessageAttachments,
       handleFileUpload,
-      removeAttachment
+      removeAttachment,
+      addHref,
+      removeHref,
+      removeHrefByIndex,
+      newMessageHrefs
     }
   }
 })
@@ -659,21 +756,6 @@ export default defineComponent({
 
 .ui.primary.submit.button:hover {
   background-color: #0052cc;
-}
-
-.ui.green.basic.button {
-  border: 2px solid #0066FF;
-  color: #0066FF;
-  background: transparent;
-  border-radius: 8px;
-  padding: 0.8rem 1.5rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.ui.green.basic.button:hover {
-  background-color: #0066FF;
-  color: white;
 }
 
 img.ui.avatar.image {
@@ -918,5 +1000,10 @@ img.ui.avatar.image {
 
 .no-border {
   border: none !important;
+  box-shadow: none !important;
+}
+
+.text-underline {
+  text-decoration: underline !important;
 }
 </style>
