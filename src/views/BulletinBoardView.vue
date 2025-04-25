@@ -106,7 +106,7 @@
       .field
         label
           i.paperclip.icon
-          | 附加檔案(可選，最大1MB)
+          | 附加檔案(可選，最大10MB)
         .ui.upload.segment
           input(type="file" ref="fileUpload" @change="handleFileUpload" style="display: none")
           .ui.basic.button(@click="$refs.fileUpload.click()")
@@ -446,9 +446,9 @@ export default defineComponent({
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
-      // 檢查檔案大小 (最大 1MB)
-      if (file.size > 1 * 1024 * 1024) {
-        alert('檔案大小不能超過 1MB');
+      // 檢查檔案大小 (最大 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('檔案大小不能超過 10MB');
         return;
       }
 
