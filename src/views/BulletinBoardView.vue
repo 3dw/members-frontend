@@ -28,6 +28,18 @@
                   | {{ getReactionUsers(message, emoji) }}
                 span.emoji {{ emoji }}
                 span.count {{ getReactionCount(message, emoji) }}
+          .attachments(v-if="message.attachments && message.attachments.length > 0")
+            i.paperclip.icon
+            .ui.buttons
+              a.ui.mini.basic.button.no-border(
+                v-for="(file, index) in message.attachments"
+                :key="index"
+                :href="file.url"
+                target="_blank"
+                download
+              )
+                i.file.icon
+                | {{ file.name }}
           .ui.buttons
             button.ui.tiny.basic.blue.button(@click="toggleReplyForm(message.actualIndex)")
               | 回覆&nbsp;&nbsp;
@@ -91,6 +103,22 @@
       .field
         label 輸入留言
         textarea(v-model="newMessage")
+      .field
+        label
+          i.paperclip.icon
+          | 附加檔案(可選，最大1MB)
+        .ui.upload.segment
+          input(type="file" ref="fileUpload" @change="handleFileUpload" style="display: none")
+          .ui.basic.button(@click="$refs.fileUpload.click()")
+            i.upload.icon
+            | 選擇檔案
+          span(v-if="uploadingFile") 上傳中...
+          .ui.list(v-if="newMessageAttachments && newMessageAttachments.length > 0")
+            .item(v-for="(file, index) in newMessageAttachments" :key="index")
+              i.file.icon
+              .content
+                a(:href="file.url" target="_blank") {{ file.name }}
+                .ui.mini.red.button(@click="removeAttachment(index)") 刪除
       .ui.primary.submit.button(@click="addMessage") 留言
 </template>
 
@@ -113,6 +141,7 @@ interface Message {
   replies?: Reply[];
   repliesExpanded?: boolean;
   actualIndex?: number;
+  attachments?: Array<{name: string, url: string, size: number, type: string}>;
 }
 
 interface Reply {
@@ -152,6 +181,8 @@ export default defineComponent({
     const replyingTo = ref(-1);
     const replyText = ref('');
     const editingMessage = ref(-1);
+    const uploadingFile = ref(false);
+    const newMessageAttachments = ref<Array<{name: string, url: string, size: number, type: string}>>([]);
 
     const sortedMessages = computed(() => {
       return [...messages.value].map((obj, index) => {
@@ -177,10 +208,12 @@ export default defineComponent({
         uid: props.uid || '123',
         date: new Date().toISOString(),
         text: newMessage.value,
-        reactions: {}
+        reactions: {},
+        attachments: newMessageAttachments.value.length > 0 ? newMessageAttachments.value : undefined
       }
       messages.value.push(newMessageObj);
       newMessage.value = '';
+      newMessageAttachments.value = [];
       set(dbRef(database, 'bulletin/' + m_length), newMessageObj).then(() => {
         console.log('留言成功');
       });
@@ -409,6 +442,61 @@ export default defineComponent({
       }
     };
 
+    const handleFileUpload = async (event: Event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      // 檢查檔案大小 (最大 1MB)
+      if (file.size > 1 * 1024 * 1024) {
+        alert('檔案大小不能超過 1MB');
+        return;
+      }
+
+      uploadingFile.value = true;
+      try {
+        // 直接讀取檔案內容
+        const fileContent = await file.arrayBuffer();
+
+        // 上傳檔案
+        const response = await fetch('https://members-backend.alearn13994229.workers.dev/uploadToR2/files/' + file.name, {
+          method: 'POST',
+          body: fileContent,
+          headers: {
+            'Content-Type': file.type
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('上傳失敗');
+        }
+
+        const result = await response.json();
+
+        // 新增檔案資訊到 attachments 陣列
+        newMessageAttachments.value.push({
+          name: file.name,
+          url: result.url,
+          size: file.size,
+          type: file.type
+        });
+
+        // 清空檔案輸入
+        (event.target as HTMLInputElement).value = '';
+
+      } catch (error) {
+        console.error('檔案上傳失敗:', error);
+        alert('檔案上傳失敗，請重試');
+      } finally {
+        uploadingFile.value = false;
+      }
+    };
+
+    const removeAttachment = (index: number) => {
+      if (confirm('確定要刪除此檔案嗎？')) {
+        newMessageAttachments.value.splice(index, 1);
+      }
+    };
+
     onMounted(() => {
       console.log('mounted');
       onValue(bulletinRef, (snapshot) => {
@@ -427,7 +515,8 @@ export default defineComponent({
             date: reply.date,
             text: reply.text,
             reactions: reply.reactions || {}
-          })) : []
+          })) : [],
+          attachments: message.attachments || []
         }));
         dataLoaded.value = true;
 
@@ -463,7 +552,11 @@ export default defineComponent({
       deleteReply,
       saveRepliesExpandedState,
       restoreRepliesExpandedState,
-      editMessage
+      editMessage,
+      uploadingFile,
+      newMessageAttachments,
+      handleFileUpload,
+      removeAttachment
     }
   }
 })
@@ -728,5 +821,102 @@ img.ui.avatar.image {
     font-size: 0.7rem;
     padding: 0.3rem 0.6rem;
   }
+}
+
+.ui.upload.segment {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.ui.upload.segment .ui.list {
+  margin-top: 1rem;
+}
+
+.ui.upload.segment .ui.list .item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.ui.upload.segment .ui.list .item .content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ui.upload.segment .ui.list .item .content a {
+  color: #0066FF;
+  text-decoration: none;
+}
+
+.ui.upload.segment .ui.list .item .content a:hover {
+  text-decoration: underline;
+}
+
+.ui.upload.segment .ui.mini.red.button {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.ui.upload.segment .ui.basic.button {
+  border: 1px solid #0066FF;
+  color: #0066FF;
+  background: transparent;
+  border-radius: 8px;
+  padding: 0.8rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.ui.upload.segment .ui.basic.button:hover {
+  background-color: #0066FF;
+  color: white;
+}
+
+.attachments {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.attachments i.paperclip.icon {
+  color: #666;
+  font-size: 1rem;
+}
+
+.attachments .ui.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.attachments .ui.mini.basic.button {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  border: 1px solid #0066FF;
+  color: #0066FF;
+  background: transparent;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.attachments .ui.mini.basic.button:hover {
+  background-color: #0066FF;
+  color: white;
+}
+
+.attachments .ui.mini.basic.button i.file.icon {
+  margin-right: 0.3rem;
+}
+
+.no-border {
+  border: none !important;
 }
 </style>
