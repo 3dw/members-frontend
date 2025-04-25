@@ -115,7 +115,7 @@
               span(v-if='root.site2')
                 a(:href='root.site2', target='_blank')
                   img(:src="'https://www.google.com/s2/favicons?domain=' + root.site2", :title="root.site2", :alt="root.site2")
-                  | 測連結
+                  | 測試連結
 
         .two.fields
           .field
