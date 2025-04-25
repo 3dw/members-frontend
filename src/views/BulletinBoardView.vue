@@ -31,7 +31,7 @@
           .hrefs(v-if="message.hrefs && message.hrefs.length > 0")
             a.ui.mini.basic.button.no-border.text-underline(v-for="(href, index) in message.hrefs" :key="index" :href="href" target="_blank")
               img(:src="'https://www.google.com/s2/favicons?domain=' + href" title='連結網址' alt='連結網址')
-              span(v-if="href.length > 40") {{ href.slice(0, 40) }}...
+              span(v-if="href.length > 50") {{ href.slice(0, 50) }}...
               span(v-else) {{ href }}
 
           .actions
