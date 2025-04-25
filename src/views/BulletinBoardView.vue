@@ -118,22 +118,6 @@
       .field
         label 輸入留言
         textarea(v-model="newMessage")
-      .field
-        label
-          i.paperclip.icon
-          | 附加檔案(可選，最大10MB)
-        .ui.upload.segment
-          input(type="file" ref="fileUpload" @change="handleFileUpload" style="display: none")
-          .ui.basic.button(@click="$refs.fileUpload.click()")
-            i.upload.icon
-            | 選擇檔案
-          span(v-if="uploadingFile") 上傳中...
-          .ui.list(v-if="newMessageAttachments && newMessageAttachments.length > 0")
-            .item(v-for="(file, index) in newMessageAttachments" :key="index")
-              i.file.icon
-              .content
-                a(:href="file.url" target="_blank") {{ file.name }}
-                .ui.mini.red.button(@click="removeAttachment(index)") 刪除
 
       .field
         label
@@ -156,6 +140,23 @@
           .ui.mini.basic.green.button(@click="addHref")
             i.plus.icon
             | 新增連結
+            .field
+        label
+          i.paperclip.icon
+          | 附加檔案(可選，最大10MB)
+        .ui.upload.segment
+          input(type="file" ref="fileUpload" @change="handleFileUpload" style="display: none")
+          .ui.basic.button(@click="$refs.fileUpload.click()")
+            i.upload.icon
+            | 選擇檔案
+          span(v-if="uploadingFile") 上傳中...
+          .ui.list(v-if="newMessageAttachments && newMessageAttachments.length > 0")
+            .item(v-for="(file, index) in newMessageAttachments" :key="index")
+              i.file.icon
+              .content
+                a(:href="file.url" target="_blank") {{ file.name }}
+                .ui.mini.red.button(@click="removeAttachment(index)") 刪除
+
       .ui.primary.submit.button(@click="addMessage") 留言
 </template>
 
