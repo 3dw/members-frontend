@@ -16,18 +16,6 @@
             .date {{ parseDate(message.date) }}
               span.updated(v-if="message.updated") ({{ parseDate(message.updated) }}已更新)
           .text {{ message.text }}
-          .actions
-            .reaction-buttons
-              button.reaction-btn(
-                v-for="emoji in ['👍', '❤️', '🙏', '🫡', '❤️‍🔥', '😢']"
-                :key="emoji"
-                @click="toggleReaction(message, emoji)"
-                :class="{ active: hasReacted(message, emoji) }"
-              )
-                .reaction-tooltip(v-if="getReactionCount(message, emoji) > 0")
-                  | {{ getReactionUsers(message, emoji) }}
-                span.emoji {{ emoji }}
-                span.count {{ getReactionCount(message, emoji) }}
           .attachments(v-if="message.attachments && message.attachments.length > 0")
             i.paperclip.icon
             .ui.buttons
@@ -45,6 +33,19 @@
               img(:src="'https://www.google.com/s2/favicons?domain=' + href" title='連結網址' alt='連結網址')
               span(v-if="href.length > 40") {{ href.slice(0, 40) }}...
               span(v-else) {{ href }}
+
+          .actions
+            .reaction-buttons
+              button.reaction-btn(
+                v-for="emoji in ['👍', '❤️', '🙏', '🫡', '❤️‍🔥', '😢']"
+                :key="emoji"
+                @click="toggleReaction(message, emoji)"
+                :class="{ active: hasReacted(message, emoji) }"
+              )
+                .reaction-tooltip(v-if="getReactionCount(message, emoji) > 0")
+                  | {{ getReactionUsers(message, emoji) }}
+                span.emoji {{ emoji }}
+                span.count {{ getReactionCount(message, emoji) }}
           .ui.buttons
             button.ui.tiny.basic.blue.button(@click="toggleReplyForm(message.actualIndex)")
               | 回覆&nbsp;&nbsp;
