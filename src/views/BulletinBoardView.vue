@@ -504,6 +504,13 @@ export default defineComponent({
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
+      // 檢查檔名是否只包含英文字母、數字和底線，且沒有空白
+      const fileName = file.name;
+      if (!/^[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*$/.test(fileName)) {
+        alert("檔名需全英文，沒有空白，請更改檔名後再上傳");
+        return;
+      }
+
       // 檢查檔案大小 (最大 10MB)
       if (file.size > 10 * 1024 * 1024) {
         alert('檔案大小不能超過 10MB');
