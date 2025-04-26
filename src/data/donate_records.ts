@@ -1,12 +1,12 @@
 
-interface Record {
+export interface Record {
   datetime: string;
   name: string;
   amount: number;
   project: string;
 }
 
-export const donate_records = [
+export const donate_records: Record[] = [
   // 一百十四年
   { datetime: '114年02月', name: '小巴老師', amount: 100, project: '自學2.0' },
   // 一百零八年
