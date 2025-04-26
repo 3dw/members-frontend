@@ -504,6 +504,12 @@ export default defineComponent({
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
+      // 檢查檔名不能包含「/」或「\」
+      if (file.name.includes('/') || file.name.includes('\\')) {
+        alert('檔名不能包含斜線「/」或反斜線「\\」');
+        return;
+      }
+
       // 檢查檔案大小 (最大 10MB)
       if (file.size > 10 * 1024 * 1024) {
         alert('檔案大小不能超過 10MB');
