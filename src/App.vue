@@ -153,7 +153,7 @@ header
     | 舊版網站
   RouterLink.item(to='/slido', name="slidoMeeting")
     i.question.icon
-    | Slido(工作會議使用)
+    | Slido(會員大會使用)
 .ui.sidebar.bg(:class="{'hidden': !sidebarVisible}", @click="toggleSidebar")
 .ui.container#main-container
   RouterView(
