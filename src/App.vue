@@ -151,9 +151,9 @@ header
   a.item(href="https://sites.google.com/view/autoalearn/%E9%A6%96%E9%A0%81", target="_blank", rel="noopener noreferrer")
     i.linkify.icon
     | 舊版網站
-  RouterLink.item(to='/slido', name="slidoMeeting")
-    i.question.icon
-    | Slido(會員大會使用)
+  //RouterLink.item(to='/slido', name="slidoMeeting")
+  //  i.question.icon
+  //  | Slido(會員大會使用)
 .ui.sidebar.bg(:class="{'hidden': !sidebarVisible}", @click="toggleSidebar")
 .ui.container#main-container
   RouterView(
