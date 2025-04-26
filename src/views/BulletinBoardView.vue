@@ -524,6 +524,12 @@ export default defineComponent({
           }
         });
 
+        if (response.status === 400) {
+          const result = await response.json();
+          alert(result.error + ' 請更改名稱後重新上傳');
+          return;
+        }
+
         if (!response.ok) {
           throw new Error('上傳失敗');
         }
