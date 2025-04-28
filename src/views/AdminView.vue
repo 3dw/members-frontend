@@ -17,10 +17,13 @@ main.ui.segment.container(v-if = "uid && user && user.isAdmin")
       button.ui.basic.primary.button(@click="listMembers(password)")
         i.users.icon
         | 列出所有會員
-
-    table.ui.celled.compact.table(v-if="members.length > 0")
-      thead
-        tr
+      button.ui.basic.orange.button(v-if="members.length > 0" @click="copyMembersEmails")
+        i.copy.icon
+        | 複製所有會員電子郵件列表
+      br
+      table.ui.celled.compact.table(v-if="members.length > 0")
+        thead
+          tr
           th 姓名
           th 電子郵件
           th 動作
@@ -213,12 +216,19 @@ export default {
         });
     });
 
+    const copyMembersEmails = () => {
+      const emails = members.value.map(member => member.email).join(', ');
+      navigator.clipboard.writeText(emails);
+      window.alert('已複製所有會員電子郵件');
+    }
+
     return {
       supervisors,
       action,
       newName,
       newRole,
       newEmail,
+      copyMembersEmails,
       members,
       password,
       projects,
