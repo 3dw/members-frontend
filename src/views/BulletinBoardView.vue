@@ -143,13 +143,21 @@
             .field
         label
           i.paperclip.icon
-          | 附加檔案(可選，最大10MB)
+          | 附加檔案
+          br
+          | (可選，建議10MB以下，最大1GB)
         .ui.upload.segment
           input(type="file" ref="fileUpload" @change="handleFileUpload" style="display: none")
           .ui.basic.button(@click="$refs.fileUpload.click()")
             i.upload.icon
             | 選擇檔案
-          span(v-if="uploadingFile") 上傳中...
+          span(v-if="uploadingFile")
+            span(v-if="!isBigFile") 上傳中...
+            span(v-if="isBigFile")
+              br
+              | 檔案較大，分塊上傳中，請耐心等待...
+              br
+              | {{uploadProgress}}
           .ui.list(v-if="newMessageAttachments && newMessageAttachments.length > 0")
             .item(v-for="(file, index) in newMessageAttachments" :key="index")
               i.file.icon
@@ -217,6 +225,8 @@ export default defineComponent({
       reactions: {}
     })));
 
+    const uploadProgress = ref('');
+    const isBigFile = ref(false);
     const newMessage = ref('');
     const newMessageHref = ref('');
     const newMessageHrefs = ref<string[]>([]);
@@ -510,51 +520,142 @@ export default defineComponent({
         return;
       }
 
-      // 檢查檔案大小 (最大 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        alert('檔案大小不能超過 10MB');
+      // 檢查檔案大小 (最大 1GB)
+      if (file.size > 1024 * 1024 * 1024) {
+        alert('檔案大小不能超過 1GB');
         return;
       }
 
       uploadingFile.value = true;
       try {
-        // 直接讀取檔案內容
-        const fileContent = await file.arrayBuffer();
+        // 如果檔案小於 10MB，使用原本的上傳方式
+        if (file.size <= 10 * 1024 * 1024) {
+          isBigFile.value = false;
+          const fileContent = await file.arrayBuffer();
+          const response = await fetch('https://members-backend.alearn13994229.workers.dev/uploadToR2/files/' + file.name, {
+            method: 'POST',
+            body: fileContent,
+            headers: {
+              'Content-Type': file.type
+            }
+          });
 
-        // 上傳檔案
-        const response = await fetch('https://members-backend.alearn13994229.workers.dev/uploadToR2/files/' + file.name, {
-          method: 'POST',
-          body: fileContent,
-          headers: {
-            'Content-Type': file.type
+          if (response.status === 400) {
+            const result = await response.json();
+            alert(result.error + ' 請更改名稱後重新上傳');
+            return;
           }
-        });
 
-        if (response.status === 400) {
+          if (!response.ok) {
+            throw new Error('上傳失敗');
+          }
+
           const result = await response.json();
-          alert(result.error + ' 請更改名稱後重新上傳');
-          return;
+          newMessageAttachments.value.push({
+            name: file.name,
+            url: result.url,
+            size: file.size,
+            type: file.type
+          });
+        } else {
+          // 大檔案使用分塊上傳
+          isBigFile.value = true;
+          uploadProgress.value = '上傳中...';
+          const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB per chunk
+          const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+          console.log('開始分塊上傳:', {
+            fileName: file.name,
+            fileSize: file.size,
+            chunkSize: CHUNK_SIZE,
+            totalChunks: totalChunks
+          });
+
+          uploadProgress.value = '開始分塊上傳：' + file.name + '，共' + totalChunks + '塊';
+
+          // 上傳每個分塊
+          for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+            const start = chunkIndex * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, file.size);
+            const chunk = file.slice(start, end);
+
+            console.log(`上傳分塊 ${chunkIndex + 1}/${totalChunks}:`, {
+              start,
+              end,
+              chunkSize: chunk.size,
+              chunkType: chunk.type
+            });
+
+            uploadProgress.value = '上傳第 ' + (chunkIndex + 1) + ' 塊...(共' + totalChunks + '塊)';
+
+            // 使用 FormData 包裝分塊
+            const formData = new FormData();
+            formData.append('chunk', chunk);
+
+            const response = await fetch(
+              `https://members-backend.alearn13994229.workers.dev/uploadChunkToR2/files/${encodeURIComponent(file.name)}/${chunkIndex}/${totalChunks}`,
+              {
+                method: 'POST',
+                body: formData
+              }
+            );
+
+            console.log(`分塊 ${chunkIndex + 1}/${totalChunks} 上傳回應:`, {
+              status: response.status,
+              ok: response.ok,
+              statusText: response.statusText
+            });
+
+            if (response.ok) {
+              console.log(`成功上傳第 ${chunkIndex + 1} 塊分塊`);
+            } else {
+              const errorText = await response.text();
+              console.error(`分塊 ${chunkIndex + 1}/${totalChunks} 上傳失敗:`, errorText);
+              throw new Error(`分塊 ${chunkIndex + 1}/${totalChunks} 上傳失敗: ${errorText}`);
+            }
+          }
+
+          console.log('所有分塊上傳完成，開始合併');
+          uploadProgress.value = '合併中...';
+
+          // 合併所有分塊
+          const mergeResponse = await fetch(
+            `https://members-backend.alearn13994229.workers.dev/mergeChunksInR2/files/${file.name}/${totalChunks}`,
+            {
+              method: 'POST'
+            }
+          );
+
+          console.log('合併回應:', {
+            status: mergeResponse.status,
+            ok: mergeResponse.ok,
+            statusText: mergeResponse.statusText
+          });
+
+          if (!mergeResponse.ok) {
+            const errorText = await mergeResponse.text();
+            uploadProgress.value = '合併失敗';
+            console.error('合併失敗:', errorText);
+            throw new Error(`合併分塊失敗: ${errorText}`);
+          }
+
+          const result = await mergeResponse.json();
+          console.log('合併成功，檔案資訊:', result);
+          uploadProgress.value = '合併成功';
+          newMessageAttachments.value.push({
+            name: file.name,
+            url: result.url,
+            size: file.size,
+            type: file.type
+          });
         }
-
-        if (!response.ok) {
-          throw new Error('上傳失敗');
-        }
-
-        const result = await response.json();
-
-        // 新增檔案資訊到 attachments 陣列
-        newMessageAttachments.value.push({
-          name: file.name,
-          url: result.url,
-          size: file.size,
-          type: file.type
-        });
 
         // 清空檔案輸入
         (event.target as HTMLInputElement).value = '';
-
+        uploadProgress.value = '';
       } catch (error) {
         console.error('檔案上傳失敗:', error);
+        uploadProgress.value = '檔案上傳失敗';
         alert('檔案上傳失敗，請重試');
       } finally {
         uploadingFile.value = false;
@@ -633,6 +734,8 @@ export default defineComponent({
     };
 
     return {
+      isBigFile,
+      uploadProgress,
       maxShowMessages,
       showMoreMessages,
       showLessMessages,
