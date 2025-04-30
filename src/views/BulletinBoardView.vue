@@ -778,7 +778,7 @@ export default defineComponent({
       }
     };
 
-    const selectMention = (user: {uid: string, name: string}) => {
+    const selectMention = async (user: {uid: string, name: string}) => {
       if (mentionStart.value === -1) return;
 
       const text = newMessage.value;
@@ -797,6 +797,30 @@ export default defineComponent({
           messageTextarea.value.focus();
         }
       });
+
+      // 發送郵件通知
+      try {
+        const response = await fetch('https://us-central1-autolearn-members.cloudfunctions.net/sendMentionEmail', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            mentionedUserId: user.uid,
+            mentionerName: props.users[props.uid]?.name || '匿名用戶',
+            message: newMessage.value,
+            timestamp: new Date().toISOString()
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to send email notification');
+        }
+
+        console.log('Email notification sent successfully');
+      } catch (error) {
+        console.error('Error sending email notification:', error);
+      }
     };
 
     const escapeHtml = (text: string): string => {
