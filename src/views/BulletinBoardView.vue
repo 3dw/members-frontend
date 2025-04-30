@@ -15,7 +15,7 @@
           .metadata
             .date {{ parseDate(message.date) }}
               span.updated(v-if="message.updated") ({{ parseDate(message.updated) }}已更新)
-          .text {{ message.text }}
+          .text(v-html="parseMentions(message.text)")
           .attachments(v-if="message.attachments && message.attachments.length > 0")
             i.paperclip.icon
             .ui.buttons
@@ -117,7 +117,21 @@
       .ui.divider.thin-only
       .field
         label 輸入留言
-        textarea(v-model="newMessage")
+        textarea(
+          v-model="newMessage"
+          @input="handleMessageInput"
+          @keydown="handleKeydown"
+          ref="messageTextarea"
+        )
+        .mention-suggestions(v-if="showMentions && mentionSuggestions.length > 0")
+          .mention-item(
+            v-for="(user, index) in mentionSuggestions"
+            :key="user.uid"
+            :class="{ active: index === mentionIndex }"
+            @click="selectMention(user)"
+          )
+            img.ui.avatar.image(v-if="user.photoURL" :src="user.photoURL")
+            span {{ user.name }}
 
       .field
         label
@@ -172,6 +186,12 @@
 import { ref, defineComponent, onMounted, nextTick, computed } from 'vue';
 import { onValue, ref as dbRef, set } from 'firebase/database';
 import { bulletinRef, database } from '@/firebase';
+import { useRouter } from 'vue-router';
+
+interface User {
+  name: string;
+  photoURL?: string;
+}
 
 interface Message {
   author: string;
@@ -215,6 +235,7 @@ export default defineComponent({
     }
   },
   setup(props, { emit }) {
+    const router = useRouter();
 
     const maxShowMessages = ref(5);
     const messages = ref<Message[]>([
@@ -236,6 +257,11 @@ export default defineComponent({
     const editingMessage = ref(-1);
     const uploadingFile = ref(false);
     const newMessageAttachments = ref<Array<{name: string, url: string, size: number, type: string}>>([]);
+    const messageTextarea = ref<HTMLTextAreaElement | null>(null);
+    const showMentions = ref(false);
+    const mentionSuggestions = ref<Array<{uid: string, name: string, photoURL?: string}>>([]);
+    const mentionIndex = ref(0);
+    const mentionStart = ref(-1);
 
     const sortedMessages = computed(() => {
       return [...messages.value].map((obj, index) => {
@@ -668,6 +694,157 @@ export default defineComponent({
       }
     };
 
+    const handleMessageInput = (event: KeyboardEvent) => {
+      const text = newMessage.value;
+      const cursorPosition = messageTextarea.value?.selectionStart || 0;
+      const lastAtSymbol = text.lastIndexOf('@', cursorPosition);
+
+      if (lastAtSymbol !== -1 && lastAtSymbol < cursorPosition) {
+        const searchText = text.slice(lastAtSymbol + 1, cursorPosition);
+        mentionStart.value = lastAtSymbol;
+
+        // 如果搜尋文字為空，顯示所有使用者
+        if (searchText.length === 0) {
+          const firstFiveUsers = Object.entries(props.users)
+
+            .map(([uid, user]) => ({
+              uid,
+              name: (user as User).name,
+              photoURL: (user as User).photoURL
+            }));
+          mentionSuggestions.value = firstFiveUsers;
+          showMentions.value = true;
+          mentionIndex.value = 0;
+          return;
+        }
+
+        // 如果有搜尋文字，過濾使用者
+        if (!searchText.includes(' ')) {
+          const filteredUsers = Object.entries(props.users)
+            .filter(([_, user]) =>
+              (user as User).name.toLowerCase().includes(searchText.toLowerCase())
+            )
+            .map(([uid, user]) => ({
+              uid,
+              name: (user as User).name,
+              photoURL: (user as User).photoURL
+            }));
+          mentionSuggestions.value = filteredUsers;
+          showMentions.value = true;
+          mentionIndex.value = 0;
+          return;
+        }
+      }
+      showMentions.value = false;
+    };
+
+    const handleKeydown = (event: KeyboardEvent) => {
+      console.log('handleKeydown', event.key);
+      if (!showMentions.value) return;
+
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault();
+          mentionIndex.value = (mentionIndex.value + 1) % mentionSuggestions.value.length;
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          mentionIndex.value = (mentionIndex.value - 1 + mentionSuggestions.value.length) % mentionSuggestions.value.length;
+          break;
+        case 'Enter':
+          event.preventDefault();
+          if (mentionSuggestions.value[mentionIndex.value]) {
+            selectMention(mentionSuggestions.value[mentionIndex.value]);
+          }
+          break;
+        case 'Escape':
+          showMentions.value = false;
+          break;
+      }
+    };
+
+    const selectMention = (user: {uid: string, name: string}) => {
+      if (mentionStart.value === -1) return;
+
+      const text = newMessage.value;
+      const beforeMention = text.slice(0, mentionStart.value);
+      const afterMention = text.slice(messageTextarea.value?.selectionStart || 0);
+      newMessage.value = `${beforeMention}@${user.name} ${afterMention}`;
+
+      showMentions.value = false;
+      mentionStart.value = -1;
+
+      // 將游標移到插入的標記後面
+      nextTick(() => {
+        if (messageTextarea.value) {
+          const newPosition = beforeMention.length + user.name.length + 2; // +2 for @ and space
+          messageTextarea.value.setSelectionRange(newPosition, newPosition);
+          messageTextarea.value.focus();
+        }
+      });
+    };
+
+    const escapeHtml = (text: string): string => {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+
+    const parseMentions = (text: string) => {
+      if (!text) return '';
+
+      // 先轉義整個文本
+      const escapedText = escapeHtml(text);
+
+      // 使用正則表達式匹配 @用戶名，確保用戶名不包含特殊字符
+      const mentionRegex = /@([a-zA-Z0-9\u4e00-\u9fa5_]+)/g;
+
+      // 替換所有匹配的 @用戶名
+      return escapedText.replace(mentionRegex, (match, username) => {
+        // 查找對應的用戶
+        const user = Object.entries(props.users).find(([_, user]) =>
+          (user as User).name === username
+        );
+
+        if (user) {
+          // 如果找到用戶，創建可點擊的連結
+          return `<span class="mention-link" data-uid="${user[0]}">${match}</span>`;
+        }
+
+        // 如果沒找到用戶，保持原樣
+        return match;
+      });
+    };
+
+    // 測試案例
+    const testMentions = () => {
+      const testCases = [
+        'Hello @Alice and @Bob',
+        '@Alice 你好 @Bob',
+        '這是@Alice的留言，@Bob也來看看',
+        '@Alice@Bob 連續標記',
+        '沒有標記的普通文字',
+        '@不存在的用戶',
+        '@Alice 和 @不存在的用戶'
+      ];
+
+      console.log('測試 @ 標記解析：');
+      testCases.forEach(test => {
+        console.log('原文:', test);
+        console.log('解析後:', parseMentions(test));
+      });
+    };
+
+    const handleMentionClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (target.classList.contains('mention-link')) {
+        const uid = target.getAttribute('data-uid');
+        if (uid) {
+          router.push(`/flag/${uid}`);
+        }
+      }
+    };
+
     onMounted(() => {
       console.log('mounted');
       onValue(bulletinRef, (snapshot) => {
@@ -700,6 +877,14 @@ export default defineComponent({
         await nextTick();
         messages.value = [...messages.value];
       }, 60 * 1000);
+
+      // 添加點擊事件監聽器
+      document.addEventListener('click', handleMentionClick);
+
+      // 在開發環境中運行測試
+      if (process.env.NODE_ENV === 'development') {
+        testMentions();
+      }
     });
 
     const addHref = () => {
@@ -770,7 +955,15 @@ export default defineComponent({
       addHref,
       removeHref,
       removeHrefByIndex,
-      newMessageHrefs
+      newMessageHrefs,
+      messageTextarea,
+      showMentions,
+      mentionSuggestions,
+      mentionIndex,
+      handleMessageInput,
+      handleKeydown,
+      selectMention,
+      parseMentions
     }
   }
 })
@@ -1123,4 +1316,34 @@ img.ui.avatar.image {
 .text-underline {
   text-decoration: underline !important;
 }
+
+.mention-suggestions {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.mention-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  gap: 8px;
+
+  &:hover, &.active {
+    background-color: #f0f0f0;
+  }
+
+  img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+  }
+}
+
 </style>
