@@ -8,7 +8,20 @@
         button.ui.large.green.basic.button(@click="toggleLogin") 登入
 
     .ui.comments.flex-column.column(v-if="uid")
-      .comment(v-for="(message, index) in sortedMessages.slice(0, maxShowMessages)" :key="index")
+      .ui.search.segment
+        .ui.icon.input.fluid
+          input(
+            type="text"
+            v-model="searchKeyword"
+            placeholder="搜尋留言..."
+            @input="handleSearch"
+          )
+          i.search.icon
+        .ui.label(v-if="searchKeyword")
+          | 搜尋結果: {{ filteredMessages.length }} 則留言
+          i.close.icon(@click="clearSearch")
+
+      .comment(v-for="(message, index) in filteredMessages.slice(0, maxShowMessages)" :key="index")
         .content
           img.ui.avatar.image(v-if="users && users[message.uid] && users[message.uid].photoURL" :src="users[message.uid].photoURL")
           .author {{ message.author }}
@@ -104,11 +117,11 @@
               button.ui.primary.button(@click="addReply(message.actualIndex)") 發送
               button.ui.button(@click="cancelReply") 取消
 
-      .show-more-messages(v-if="sortedMessages.length > maxShowMessages")
+      .show-more-messages(v-if="filteredMessages.length > maxShowMessages")
         button.ui.basic.orange.button(@click="showMoreMessages")
           i.chevron.down.icon
           | 顯示更多留言
-      .show-less-messages(v-if="sortedMessages.length <= maxShowMessages && sortedMessages.length > 5")
+      .show-less-messages(v-if="filteredMessages.length <= maxShowMessages && filteredMessages.length > 5")
         button.ui.basic.orange.button(@click="showLessMessages")
           i.chevron.up.icon
           | 顯示更少留言
@@ -183,7 +196,7 @@
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, onMounted, nextTick, computed } from 'vue';
+import { ref, defineComponent, onMounted, nextTick, computed, watch } from 'vue';
 import { onValue, ref as dbRef, set } from 'firebase/database';
 import { bulletinRef, database } from '@/firebase';
 import { useRouter } from 'vue-router';
@@ -262,6 +275,8 @@ export default defineComponent({
     const mentionSuggestions = ref<Array<{uid: string, name: string, photoURL?: string}>>([]);
     const mentionIndex = ref(0);
     const mentionStart = ref(-1);
+    const searchKeyword = ref('');
+    const filteredMessages = ref<Message[]>([]);
 
     const sortedMessages = computed(() => {
       return [...messages.value].map((obj, index) => {
@@ -845,6 +860,50 @@ export default defineComponent({
       }
     };
 
+    const handleSearch = () => {
+      if (!searchKeyword.value.trim()) {
+        filteredMessages.value = sortedMessages.value;
+        return;
+      }
+
+      const keyword = searchKeyword.value.toLowerCase().trim();
+      filteredMessages.value = sortedMessages.value.filter(message => {
+        // 搜尋留言內容
+        if (message.text.toLowerCase().includes(keyword)) {
+          return true;
+        }
+
+        // 搜尋作者名稱
+        if (message.author.toLowerCase().includes(keyword)) {
+          return true;
+        }
+
+        // 搜尋回覆內容
+        if (message.replies) {
+          return message.replies.some(reply =>
+            reply.text.toLowerCase().includes(keyword) ||
+            reply.author.toLowerCase().includes(keyword)
+          );
+        }
+
+        return false;
+      });
+    };
+
+    const clearSearch = () => {
+      searchKeyword.value = '';
+      filteredMessages.value = sortedMessages.value;
+    };
+
+    // 監聽 sortedMessages 的變化
+    watch(sortedMessages, (newMessages) => {
+      if (!searchKeyword.value.trim()) {
+        filteredMessages.value = newMessages;
+      } else {
+        handleSearch();
+      }
+    }, { immediate: true });
+
     onMounted(() => {
       console.log('mounted');
       onValue(bulletinRef, (snapshot) => {
@@ -963,7 +1022,11 @@ export default defineComponent({
       handleMessageInput,
       handleKeydown,
       selectMention,
-      parseMentions
+      parseMentions,
+      searchKeyword,
+      filteredMessages,
+      handleSearch,
+      clearSearch,
     }
   }
 })
@@ -1344,6 +1407,39 @@ img.ui.avatar.image {
     height: 24px;
     border-radius: 50%;
   }
+}
+
+.ui.search.segment {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.ui.search.segment .ui.input {
+  width: 100%;
+}
+
+.ui.search.segment .ui.label {
+  margin-top: 0.5rem;
+  background: #E3F2FD;
+  color: #1976D2;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ui.search.segment .ui.label i.close.icon {
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.ui.search.segment .ui.label i.close.icon:hover {
+  opacity: 1;
 }
 
 </style>
