@@ -8,14 +8,45 @@
         button.ui.large.green.basic.button(@click="toggleLogin") 登入
 
     .ui.comments.flex-column.column(v-if="uid")
-      .comment(v-for="(message, index) in sortedMessages" :key="index")
+      .ui.search.segment
+        .ui.icon.input.fluid
+          input(
+            type="text"
+            v-model="searchKeyword"
+            placeholder="搜尋留言..."
+            @input="handleSearch"
+          )
+          i.search.icon
+        .ui.label(v-if="searchKeyword")
+          | 搜尋結果: {{ filteredMessages.length }} 則留言
+          i.close.icon(@click="clearSearch")
+
+      .comment(v-for="(message, index) in filteredMessages.slice(0, maxShowMessages)" :key="index")
         .content
           img.ui.avatar.image(v-if="users && users[message.uid] && users[message.uid].photoURL" :src="users[message.uid].photoURL")
           .author {{ message.author }}
           .metadata
             .date {{ parseDate(message.date) }}
               span.updated(v-if="message.updated") ({{ parseDate(message.updated) }}已更新)
-          .text {{ message.text }}
+          .text(v-html="parseMentions(message.text)")
+          .attachments(v-if="message.attachments && message.attachments.length > 0")
+            i.paperclip.icon
+            .ui.buttons
+              a.ui.mini.basic.button.no-border(
+                v-for="(file, index) in message.attachments"
+                :key="index"
+                :href="file.url"
+                target="_blank"
+                download
+              )
+                i.file.icon
+                | {{ file.name }}
+          .hrefs(v-if="message.hrefs && message.hrefs.length > 0")
+            a.ui.mini.basic.button.no-border.text-underline(v-for="(href, index) in message.hrefs" :key="index" :href="href" target="_blank")
+              img(:src="'https://www.google.com/s2/favicons?domain=' + href" title='連結網址' alt='連結網址')
+              span(v-if="href.length > 50") {{ href.slice(0, 50) }}...
+              span(v-else) {{ href }}
+
           .actions
             .reaction-buttons
               button.reaction-btn(
@@ -86,18 +117,94 @@
               button.ui.primary.button(@click="addReply(message.actualIndex)") 發送
               button.ui.button(@click="cancelReply") 取消
 
+      .show-more-messages(v-if="filteredMessages.length > maxShowMessages")
+        button.ui.basic.orange.button(@click="showMoreMessages")
+          i.chevron.down.icon
+          | 顯示更多留言
+      .show-less-messages(v-if="filteredMessages.length <= maxShowMessages && filteredMessages.length > 5")
+        button.ui.basic.orange.button(@click="showLessMessages")
+          i.chevron.up.icon
+          | 顯示更少留言
+
     .ui.form.reply.column(v-if="uid")
       .ui.divider.thin-only
       .field
         label 輸入留言
-        textarea(v-model="newMessage")
+        textarea(
+          v-model="newMessage"
+          @input="handleMessageInput"
+          @keydown="handleKeydown"
+          ref="messageTextarea"
+        )
+        .mention-suggestions(v-if="showMentions && mentionSuggestions.length > 0")
+          .mention-item(
+            v-for="(user, index) in mentionSuggestions"
+            :key="user.uid"
+            :class="{ active: index === mentionIndex }"
+            @click="selectMention(user)"
+          )
+            img.ui.avatar.image(v-if="user.photoURL" :src="user.photoURL")
+            span {{ user.name }}
+
+      .field
+        label
+          i.linkify.icon
+          | 附加連結(可選)
+
+        .ui.list(v-if="newMessageHrefs && newMessageHrefs.length > 0")
+          .item(v-for="(href, index) in newMessageHrefs" :key="index")
+            .content
+              img(:src="'https://www.google.com/s2/favicons?domain=' + href" title='連結網址' alt='連結網址')
+              a(:href="href" target="_blank" rel="noopener noreferrer") {{ href.length > 40 ? href.slice(0, 20) + '...' : href }}
+              .ui.mini.red.basic.button(@click="removeHrefByIndex(index)")
+                i.trash.icon
+                span 刪除
+        input(type="text" v-model="newMessageHref" placeholder="輸入連結")
+        .ui.buttons(v-if="newMessageHref && newMessageHref.length > 0")
+          a.ui.mini.basic.button(:href="newMessageHref" target="_blank" rel="noopener noreferrer")
+            img(:src="'https://www.google.com/s2/favicons?domain=' + newMessageHref" title='連結網址' alt='連結網址')
+            | 連結預覽
+          .ui.mini.basic.green.button(@click="addHref")
+            i.plus.icon
+            | 新增連結
+            .field
+        label
+          i.paperclip.icon
+          | 附加檔案
+          br
+          | (可選，建議10MB以下，最大1GB)
+        .ui.upload.segment
+          input(type="file" ref="fileUpload" @change="handleFileUpload" style="display: none")
+          .ui.basic.button(@click="$refs.fileUpload.click()")
+            i.upload.icon
+            | 選擇檔案
+          span(v-if="uploadingFile")
+            span(v-if="!isBigFile") 上傳中...
+            span(v-if="isBigFile")
+              br
+              | 檔案較大，分塊上傳中，請耐心等待...
+              br
+              | {{uploadProgress}}
+          .ui.list(v-if="newMessageAttachments && newMessageAttachments.length > 0")
+            .item(v-for="(file, index) in newMessageAttachments" :key="index")
+              i.file.icon
+              .content
+                a(:href="file.url" target="_blank") {{ file.name }}
+                .ui.mini.red.button(@click="removeAttachment(index)") 刪除
+
       .ui.primary.submit.button(@click="addMessage") 留言
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, onMounted, nextTick, computed } from 'vue';
+import { ref, defineComponent, onMounted, nextTick, computed, watch } from 'vue';
 import { onValue, ref as dbRef, set } from 'firebase/database';
 import { bulletinRef, database } from '@/firebase';
+import { useRouter } from 'vue-router';
+
+interface User {
+  name: string;
+  photoURL?: string;
+}
 
 interface Message {
   author: string;
@@ -113,6 +220,8 @@ interface Message {
   replies?: Reply[];
   repliesExpanded?: boolean;
   actualIndex?: number;
+  attachments?: Array<{name: string, url: string, size: number, type: string}>;
+  hrefs?: string[];
 }
 
 interface Reply {
@@ -139,6 +248,9 @@ export default defineComponent({
     }
   },
   setup(props, { emit }) {
+    const router = useRouter();
+
+    const maxShowMessages = ref(5);
     const messages = ref<Message[]>([
       { author: 'AliceS', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
       { author: 'BobS', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
@@ -147,11 +259,24 @@ export default defineComponent({
       reactions: {}
     })));
 
+    const uploadProgress = ref('');
+    const isBigFile = ref(false);
     const newMessage = ref('');
+    const newMessageHref = ref('');
+    const newMessageHrefs = ref<string[]>([]);
     const dataLoaded = ref(false);
     const replyingTo = ref(-1);
     const replyText = ref('');
     const editingMessage = ref(-1);
+    const uploadingFile = ref(false);
+    const newMessageAttachments = ref<Array<{name: string, url: string, size: number, type: string}>>([]);
+    const messageTextarea = ref<HTMLTextAreaElement | null>(null);
+    const showMentions = ref(false);
+    const mentionSuggestions = ref<Array<{uid: string, name: string, photoURL?: string}>>([]);
+    const mentionIndex = ref(0);
+    const mentionStart = ref(-1);
+    const searchKeyword = ref('');
+    const filteredMessages = ref<Message[]>([]);
 
     const sortedMessages = computed(() => {
       return [...messages.value].map((obj, index) => {
@@ -168,19 +293,36 @@ export default defineComponent({
     });
 
     const addMessage = () => {
+      if (newMessageHref.value) {
+        newMessageHrefs.value.push(newMessageHref.value);
+        newMessageHref.value = '';
+      }
       if (!dataLoaded.value) return;
 
       console.log(newMessage.value);
       const m_length = messages.value.length;
-      const newMessageObj = {
+      const newMessageObj: Message = {
         author: props.users[props.uid].name || '匿名',
         uid: props.uid || '123',
         date: new Date().toISOString(),
         text: newMessage.value,
-        reactions: {}
+        reactions: {},
       }
+
+      // 只有在有附加檔案時才加入 attachments 欄位
+      if (newMessageAttachments.value.length > 0) {
+        newMessageObj.attachments = newMessageAttachments.value;
+      }
+
+      // 只有在有連結時才加入 hrefs 欄位
+      if (newMessageHrefs.value.length > 0) {
+        newMessageObj.hrefs = newMessageHrefs.value;
+      }
+
       messages.value.push(newMessageObj);
       newMessage.value = '';
+      newMessageHrefs.value = [];
+      newMessageAttachments.value = [];
       set(dbRef(database, 'bulletin/' + m_length), newMessageObj).then(() => {
         console.log('留言成功');
       });
@@ -409,6 +551,359 @@ export default defineComponent({
       }
     };
 
+    const handleFileUpload = async (event: Event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      // 檢查檔名不能包含「/」或「\」
+      if (file.name.includes('/') || file.name.includes('\\')) {
+        alert('檔名不能包含斜線「/」或反斜線「\\」');
+        return;
+      }
+
+      // 檢查檔案大小 (最大 1GB)
+      if (file.size > 1024 * 1024 * 1024) {
+        alert('檔案大小不能超過 1GB');
+        return;
+      }
+
+      uploadingFile.value = true;
+      try {
+        // 如果檔案小於 10MB，使用原本的上傳方式
+        if (file.size <= 10 * 1024 * 1024) {
+          isBigFile.value = false;
+          const fileContent = await file.arrayBuffer();
+          const response = await fetch('https://members-backend.alearn13994229.workers.dev/uploadToR2/files/' + file.name, {
+            method: 'POST',
+            body: fileContent,
+            headers: {
+              'Content-Type': file.type
+            }
+          });
+
+          if (response.status === 400) {
+            const result = await response.json();
+            alert(result.error + ' 請更改名稱後重新上傳');
+            return;
+          }
+
+          if (!response.ok) {
+            throw new Error('上傳失敗');
+          }
+
+          const result = await response.json();
+          newMessageAttachments.value.push({
+            name: file.name,
+            url: result.url,
+            size: file.size,
+            type: file.type
+          });
+        } else {
+          // 大檔案使用分塊上傳
+          isBigFile.value = true;
+          uploadProgress.value = '上傳中...';
+          const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB per chunk
+          const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+          console.log('開始分塊上傳:', {
+            fileName: file.name,
+            fileSize: file.size,
+            chunkSize: CHUNK_SIZE,
+            totalChunks: totalChunks
+          });
+
+          uploadProgress.value = '開始分塊上傳：' + file.name + '，共' + totalChunks + '塊';
+
+          // 上傳每個分塊
+          for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+            const start = chunkIndex * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, file.size);
+            const chunk = file.slice(start, end);
+
+            console.log(`上傳分塊 ${chunkIndex + 1}/${totalChunks}:`, {
+              start,
+              end,
+              chunkSize: chunk.size,
+              chunkType: chunk.type
+            });
+
+            uploadProgress.value = '上傳第 ' + (chunkIndex + 1) + ' 塊...(共' + totalChunks + '塊)';
+
+            // 使用 FormData 包裝分塊
+            const formData = new FormData();
+            formData.append('chunk', chunk);
+
+            const response = await fetch(
+              `https://members-backend.alearn13994229.workers.dev/uploadChunkToR2/files/${encodeURIComponent(file.name)}/${chunkIndex}/${totalChunks}`,
+              {
+                method: 'POST',
+                body: formData
+              }
+            );
+
+            console.log(`分塊 ${chunkIndex + 1}/${totalChunks} 上傳回應:`, {
+              status: response.status,
+              ok: response.ok,
+              statusText: response.statusText
+            });
+
+            if (response.ok) {
+              console.log(`成功上傳第 ${chunkIndex + 1} 塊分塊`);
+            } else {
+              const errorText = await response.text();
+              console.error(`分塊 ${chunkIndex + 1}/${totalChunks} 上傳失敗:`, errorText);
+              throw new Error(`分塊 ${chunkIndex + 1}/${totalChunks} 上傳失敗: ${errorText}`);
+            }
+          }
+
+          console.log('所有分塊上傳完成，開始合併');
+          uploadProgress.value = '合併中...';
+
+          // 合併所有分塊
+          const mergeResponse = await fetch(
+            `https://members-backend.alearn13994229.workers.dev/mergeChunksInR2/files/${file.name}/${totalChunks}`,
+            {
+              method: 'POST'
+            }
+          );
+
+          console.log('合併回應:', {
+            status: mergeResponse.status,
+            ok: mergeResponse.ok,
+            statusText: mergeResponse.statusText
+          });
+
+          if (!mergeResponse.ok) {
+            const errorText = await mergeResponse.text();
+            uploadProgress.value = '合併失敗';
+            console.error('合併失敗:', errorText);
+            throw new Error(`合併分塊失敗: ${errorText}`);
+          }
+
+          const result = await mergeResponse.json();
+          console.log('合併成功，檔案資訊:', result);
+          uploadProgress.value = '合併成功';
+          newMessageAttachments.value.push({
+            name: file.name,
+            url: result.url,
+            size: file.size,
+            type: file.type
+          });
+        }
+
+        // 清空檔案輸入
+        (event.target as HTMLInputElement).value = '';
+        uploadProgress.value = '';
+      } catch (error) {
+        console.error('檔案上傳失敗:', error);
+        uploadProgress.value = '檔案上傳失敗';
+        alert('檔案上傳失敗，請重試');
+      } finally {
+        uploadingFile.value = false;
+      }
+    };
+
+    const removeAttachment = (index: number) => {
+      if (confirm('確定要刪除此檔案嗎？')) {
+        newMessageAttachments.value.splice(index, 1);
+      }
+    };
+
+    const handleMessageInput = (event: KeyboardEvent) => {
+      const text = newMessage.value;
+      const cursorPosition = messageTextarea.value?.selectionStart || 0;
+      const lastAtSymbol = text.lastIndexOf('@', cursorPosition);
+
+      if (lastAtSymbol !== -1 && lastAtSymbol < cursorPosition) {
+        const searchText = text.slice(lastAtSymbol + 1, cursorPosition);
+        mentionStart.value = lastAtSymbol;
+
+        // 如果搜尋文字為空，顯示所有使用者
+        if (searchText.length === 0) {
+          const firstFiveUsers = Object.entries(props.users)
+
+            .map(([uid, user]) => ({
+              uid,
+              name: (user as User).name,
+              photoURL: (user as User).photoURL
+            }));
+          mentionSuggestions.value = firstFiveUsers;
+          showMentions.value = true;
+          mentionIndex.value = 0;
+          return;
+        }
+
+        // 如果有搜尋文字，過濾使用者
+        if (!searchText.includes(' ')) {
+          const filteredUsers = Object.entries(props.users)
+            .filter(([_, user]) =>
+              (user as User).name.toLowerCase().includes(searchText.toLowerCase())
+            )
+            .map(([uid, user]) => ({
+              uid,
+              name: (user as User).name,
+              photoURL: (user as User).photoURL
+            }));
+          mentionSuggestions.value = filteredUsers;
+          showMentions.value = true;
+          mentionIndex.value = 0;
+          return;
+        }
+      }
+      showMentions.value = false;
+    };
+
+    const handleKeydown = (event: KeyboardEvent) => {
+      console.log('handleKeydown', event.key);
+      if (!showMentions.value) return;
+
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault();
+          mentionIndex.value = (mentionIndex.value + 1) % mentionSuggestions.value.length;
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          mentionIndex.value = (mentionIndex.value - 1 + mentionSuggestions.value.length) % mentionSuggestions.value.length;
+          break;
+        case 'Enter':
+          event.preventDefault();
+          if (mentionSuggestions.value[mentionIndex.value]) {
+            selectMention(mentionSuggestions.value[mentionIndex.value]);
+          }
+          break;
+        case 'Escape':
+          showMentions.value = false;
+          break;
+      }
+    };
+
+    const selectMention = (user: {uid: string, name: string}) => {
+      if (mentionStart.value === -1) return;
+
+      const text = newMessage.value;
+      const beforeMention = text.slice(0, mentionStart.value);
+      const afterMention = text.slice(messageTextarea.value?.selectionStart || 0);
+      newMessage.value = `${beforeMention}@${user.name} ${afterMention}`;
+
+      showMentions.value = false;
+      mentionStart.value = -1;
+
+      // 將游標移到插入的標記後面
+      nextTick(() => {
+        if (messageTextarea.value) {
+          const newPosition = beforeMention.length + user.name.length + 2; // +2 for @ and space
+          messageTextarea.value.setSelectionRange(newPosition, newPosition);
+          messageTextarea.value.focus();
+        }
+      });
+    };
+
+    const escapeHtml = (text: string): string => {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    };
+
+    const parseMentions = (text: string) => {
+      if (!text) return '';
+
+      // 先轉義整個文本
+      const escapedText = escapeHtml(text);
+
+      // 使用正則表達式匹配 @用戶名，確保用戶名不包含特殊字符
+      const mentionRegex = /@([a-zA-Z0-9\u4e00-\u9fa5_]+)/g;
+
+      // 替換所有匹配的 @用戶名
+      return escapedText.replace(mentionRegex, (match, username) => {
+        // 查找對應的用戶
+        const user = Object.entries(props.users).find(([_, user]) =>
+          (user as User).name === username
+        );
+
+        if (user) {
+          // 如果找到用戶，創建可點擊的連結
+          return `<span class="mention-link" data-uid="${user[0]}">${match}</span>`;
+        }
+
+        // 如果沒找到用戶，保持原樣
+        return match;
+      });
+    };
+
+    // 測試案例
+    const testMentions = () => {
+      const testCases = [
+        'Hello @Alice and @Bob',
+        '@Alice 你好 @Bob',
+        '這是@Alice的留言，@Bob也來看看',
+        '@Alice@Bob 連續標記',
+        '沒有標記的普通文字',
+        '@不存在的用戶',
+        '@Alice 和 @不存在的用戶'
+      ];
+
+      console.log('測試 @ 標記解析：');
+      testCases.forEach(test => {
+        console.log('原文:', test);
+        console.log('解析後:', parseMentions(test));
+      });
+    };
+
+    const handleMentionClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (target.classList.contains('mention-link')) {
+        const uid = target.getAttribute('data-uid');
+        if (uid) {
+          router.push(`/flag/${uid}`);
+        }
+      }
+    };
+
+    const handleSearch = () => {
+      if (!searchKeyword.value.trim()) {
+        filteredMessages.value = sortedMessages.value;
+        return;
+      }
+
+      const keyword = searchKeyword.value.toLowerCase().trim();
+      filteredMessages.value = sortedMessages.value.filter(message => {
+        // 搜尋留言內容
+        if (message.text.toLowerCase().includes(keyword)) {
+          return true;
+        }
+
+        // 搜尋作者名稱
+        if (message.author.toLowerCase().includes(keyword)) {
+          return true;
+        }
+
+        // 搜尋回覆內容
+        if (message.replies) {
+          return message.replies.some(reply =>
+            reply.text.toLowerCase().includes(keyword) ||
+            reply.author.toLowerCase().includes(keyword)
+          );
+        }
+
+        return false;
+      });
+    };
+
+    const clearSearch = () => {
+      searchKeyword.value = '';
+      filteredMessages.value = sortedMessages.value;
+    };
+
+    // 監聽 sortedMessages 的變化
+    watch(sortedMessages, (newMessages) => {
+      if (!searchKeyword.value.trim()) {
+        filteredMessages.value = newMessages;
+      } else {
+        handleSearch();
+      }
+    }, { immediate: true });
+
     onMounted(() => {
       console.log('mounted');
       onValue(bulletinRef, (snapshot) => {
@@ -427,7 +922,9 @@ export default defineComponent({
             date: reply.date,
             text: reply.text,
             reactions: reply.reactions || {}
-          })) : []
+          })) : [],
+          hrefs: message.hrefs || [],
+          attachments: message.attachments || []
         }));
         dataLoaded.value = true;
 
@@ -439,11 +936,56 @@ export default defineComponent({
         await nextTick();
         messages.value = [...messages.value];
       }, 60 * 1000);
+
+      // 添加點擊事件監聽器
+      document.addEventListener('click', handleMentionClick);
+
+      // 在開發環境中運行測試
+      if (process.env.NODE_ENV === 'development') {
+        testMentions();
+      }
     });
 
+    const addHref = () => {
+      if (newMessageHref.value) {
+        // 檢查是否為有效的 URL
+        try {
+          new URL(newMessageHref.value);
+          newMessageHrefs.value.push(newMessageHref.value);
+          newMessageHref.value = '';
+        } catch (e) {
+          alert('請輸入有效的網址');
+        }
+      }
+    };
+
+    const removeHref = () => {
+      if (newMessageHrefs.value.length > 0) {
+        newMessageHrefs.value.pop();
+      }
+    };
+
+    const removeHrefByIndex = (index: number) => {
+      newMessageHrefs.value.splice(index, 1);
+    };
+
+    const showMoreMessages = () => {
+      maxShowMessages.value += 10;
+    };
+
+    const showLessMessages = () => {
+      maxShowMessages.value -= 10;
+    };
+
     return {
+      isBigFile,
+      uploadProgress,
+      maxShowMessages,
+      showMoreMessages,
+      showLessMessages,
       messages,
       newMessage,
+      newMessageHref,
       addMessage,
       parseDate,
       toggleLogin,
@@ -463,7 +1005,28 @@ export default defineComponent({
       deleteReply,
       saveRepliesExpandedState,
       restoreRepliesExpandedState,
-      editMessage
+      editMessage,
+      editingMessage,
+      uploadingFile,
+      newMessageAttachments,
+      handleFileUpload,
+      removeAttachment,
+      addHref,
+      removeHref,
+      removeHrefByIndex,
+      newMessageHrefs,
+      messageTextarea,
+      showMentions,
+      mentionSuggestions,
+      mentionIndex,
+      handleMessageInput,
+      handleKeydown,
+      selectMention,
+      parseMentions,
+      searchKeyword,
+      filteredMessages,
+      handleSearch,
+      clearSearch,
     }
   }
 })
@@ -566,21 +1129,6 @@ export default defineComponent({
 
 .ui.primary.submit.button:hover {
   background-color: #0052cc;
-}
-
-.ui.green.basic.button {
-  border: 2px solid #0066FF;
-  color: #0066FF;
-  background: transparent;
-  border-radius: 8px;
-  padding: 0.8rem 1.5rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.ui.green.basic.button:hover {
-  background-color: #0066FF;
-  color: white;
 }
 
 img.ui.avatar.image {
@@ -729,4 +1277,169 @@ img.ui.avatar.image {
     padding: 0.3rem 0.6rem;
   }
 }
+
+.ui.upload.segment {
+  background: #f8f9fa;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+.ui.upload.segment .ui.list {
+  margin-top: 1rem;
+}
+
+.ui.upload.segment .ui.list .item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.ui.upload.segment .ui.list .item .content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ui.upload.segment .ui.list .item .content a {
+  color: #0066FF;
+  text-decoration: none;
+}
+
+.ui.upload.segment .ui.list .item .content a:hover {
+  text-decoration: underline;
+}
+
+.ui.upload.segment .ui.mini.red.button {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.ui.upload.segment .ui.basic.button {
+  border: 1px solid #0066FF;
+  color: #0066FF;
+  background: transparent;
+  border-radius: 8px;
+  padding: 0.8rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.ui.upload.segment .ui.basic.button:hover {
+  background-color: #0066FF;
+  color: white;
+}
+
+.attachments {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.attachments i.paperclip.icon {
+  color: #666;
+  font-size: 1rem;
+}
+
+.attachments .ui.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.attachments .ui.mini.basic.button {
+  padding: 0.3rem 0.6rem;
+  font-size: 0.8rem;
+  border: 1px solid #0066FF;
+  color: #0066FF;
+  background: transparent;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.attachments .ui.mini.basic.button:hover {
+  background-color: #0066FF;
+  color: white;
+}
+
+.attachments .ui.mini.basic.button i.file.icon {
+  margin-right: 0.3rem;
+}
+
+.no-border {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.text-underline {
+  text-decoration: underline !important;
+}
+
+.mention-suggestions {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.mention-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  gap: 8px;
+
+  &:hover, &.active {
+    background-color: #f0f0f0;
+  }
+
+  img {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+  }
+}
+
+.ui.search.segment {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.ui.search.segment .ui.input {
+  width: 100%;
+}
+
+.ui.search.segment .ui.label {
+  margin-top: 0.5rem;
+  background: #E3F2FD;
+  color: #1976D2;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ui.search.segment .ui.label i.close.icon {
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.ui.search.segment .ui.label i.close.icon:hover {
+  opacity: 1;
+}
+
 </style>

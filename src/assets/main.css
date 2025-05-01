@@ -138,6 +138,17 @@ p, .ui.list .item, li {
   width: 100%;
 }
 
+
+.mention-link {
+  text-decoration: underline;
+  cursor: pointer !important;
+  color: #0066FF;
+}
+
+.mention-link:hover {
+  color: #0052cc;
+}
+
 @media (min-width: 769px) {
   .left-bordered {
     border-left: 1px solid #ccc;
