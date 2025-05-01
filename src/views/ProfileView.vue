@@ -51,11 +51,11 @@
       form#main-form.ui.form.error.warning.success(v-show="editing")
         h2.ui.header 填寫資料
         button.ui.basic.purple.button(@click.prevent="$refs.fileInput.click()", v-show="!fileUploaded")
-          i.file.icon
+          i.upload.icon
           | 匯入自學2.0格式資料
         input(type="file" ref="fileInput" @change="handleFileChange", style="display: none")
         button.ui.purple.button(v-show="fileUploaded" @click.prevent="importData()", :class="{disabled: !fileUploaded}")
-          i.file.icon
+          i.upload.icon
           | 確認匯入
         .ui.divider
         .sub.header
