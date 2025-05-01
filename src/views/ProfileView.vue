@@ -602,6 +602,8 @@ export default {
       this.$emit('loginGoogle')
     },
     async handlePhotoUpload(event) {
+
+      console.log('handlePhotoUpload')
       const file = event.target.files[0]
       if (!file) return
 
@@ -672,9 +674,11 @@ export default {
             }
           }
         )
+        console.log('response', response)
 
         // 更新大頭貼網址
         if (response.data && response.data.url) {
+          console.log('response.data.url', response.data.url)
           this.root.photoURL = response.data.url
         } else {
           throw new Error('上傳失敗：未收到有效的 URL')
