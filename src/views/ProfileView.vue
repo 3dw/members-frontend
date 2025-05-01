@@ -227,6 +227,7 @@ import { set, get, ref, remove } from 'firebase/database'
 import 'leaflet/dist/leaflet.css';
 import * as L from 'leaflet';
 import Pica from 'pica'
+import axios from 'axios'
 
 export default {
   name: 'MyFlag',
@@ -644,35 +645,46 @@ export default {
         canvas.width = width
         canvas.height = height
 
-        // 使用 pica 進行高品質縮放，啟用所有優化選項
+        // 使用 pica 進行高品質縮放
         const pica = new Pica({
-          features: ['js', 'wasm', 'cib'], // 啟用所有可用功能
-          idle: 2000 // 增加空閒時間以確保處理完整
+          features: ['js', 'wasm', 'cib'],
+          idle: 2000
         })
 
         const resizeResult = await pica.resize(img, canvas, {
           alpha: true,
-          unsharpAmount: 160, // 增加銳利度
+          unsharpAmount: 160,
           unsharpRadius: 0.8,
           unsharpThreshold: 1,
-          quality: 3 // 最高品質設定
+          quality: 3
         })
 
-        // 使用 pica 的內建優化器進行最終處理
-        const optimizedCanvas = await pica.toBlob(resizeResult, 'image/jpeg', 0.92)
+        // 轉換為 blob
+        const blob = await pica.toBlob(resizeResult, 'image/jpeg', 0.92)
 
-        // 轉換為 base64
-        const reader = new FileReader()
-        reader.onloadend = () => {
-          this.root.photoURL = reader.result
+        // 直接上傳 blob 到 R2
+        const response = await axios.post(
+          `https://members-backend.alearn13994229.workers.dev/putToR2/photoURLs/${this.uid}.jpg`,
+          blob,
+          {
+            headers: {
+              'Content-Type': 'image/jpeg'
+            }
+          }
+        )
+
+        // 更新大頭貼網址
+        if (response.data && response.data.url) {
+          this.root.photoURL = response.data.url
+        } else {
+          throw new Error('上傳失敗：未收到有效的 URL')
         }
-        reader.readAsDataURL(optimizedCanvas)
 
         // 釋放資源
         URL.revokeObjectURL(img.src)
       } catch (error) {
-        console.error('圖片處理失敗:', error)
-        alert('圖片處理失敗，請重試')
+        console.error('圖片處理或上傳失敗:', error)
+        alert('圖片處理或上傳失敗，請重試')
       }
     }
   }
