@@ -197,13 +197,14 @@
 
 <script lang="ts">
 import { ref, defineComponent, onMounted, nextTick, computed, watch } from 'vue';
-import { onValue, ref as dbRef, set } from 'firebase/database';
+import { onValue, ref as dbRef, set, push } from 'firebase/database';
 import { bulletinRef, database } from '@/firebase';
 import { useRouter } from 'vue-router';
 
 interface User {
   name: string;
   photoURL?: string;
+  email?: string;
 }
 
 interface Message {
@@ -222,6 +223,7 @@ interface Message {
   actualIndex?: number;
   attachments?: Array<{name: string, url: string, size: number, type: string}>;
   hrefs?: string[];
+  mentions?: string[];
 }
 
 interface Reply {
@@ -301,12 +303,21 @@ export default defineComponent({
 
       console.log(newMessage.value);
       const m_length = messages.value.length;
+      
+      // 檢測@提及的用戶
+      const mentionedUsers = detectMentionedUsers(newMessage.value);
+      
       const newMessageObj: Message = {
         author: props.users[props.uid].name || '匿名',
         uid: props.uid || '123',
         date: new Date().toISOString(),
         text: newMessage.value,
         reactions: {},
+      }
+
+      // 只有在有提及用戶時才加入 mentions 欄位
+      if (mentionedUsers.length > 0) {
+        newMessageObj.mentions = mentionedUsers;
       }
 
       // 只有在有附加檔案時才加入 attachments 欄位
@@ -320,6 +331,12 @@ export default defineComponent({
       }
 
       messages.value.push(newMessageObj);
+      
+      // 發送訊息後，處理@提及通知
+      if (mentionedUsers.length > 0) {
+        sendMentionNotifications(mentionedUsers, newMessageObj);
+      }
+      
       newMessage.value = '';
       newMessageHrefs.value = [];
       newMessageAttachments.value = [];
@@ -458,6 +475,9 @@ export default defineComponent({
       if (!messageToReply.replies) {
         messageToReply.replies = [];
       }
+      
+      // 檢測回覆中@提及的用戶
+      const mentionedUsers = detectMentionedUsers(replyText.value);
 
       const newReply: Reply = {
         author: props.users[props.uid].name || '匿名',
@@ -467,6 +487,12 @@ export default defineComponent({
       };
 
       messageToReply.replies.push(newReply);
+      
+      // 如果回覆中有@提及，發送通知
+      if (mentionedUsers.length > 0) {
+        sendMentionNotifications(mentionedUsers, messageToReply, newReply);
+      }
+      
       replyText.value = '';
       replyingTo.value = -1;
 
@@ -977,6 +1003,75 @@ export default defineComponent({
       maxShowMessages.value -= 10;
     };
 
+    // 檢測@提及的用戶
+    const detectMentionedUsers = (text: string): string[] => {
+      if (!text) return [];
+      
+      const mentionedUsers: string[] = [];
+      const mentionRegex = /@([a-zA-Z0-9\u4e00-\u9fa5_]+)/g;
+      let match;
+      
+      while ((match = mentionRegex.exec(text)) !== null) {
+        const username = match[1];
+        
+        // 查找對應的用戶ID
+        const userEntry = Object.entries(props.users).find(([_, user]) => 
+          (user as User).name === username
+        );
+        
+        if (userEntry) {
+          const userId = userEntry[0];
+          if (!mentionedUsers.includes(userId)) {
+            mentionedUsers.push(userId);
+          }
+        }
+      }
+      
+      return mentionedUsers;
+    };
+    
+    // 發送@提及通知
+    const sendMentionNotifications = (mentionedUserIds: string[], message: Message, reply?: Reply) => {
+      if (!props.uid || mentionedUserIds.length === 0) return;
+      
+      mentionedUserIds.forEach(userId => {
+        // 確保用戶存在且有電子郵件
+        const mentionedUser = props.users[userId];
+        if (!mentionedUser || !mentionedUser.email) return;
+        
+        // 創建通知數據
+        const notificationData = {
+          type: 'mention',
+          from: {
+            uid: props.uid,
+            name: props.users[props.uid].name || '匿名使用者'
+          },
+          to: {
+            uid: userId,
+            email: mentionedUser.email,
+            name: mentionedUser.name
+          },
+          message: {
+            id: message.actualIndex, // 留言的索引
+            content: reply ? reply.text : message.text, // 留言或回覆的內容
+            isReply: !!reply, // 是否為回覆
+            date: new Date().toISOString(),
+            url: window.location.href // 當前頁面URL
+          }
+        };
+        
+        // 將通知發送到 Firebase Realtime Database
+        // 這將觸發 Cloud Function 發送電子郵件
+        push(dbRef(database, 'notifications'), notificationData)
+          .then(() => {
+            console.log(`已發送通知給 ${mentionedUser.name}`);
+          })
+          .catch(error => {
+            console.error('發送通知失敗:', error);
+          });
+      });
+    };
+
     return {
       isBigFile,
       uploadProgress,
@@ -1027,6 +1122,8 @@ export default defineComponent({
       filteredMessages,
       handleSearch,
       clearSearch,
+      detectMentionedUsers,
+      sendMentionNotifications,
     }
   }
 })
@@ -1442,4 +1539,18 @@ img.ui.avatar.image {
   opacity: 1;
 }
 
+/* 為提及的用戶添加樣式 */
+:deep(.mention-link) {
+  color: #0066FF;
+  font-weight: 500;
+  background-color: rgba(0, 102, 255, 0.1);
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+:deep(.mention-link:hover) {
+  background-color: rgba(0, 102, 255, 0.2);
+}
 </style>
