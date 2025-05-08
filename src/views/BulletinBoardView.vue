@@ -303,10 +303,10 @@ export default defineComponent({
 
       console.log(newMessage.value);
       const m_length = messages.value.length;
-      
+
       // 檢測@提及的用戶
       const mentionedUsers = detectMentionedUsers(newMessage.value);
-      
+
       const newMessageObj: Message = {
         author: props.users[props.uid].name || '匿名',
         uid: props.uid || '123',
@@ -331,12 +331,12 @@ export default defineComponent({
       }
 
       messages.value.push(newMessageObj);
-      
+
       // 發送訊息後，處理@提及通知
       if (mentionedUsers.length > 0) {
         sendMentionNotifications(mentionedUsers, newMessageObj, null, m_length);
       }
-      
+
       newMessage.value = '';
       newMessageHrefs.value = [];
       newMessageAttachments.value = [];
@@ -475,7 +475,7 @@ export default defineComponent({
       if (!messageToReply.replies) {
         messageToReply.replies = [];
       }
-      
+
       // 檢測回覆中@提及的用戶
       const mentionedUsers = detectMentionedUsers(replyText.value);
 
@@ -487,12 +487,12 @@ export default defineComponent({
       };
 
       messageToReply.replies.push(newReply);
-      
+
       // 如果回覆中有@提及，發送通知
       if (mentionedUsers.length > 0) {
         sendMentionNotifications(mentionedUsers, messageToReply, newReply, index);
       }
-      
+
       replyText.value = '';
       replyingTo.value = -1;
 
@@ -1006,19 +1006,19 @@ export default defineComponent({
     // 檢測@提及的用戶
     const detectMentionedUsers = (text: string): string[] => {
       if (!text) return [];
-      
+
       const mentionedUsers: string[] = [];
       const mentionRegex = /@([a-zA-Z0-9\u4e00-\u9fa5_]+)/g;
       let match;
-      
+
       while ((match = mentionRegex.exec(text)) !== null) {
         const username = match[1];
-        
+
         // 查找對應的用戶ID
-        const userEntry = Object.entries(props.users).find(([_, user]) => 
+        const userEntry = Object.entries(props.users).find(([_, user]) =>
           (user as User).name === username
         );
-        
+
         if (userEntry) {
           const userId = userEntry[0];
           if (!mentionedUsers.includes(userId)) {
@@ -1026,22 +1026,22 @@ export default defineComponent({
           }
         }
       }
-      
+
       return mentionedUsers;
     };
-    
+
     // 發送@提及通知
-    const sendMentionNotifications = (mentionedUserIds: string[], message: Message, reply?: Reply, actualIndex?: number) => {
+    const sendMentionNotifications = (mentionedUserIds: string[], message: Message, reply?: Reply | null, actualIndex?: number) => {
       if (!props.uid || mentionedUserIds.length === 0) return;
-      
+
       mentionedUserIds.forEach(userId => {
         // 確保用戶存在且有電子郵件
         const mentionedUser = props.users[userId];
         console.log('mentionedUser', mentionedUser);
         if (!mentionedUser || !mentionedUser.email) return;
-        
+
         // 創建通知數據
-        
+
         const now = Date.now();
         const id = `${actualIndex}_${userId}_${now}`;
         const notificationData = {
@@ -1057,7 +1057,7 @@ export default defineComponent({
           type: reply ? 'reply' : 'mention',
           createdAt: now
         };
-        
+
         // 將通知發送到 Firebase Realtime Database
         // 這將觸發 Cloud Function 發送電子郵件
         set(dbRef(database, `notifications/${id}`), notificationData)
