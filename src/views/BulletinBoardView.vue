@@ -334,7 +334,7 @@ export default defineComponent({
       
       // 發送訊息後，處理@提及通知
       if (mentionedUsers.length > 0) {
-        sendMentionNotifications(mentionedUsers, newMessageObj);
+        sendMentionNotifications(mentionedUsers, newMessageObj, null, m_length);
       }
       
       newMessage.value = '';
@@ -490,7 +490,7 @@ export default defineComponent({
       
       // 如果回覆中有@提及，發送通知
       if (mentionedUsers.length > 0) {
-        sendMentionNotifications(mentionedUsers, messageToReply, newReply);
+        sendMentionNotifications(mentionedUsers, messageToReply, newReply, index);
       }
       
       replyText.value = '';
@@ -1031,38 +1031,36 @@ export default defineComponent({
     };
     
     // 發送@提及通知
-    const sendMentionNotifications = (mentionedUserIds: string[], message: Message, reply?: Reply) => {
+    const sendMentionNotifications = (mentionedUserIds: string[], message: Message, reply?: Reply, actualIndex?: number) => {
       if (!props.uid || mentionedUserIds.length === 0) return;
       
       mentionedUserIds.forEach(userId => {
         // 確保用戶存在且有電子郵件
         const mentionedUser = props.users[userId];
+        console.log('mentionedUser', mentionedUser);
         if (!mentionedUser || !mentionedUser.email) return;
         
         // 創建通知數據
+        
+        const now = Date.now();
+        const id = `${actualIndex}_${userId}_${now}`;
         const notificationData = {
-          type: 'mention',
-          from: {
-            uid: props.uid,
-            name: props.users[props.uid].name || '匿名使用者'
-          },
-          to: {
-            uid: userId,
-            email: mentionedUser.email,
-            name: mentionedUser.name
-          },
-          message: {
-            id: message.actualIndex, // 留言的索引
-            content: reply ? reply.text : message.text, // 留言或回覆的內容
-            isReply: !!reply, // 是否為回覆
-            date: new Date().toISOString(),
-            url: window.location.href // 當前頁面URL
-          }
+          id,
+          mentionedUserId: userId,
+          mentionedUserEmail: mentionedUser.email,
+          mentioningUserId: props.uid,
+          mentioningUserName: props.users[props.uid].name || '匿名使用者',
+          messageId: String(actualIndex),
+          messageText: reply ? reply.text : message.text,
+          messageTime: now,
+          status: 'pending',
+          type: reply ? 'reply' : 'mention',
+          createdAt: now
         };
         
         // 將通知發送到 Firebase Realtime Database
         // 這將觸發 Cloud Function 發送電子郵件
-        push(dbRef(database, 'notifications'), notificationData)
+        set(dbRef(database, `notifications/${id}`), notificationData)
           .then(() => {
             console.log(`已發送通知給 ${mentionedUser.name}`);
           })
