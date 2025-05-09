@@ -197,7 +197,7 @@
 
 <script lang="ts">
 import { ref, defineComponent, onMounted, nextTick, computed, watch } from 'vue';
-import { onValue, ref as dbRef, set, push } from 'firebase/database';
+import { onValue, ref as dbRef, get, set, push } from 'firebase/database';
 import { bulletinRef, database } from '@/firebase';
 import { useRouter } from 'vue-router';
 
@@ -929,6 +929,34 @@ export default defineComponent({
         handleSearch();
       }
     }, { immediate: true });
+
+    watch(() => props.uid, (newUid) => {
+      console.log('newUid', newUid);
+      if (newUid) {
+        get(bulletinRef).then((snapshot) => {
+          const data = snapshot.val();
+          console.log(data);
+          messages.value = data.map((message: any) => ({
+            author: message.author,
+            uid: message.uid,
+            date: message.date,
+            text: message.text,
+            updated: message.updated,
+            reactions: message.reactions || {},
+            replies: message.replies ? message.replies.map((reply: any): Reply => ({
+              author: reply.author,
+              uid: reply.uid,
+              date: reply.date,
+              text: reply.text,
+              reactions: reply.reactions || {}
+            })) : [],
+            hrefs: message.hrefs || [],
+            attachments: message.attachments || []
+          }));
+          dataLoaded.value = true;
+        });
+      }
+    });
 
     onMounted(() => {
       console.log('mounted');
