@@ -21,7 +21,7 @@
           | 搜尋結果: {{ filteredMessages.length }} 則留言
           i.close.icon(@click="clearSearch")
 
-      .comment(v-for="(message, index) in filteredMessages.slice(0, maxShowMessages)" :key="index")
+      .comment(v-for="(message, index) in filteredMessages.slice(0, maxShowMessages)" :key="index" :data-message-id="message.actualIndex")
         .content
           img.ui.avatar.image(v-if="users && users[message.uid] && users[message.uid].photoURL" :src="users[message.uid].photoURL")
           .author {{ message.author }}
@@ -930,6 +930,59 @@ export default defineComponent({
       }
     }, { immediate: true });
 
+    // 新增處理 highlight 的函數
+    const handleHighlight = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const highlightMessageId = urlParams.get('highlight');
+      console.log('highlightMessageId', highlightMessageId);
+
+      if (highlightMessageId) {
+        // 等待 DOM 更新完成
+        nextTick(() => {
+          // 找到目標訊息
+          const targetMessage = sortedMessages.value.find(msg => msg.actualIndex === Number(highlightMessageId));
+          console.log('targetMessage', targetMessage);
+          if (targetMessage) {
+            // 展開回覆
+            toggleReplies(targetMessage.actualIndex || sortedMessages.value.length - 1);
+
+            console.log('sortedMessages.value.length', sortedMessages.value.length);
+            console.log('targetMessage.actualIndex', targetMessage.actualIndex);
+            console.log('maxShowMessages.value', maxShowMessages.value);
+            console.log('sortedMessages.value.length - targetMessage.actualIndex', sortedMessages.value.length - (targetMessage.actualIndex || 0));
+
+            if ((sortedMessages.value.length - (targetMessage.actualIndex || 0)) > maxShowMessages.value) {
+              console.log('showMoreMessages', maxShowMessages.value);
+              showMoreMessages(true);
+              console.log('maxShowMessages', maxShowMessages.value);
+            }
+
+            // 等待 DOM 更新完成
+            nextTick(() => {
+              console.log('nextTick', maxShowMessages.value);
+              // 找到對應的 DOM 元素
+              const messageElement = document.querySelector(`[data-message-id="${highlightMessageId}"]`);
+
+              console.log('messageElement', messageElement);
+
+              if (messageElement) {
+                // 捲動到目標元素
+                messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // 添加高亮效果
+                messageElement.classList.add('highlight-message');
+
+                // 3秒後移除高亮效果
+                setTimeout(() => {
+                  messageElement.classList.remove('highlight-message');
+                }, 3000);
+              }
+            });
+          }
+        });
+      }
+    };
+
     watch(() => props.uid, (newUid) => {
       console.log('newUid', newUid);
       if (newUid) {
@@ -954,6 +1007,11 @@ export default defineComponent({
             attachments: message.attachments || []
           }));
           dataLoaded.value = true;
+
+          // 在數據載入後，延遲 500ms 處理 highlight
+          setTimeout(() => {
+            handleHighlight();
+          }, 500);
         });
       }
     });
@@ -984,6 +1042,9 @@ export default defineComponent({
 
         // 在數據載入後恢復展開狀態
         restoreRepliesExpandedState();
+
+        // 處理 highlight
+        handleHighlight();
       });
       setInterval(async () => {
         console.log('tick');
@@ -1023,8 +1084,12 @@ export default defineComponent({
       newMessageHrefs.value.splice(index, 1);
     };
 
-    const showMoreMessages = () => {
-      maxShowMessages.value += 10;
+    const showMoreMessages = (force: boolean = false) => {
+      if (force) {
+        maxShowMessages.value = sortedMessages.value.length;
+      } else {
+        maxShowMessages.value += 10;
+      }
     };
 
     const showLessMessages = () => {
@@ -1579,4 +1644,6 @@ img.ui.avatar.image {
 :deep(.mention-link:hover) {
   background-color: rgba(0, 102, 255, 0.2);
 }
+
+
 </style>

@@ -158,3 +158,23 @@ p, .ui.list .item, li {
     border-right: 1px solid #ccc;
   }
 }
+
+/* 添加高亮效果的樣式 */
+.highlight-message {
+  animation: highlight-pulse 3s ease-out;
+}
+
+@keyframes highlight-pulse {
+  0% {
+    background-color: rgba(0, 102, 255, 0.1);
+    box-shadow: 0 0 0 0 rgba(0, 102, 255, 0.4);
+  }
+  70% {
+    background-color: rgba(0, 102, 255, 0.05);
+    box-shadow: 0 0 0 10px rgba(0, 102, 255, 0);
+  }
+  100% {
+    background-color: transparent;
+    box-shadow: 0 0 0 0 rgba(0, 102, 255, 0);
+  }
+}
