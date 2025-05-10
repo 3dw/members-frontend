@@ -332,7 +332,7 @@ export default defineComponent({
 
       messages.value.push(newMessageObj);
 
-      // 發送訊息後，處理@提及通知
+      // 發送訊息後，若有人被提及，則發送通知
       if (mentionedUsers.length > 0) {
         sendMentionNotifications(mentionedUsers, newMessageObj, null, m_length);
       }
@@ -488,10 +488,8 @@ export default defineComponent({
 
       messageToReply.replies.push(newReply);
 
-      // 如果回覆中有@提及，發送通知
-      if (mentionedUsers.length > 0) {
-        sendMentionNotifications(mentionedUsers, messageToReply, newReply, index);
-      }
+      // 發送回覆通知
+      sendMentionNotifications(mentionedUsers, messageToReply, newReply, index);
 
       replyText.value = '';
       replyingTo.value = -1;
@@ -1125,8 +1123,25 @@ export default defineComponent({
 
     // 發送@提及通知
     const sendMentionNotifications = (mentionedUserIds: string[], message: Message, reply?: Reply | null, actualIndex?: number) => {
+
+      // 如果 reply 存在，則將 message.uid 和 message.replies 的 uid 加入 mentionedUserIds
+      if (reply) {
+
+        if (!mentionedUserIds.includes(message.uid)) {
+          mentionedUserIds.push(message.uid);
+        }
+
+        for (const r of message.replies || []) {
+          if (!mentionedUserIds.includes(r.uid)) {
+            mentionedUserIds.push(r.uid);
+          }
+        }
+      }
+
+      // 如果沒有任何用戶被提及，則不發送通知
       if (!props.uid || mentionedUserIds.length === 0) return;
 
+      // 發送通知給所有被提及的用戶
       mentionedUserIds.forEach(userId => {
         // 確保用戶存在且有電子郵件
         const mentionedUser = props.users[userId];
