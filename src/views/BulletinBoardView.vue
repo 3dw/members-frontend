@@ -1127,12 +1127,14 @@ export default defineComponent({
       // 如果 reply 存在，則將 message.uid 和 message.replies 的 uid 加入 mentionedUserIds
       if (reply) {
 
-        if (!mentionedUserIds.includes(message.uid)) {
+        // 如果 message.uid 不在 mentionedUserIds 中，且不是自己，則加入
+        if (!mentionedUserIds.includes(message.uid) && message.uid !== props.uid) {
           mentionedUserIds.push(message.uid);
         }
 
+        // 如果 reply.uid 不在 mentionedUserIds 中，且不是自己，則加入
         for (const r of message.replies || []) {
-          if (!mentionedUserIds.includes(r.uid)) {
+          if (!mentionedUserIds.includes(r.uid) && r.uid !== props.uid) {
             mentionedUserIds.push(r.uid);
           }
         }
