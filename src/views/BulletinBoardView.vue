@@ -1273,6 +1273,10 @@ export default defineComponent({
   margin-bottom: 0.75rem;
 }
 
+.text {
+  white-space: pre-wrap;
+}
+
 .ui.comments .comment .text {
   line-height: 1.6;
   color: #333;
