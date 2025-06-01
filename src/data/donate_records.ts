@@ -8,6 +8,7 @@ export interface Record {
 
 export const donate_records: Record[] = [
   // 一百十四年
+  { datetime: '114年06月', name: 'Drago', amount: 2000, project: '自主學英文' },
   { datetime: '114年05月', name: 'Drago', amount: 2000, project: '自學地圖(新手入口頁)' },
   { datetime: '114年02月', name: '小巴老師', amount: 100, project: '自學2.0(互助平台)' },
   // 一百零八年
