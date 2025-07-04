@@ -1107,7 +1107,7 @@ export default defineComponent({
 
         // 查找對應的用戶ID
         const userEntry = Object.entries(props.users).find(([_, user]) =>
-          (user as User).name === username
+          ((user as User).name || '').toLowerCase() === username.toLowerCase()
         );
 
         if (userEntry) {
