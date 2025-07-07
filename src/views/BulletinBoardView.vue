@@ -23,12 +23,56 @@
 
       .comment(v-for="(message, index) in filteredMessages.slice(0, maxShowMessages)" :key="index" :data-message-id="message.actualIndex")
         .content
+          .message-header
+            .message-status-priority
+              .message-status(v-if="message.status && message.status !== 'open'")
+                i.icon(:class="getStatusIcon(message.status)")
+                span.status-text {{ getStatusText(message.status) }}
+              .message-priority(v-if="message.priority && message.priority !== 'low'", :class="message.priority")
+                i.icon(:class="getPriorityIcon(message.priority)")
+                span.priority-text {{ getPriorityText(message.priority) }}
+            .message-labels(v-if="message.labels && message.labels.length > 0")
+              span.ui.mini.label(
+                v-for="label in message.labels"
+                :key="label.id"
+                :class="label.color"
+              ) {{ label.name }}
+
           img.ui.avatar.image(v-if="users && users[message.uid] && users[message.uid].photoURL" :src="users[message.uid].photoURL")
           .author {{ message.author }}
           .metadata
             .date {{ parseDate(message.date) }}
               span.updated(v-if="message.updated") ({{ parseDate(message.updated) }}已更新)
-          .text(v-html="parseMentions(message.text)")
+
+          .message-references(v-if="message.references && message.references.length > 0")
+            .referenced-message(
+              v-for="ref in message.references"
+              :key="ref.id"
+              v-if="ref && ref.id !== undefined"
+              @click="scrollToMessage(ref.id)"
+            )
+              i.quote.left.icon
+              span.reference-text(v-text="`引用 #${ref.id}: ${ref.preview}`")
+
+          .text(v-html="parseMentionsAndHideTasks(message.text)")
+
+          .task-list(v-if="message.tasks && message.tasks.length > 0")
+            .task-summary
+              i.tasks.icon
+              span {{ getCompletedTaskCount(message.tasks) }}/{{ message.tasks.length }} 項任務已完成
+            .task-item(
+              v-for="task in message.tasks"
+              :key="task.id"
+              :class="{ completed: task.completed }"
+            )
+              input(
+                type="checkbox"
+                :checked="task.completed"
+                @change="toggleTask(message.actualIndex, task.id)"
+                :disabled="message.uid !== uid"
+              )
+              span.task-text {{ task.text }}
+
           .attachments(v-if="message.attachments && message.attachments.length > 0")
             i.paperclip.icon
             .ui.buttons
@@ -59,10 +103,14 @@
                   | {{ getReactionUsers(message, emoji) }}
                 span.emoji {{ emoji }}
                 span.count {{ getReactionCount(message, emoji) }}
+
           .ui.buttons
             button.ui.tiny.basic.blue.button(@click="toggleReplyForm(message.actualIndex)")
               | 回覆&nbsp;&nbsp;
               i.reply.icon
+            button.ui.tiny.basic.green.button(@click="quoteMessage(message.actualIndex)")
+              | 引用&nbsp;&nbsp;
+              i.quote.left.icon
             button.ui.tiny.basic.orange.button(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
               span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開&nbsp;&nbsp;
                 i.expand.icon
@@ -71,6 +119,36 @@
             button.ui.tiny.basic.purple.button(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="editMessage(message.actualIndex)")
               i.edit.icon
               span 編輯
+
+          div.flex.flex-row(v-if="uid")
+            .filler
+            .ui.buttons
+              button.ui.tiny.basic.button.dropdown-trigger(
+                v-if="uid"
+                :data-dropdown-type="'labels'"
+                :data-message-index="message.actualIndex"
+                @click.stop="handleDropdownClick"
+              )
+                i.tags.icon
+                span 標籤
+
+              button.ui.tiny.basic.button.dropdown-trigger(
+                v-if="uid"
+                :data-dropdown-type="'status'"
+                :data-message-index="message.actualIndex"
+                @click.stop="handleDropdownClick"
+              )
+                i.flag.icon
+                span 狀態
+
+              button.ui.tiny.basic.button.dropdown-trigger(
+                v-if="uid"
+                :data-dropdown-type="'priority'"
+                :data-message-index="message.actualIndex"
+                @click.stop="handleDropdownClick"
+              )
+                i.exclamation.icon
+                span 優先級
 
           .replies(v-if="message.replies && message.replies.length > 0")
             .unexpended(v-if="!message.repliesExpanded")
@@ -85,7 +163,6 @@
                     .date {{ parseDate(reply.date) }}
                   .text {{ reply.text }}
                   .actions(v-if="reply.uid === uid")
-                    // 加入emoji回覆
                     .reaction-buttons
                       button.reaction-btn(
                         v-for="emoji in ['👍', '❤️', '🙏', '🫡', '❤️‍🔥', '😢']"
@@ -136,6 +213,34 @@
           @keydown="handleKeydown"
           ref="messageTextarea"
         )
+        .ui.info.message
+          .header 💡 進階功能提示
+          .list
+            .item.fat-only
+              i.tags.icon
+              .content
+                strong 任務列表:
+                | 使用
+                code - [ ] 任務項目
+                |  或
+                code - [x] 已完成項目
+                |  格式
+            //- .item.fat-only
+              i.quote.left.icon
+              .content
+                strong 引用留言:
+                | 使用
+                code #123
+                |  或
+                code 引用 #123
+                |  格式引用特定留言
+            .item
+              i.at.icon
+              .content
+                strong 提及用戶:
+                | 使用
+                code @用戶名
+                |  格式提及其他用戶
         .mention-suggestions(v-if="showMentions && mentionSuggestions.length > 0")
           .mention-item(
             v-for="(user, index) in mentionSuggestions"
@@ -196,10 +301,11 @@
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, onMounted, nextTick, computed, watch } from 'vue';
-import { onValue, ref as dbRef, get, set, push } from 'firebase/database';
+import { ref, defineComponent, onMounted, onBeforeUnmount, nextTick, computed, watch } from 'vue';
+import { onValue, ref as dbRef, get, set } from 'firebase/database';
 import { bulletinRef, database } from '@/firebase';
 import { useRouter } from 'vue-router';
+
 
 interface User {
   name: string;
@@ -224,6 +330,12 @@ interface Message {
   attachments?: Array<{name: string, url: string, size: number, type: string}>;
   hrefs?: string[];
   mentions?: string[];
+  labels?: Array<{id: string, name: string, color: string}>;
+  status?: 'open' | 'closed' | 'resolved' | 'in-progress';
+  references?: Array<{id: number, preview: string, type: 'message' | 'reply'}>;
+  tasks?: Array<{id: string, text: string, completed: boolean}>;
+  priority?: 'low' | 'medium' | 'high' | 'urgent';
+  assignees?: string[];
 }
 
 interface Reply {
@@ -280,6 +392,37 @@ export default defineComponent({
     const searchKeyword = ref('');
     const filteredMessages = ref<Message[]>([]);
 
+    // 標籤系統相關變數 - 直接在組件中定義
+    const availableLabels = ref([
+      { id: 'bug', name: '錯誤', color: 'red' },
+      { id: 'feature', name: '功能請求', color: 'blue' },
+      { id: 'discussion', name: '討論', color: 'green' },
+      { id: 'question', name: '疑問', color: 'yellow' },
+      { id: 'urgent', name: '緊急', color: 'orange' },
+      { id: 'documentation', name: '文檔', color: 'purple' },
+      { id: 'enhancement', name: '改進', color: 'teal' },
+      { id: 'announcement', name: '公告', color: 'violet' },
+      { id: 'feedback', name: '回饋', color: 'pink' },
+      { id: 'meeting', name: '會議', color: 'brown' },
+      { id: 'event', name: '活動', color: 'olive' }
+    ]);
+
+    // 新增狀態管理相關變數
+    const availableStatuses = ref([
+      { value: 'open', text: '開啟', icon: 'circle outline' },
+      { value: 'in-progress', text: '進行中', icon: 'hourglass half' },
+      { value: 'resolved', text: '已解決', icon: 'check circle' },
+      { value: 'closed', text: '已關閉', icon: 'times circle' }
+    ]);
+
+    // 新增優先級相關變數
+    const availablePriorities = ref([
+      { value: 'low', text: '低', icon: 'chevron down' },
+      { value: 'medium', text: '中', icon: 'minus' },
+      { value: 'high', text: '高', icon: 'chevron up' },
+      { value: 'urgent', text: '緊急', icon: 'exclamation triangle' }
+    ]);
+
     const sortedMessages = computed(() => {
       return [...messages.value].map((obj, index) => {
         const newObj = {
@@ -304,8 +447,13 @@ export default defineComponent({
       console.log(newMessage.value);
       const m_length = messages.value.length;
 
-      // 檢測@提及的用戶
       const mentionedUsers = detectMentionedUsers(newMessage.value);
+
+      // 解析任務列表
+      const tasks = parseTaskList(newMessage.value);
+
+      // 檢測是否有引用
+      const referencedMessages = detectReferences(newMessage.value);
 
       const newMessageObj: Message = {
         author: props.users[props.uid].name || '匿名',
@@ -315,24 +463,28 @@ export default defineComponent({
         reactions: {},
       }
 
-      // 只有在有提及用戶時才加入 mentions 欄位
       if (mentionedUsers.length > 0) {
         newMessageObj.mentions = mentionedUsers;
       }
 
-      // 只有在有附加檔案時才加入 attachments 欄位
       if (newMessageAttachments.value.length > 0) {
         newMessageObj.attachments = newMessageAttachments.value;
       }
 
-      // 只有在有連結時才加入 hrefs 欄位
       if (newMessageHrefs.value.length > 0) {
         newMessageObj.hrefs = newMessageHrefs.value;
       }
 
+      if (tasks.length > 0) {
+        newMessageObj.tasks = tasks;
+      }
+
+      if (referencedMessages.length > 0) {
+        newMessageObj.references = referencedMessages;
+      }
+
       messages.value.push(newMessageObj);
 
-      // 發送訊息後，若有人被提及，則發送通知
       if (mentionedUsers.length > 0) {
         sendMentionNotifications(mentionedUsers, newMessageObj, null, m_length);
       }
@@ -385,7 +537,6 @@ export default defineComponent({
         messages.value[index].repliesExpanded = true;
       }
 
-      // 保存展開狀態到sessionStorage
       saveRepliesExpandedState();
     }
 
@@ -476,7 +627,6 @@ export default defineComponent({
         messageToReply.replies = [];
       }
 
-      // 檢測回覆中@提及的用戶
       const mentionedUsers = detectMentionedUsers(replyText.value);
 
       const newReply: Reply = {
@@ -488,7 +638,6 @@ export default defineComponent({
 
       messageToReply.replies.push(newReply);
 
-      // 發送回覆通知
       sendMentionNotifications(mentionedUsers, messageToReply, newReply, index);
 
       replyText.value = '';
@@ -506,22 +655,18 @@ export default defineComponent({
 
       if (!messageToUpdate.replies || replyIndex >= messageToUpdate.replies.length) return;
 
-      // 確認回覆是當前用戶所發的
       const replyToDelete = messageToUpdate.replies[replyIndex];
       if (replyToDelete.uid !== props.uid) return;
 
       if (window.confirm('確定要刪除這則回覆嗎？')) {
-        // 移除回覆
         messageToUpdate.replies.splice(replyIndex, 1);
 
-      // 更新到 Firebase，只更新特定訊息的回覆
-      set(dbRef(database, `bulletin/${messageIndex}/replies`), messageToUpdate.replies).then(() => {
+        set(dbRef(database, `bulletin/${messageIndex}/replies`), messageToUpdate.replies).then(() => {
           console.log('回覆刪除成功');
         });
       }
     };
 
-    // 新增保存展開狀態到sessionStorage的方法
     const saveRepliesExpandedState = () => {
       const expandedState: Record<number, boolean> = {};
       messages.value.forEach((message, index) => {
@@ -532,7 +677,6 @@ export default defineComponent({
       sessionStorage.setItem('repliesExpandedState', JSON.stringify(expandedState));
     };
 
-    // 新增從sessionStorage恢復展開狀態的方法
     const restoreRepliesExpandedState = () => {
       const storedState = sessionStorage.getItem('repliesExpandedState');
       if (storedState) {
@@ -552,23 +696,17 @@ export default defineComponent({
 
       const messageToEdit = messages.value[index];
 
-      // 確認是用戶自己的留言且沒有回覆
       if (messageToEdit.uid !== props.uid || (messageToEdit.replies && messageToEdit.replies.length > 0)) return;
 
-      // 取得編輯內容（這裡可以使用 prompt，在實際使用時建議更換為 modal 或表單）
       const editedText = prompt('編輯留言', messageToEdit.text);
 
       if (editedText !== null && editedText.trim() !== '') {
-        // 更新留言內容
         messageToEdit.text = editedText.trim();
-        // 添加更新時間戳
         messageToEdit.updated = new Date().toISOString();
 
-        // 更新到 Firebase
         set(dbRef(database, `bulletin/${index}/text`), editedText.trim()).then(() => {
           console.log('留言編輯成功');
         });
-        // 更新 updated 欄位到 Firebase
         set(dbRef(database, `bulletin/${index}/updated`), messageToEdit.updated).then(() => {
           console.log('更新時間記錄成功');
         });
@@ -579,13 +717,11 @@ export default defineComponent({
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
-      // 檢查檔名不能包含「/」或「\」
       if (file.name.includes('/') || file.name.includes('\\')) {
         alert('檔名不能包含斜線「/」或反斜線「\\」');
         return;
       }
 
-      // 檢查檔案大小 (最大 1GB)
       if (file.size > 1024 * 1024 * 1024) {
         alert('檔案大小不能超過 1GB');
         return;
@@ -593,7 +729,6 @@ export default defineComponent({
 
       uploadingFile.value = true;
       try {
-        // 如果檔案小於 10MB，使用原本的上傳方式
         if (file.size <= 10 * 1024 * 1024) {
           isBigFile.value = false;
           const fileContent = await file.arrayBuffer();
@@ -623,10 +758,9 @@ export default defineComponent({
             type: file.type
           });
         } else {
-          // 大檔案使用分塊上傳
           isBigFile.value = true;
           uploadProgress.value = '上傳中...';
-          const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB per chunk
+          const CHUNK_SIZE = 5 * 1024 * 1024;
           const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
           console.log('開始分塊上傳:', {
@@ -638,7 +772,6 @@ export default defineComponent({
 
           uploadProgress.value = '開始分塊上傳：' + file.name + '，共' + totalChunks + '塊';
 
-          // 上傳每個分塊
           for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
             const start = chunkIndex * CHUNK_SIZE;
             const end = Math.min(start + CHUNK_SIZE, file.size);
@@ -653,7 +786,6 @@ export default defineComponent({
 
             uploadProgress.value = '上傳第 ' + (chunkIndex + 1) + ' 塊...(共' + totalChunks + '塊)';
 
-            // 使用 FormData 包裝分塊
             const formData = new FormData();
             formData.append('chunk', chunk);
 
@@ -683,7 +815,6 @@ export default defineComponent({
           console.log('所有分塊上傳完成，開始合併');
           uploadProgress.value = '合併中...';
 
-          // 合併所有分塊
           const mergeResponse = await fetch(
             `https://members-backend.alearn13994229.workers.dev/mergeChunksInR2/files/${file.name}/${totalChunks}`,
             {
@@ -715,7 +846,6 @@ export default defineComponent({
           });
         }
 
-        // 清空檔案輸入
         (event.target as HTMLInputElement).value = '';
         uploadProgress.value = '';
       } catch (error) {
@@ -742,10 +872,8 @@ export default defineComponent({
         const searchText = text.slice(lastAtSymbol + 1, cursorPosition);
         mentionStart.value = lastAtSymbol;
 
-        // 如果搜尋文字為空，顯示所有使用者
         if (searchText.length === 0) {
           const firstFiveUsers = Object.entries(props.users)
-
             .map(([uid, user]) => ({
               uid,
               name: (user as User).name,
@@ -757,7 +885,6 @@ export default defineComponent({
           return;
         }
 
-        // 如果有搜尋文字，過濾使用者
         if (!searchText.includes(' ')) {
           const filteredUsers = Object.entries(props.users)
             .filter(([_, user]) =>
@@ -813,10 +940,9 @@ export default defineComponent({
       showMentions.value = false;
       mentionStart.value = -1;
 
-      // 將游標移到插入的標記後面
       nextTick(() => {
         if (messageTextarea.value) {
-          const newPosition = beforeMention.length + user.name.length + 2; // +2 for @ and space
+          const newPosition = beforeMention.length + user.name.length + 2;
           messageTextarea.value.setSelectionRange(newPosition, newPosition);
           messageTextarea.value.focus();
         }
@@ -829,33 +955,31 @@ export default defineComponent({
       return div.innerHTML;
     };
 
-    const parseMentions = (text: string) => {
+    const parseMentionsAndHideTasks = (text: string) => {
       if (!text) return '';
 
-      // 先轉義整個文本
       const escapedText = escapeHtml(text);
 
-      // 使用正則表達式匹配 @用戶名，確保用戶名不包含特殊字符
       const mentionRegex = /@([a-zA-Z0-9\u4e00-\u9fa5_]+)/g;
 
-      // 替換所有匹配的 @用戶名
-      return escapedText.replace(mentionRegex, (match, username) => {
-        // 查找對應的用戶
+      const taskRegex = /^.*-\s?\[[\sxX]\].*$/gm;
+
+      // 還要把空行也去掉
+      const emptyLineRegex = /^\s*$/gm;
+
+      return escapedText.replace(taskRegex, '').replace(emptyLineRegex, '').replace(mentionRegex, (match, username) => {
         const user = Object.entries(props.users).find(([_, user]) =>
           (user as User).name === username
         );
 
         if (user) {
-          // 如果找到用戶，創建可點擊的連結
           return `<span class="mention-link" data-uid="${user[0]}">${match}</span>`;
         }
 
-        // 如果沒找到用戶，保持原樣
         return match;
       });
     };
 
-    // 測試案例
     const testMentions = () => {
       const testCases = [
         'Hello @Alice and @Bob',
@@ -870,7 +994,7 @@ export default defineComponent({
       console.log('測試 @ 標記解析：');
       testCases.forEach(test => {
         console.log('原文:', test);
-        console.log('解析後:', parseMentions(test));
+        console.log('解析後:', parseMentionsAndHideTasks(test));
       });
     };
 
@@ -892,17 +1016,14 @@ export default defineComponent({
 
       const keyword = searchKeyword.value.toLowerCase().trim();
       filteredMessages.value = sortedMessages.value.filter(message => {
-        // 搜尋留言內容
         if (message.text.toLowerCase().includes(keyword)) {
           return true;
         }
 
-        // 搜尋作者名稱
         if (message.author.toLowerCase().includes(keyword)) {
           return true;
         }
 
-        // 搜尋回覆內容
         if (message.replies) {
           return message.replies.some(reply =>
             reply.text.toLowerCase().includes(keyword) ||
@@ -919,7 +1040,6 @@ export default defineComponent({
       filteredMessages.value = sortedMessages.value;
     };
 
-    // 監聽 sortedMessages 的變化
     watch(sortedMessages, (newMessages) => {
       if (!searchKeyword.value.trim()) {
         filteredMessages.value = newMessages;
@@ -928,20 +1048,16 @@ export default defineComponent({
       }
     }, { immediate: true });
 
-    // 新增處理 highlight 的函數
     const handleHighlight = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const highlightMessageId = urlParams.get('highlight');
       console.log('highlightMessageId', highlightMessageId);
 
       if (highlightMessageId) {
-        // 等待 DOM 更新完成
         nextTick(() => {
-          // 找到目標訊息
           const targetMessage = sortedMessages.value.find(msg => msg.actualIndex === Number(highlightMessageId));
           console.log('targetMessage', targetMessage);
           if (targetMessage) {
-            // 展開回覆
             toggleReplies(targetMessage.actualIndex || sortedMessages.value.length - 1);
 
             console.log('sortedMessages.value.length', sortedMessages.value.length);
@@ -955,22 +1071,17 @@ export default defineComponent({
               console.log('maxShowMessages', maxShowMessages.value);
             }
 
-            // 等待 DOM 更新完成
             nextTick(() => {
               console.log('nextTick', maxShowMessages.value);
-              // 找到對應的 DOM 元素
               const messageElement = document.querySelector(`[data-message-id="${highlightMessageId}"]`);
 
               console.log('messageElement', messageElement);
 
               if (messageElement) {
-                // 捲動到目標元素
                 messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                // 添加高亮效果
                 messageElement.classList.add('highlight-message');
 
-                // 3秒後移除高亮效果
                 setTimeout(() => {
                   messageElement.classList.remove('highlight-message');
                 }, 3000);
@@ -1002,17 +1113,212 @@ export default defineComponent({
               reactions: reply.reactions || {}
             })) : [],
             hrefs: message.hrefs || [],
-            attachments: message.attachments || []
+            attachments: message.attachments || [],
+            labels: message.labels || [],
+            status: message.status || 'open',
+            references: message.references || [],
+            tasks: message.tasks || [],
+            priority: message.priority || 'low',
+            assignees: message.assignees || []
           }));
           dataLoaded.value = true;
 
-          // 在數據載入後，延遲 500ms 處理 highlight
           setTimeout(() => {
             handleHighlight();
           }, 500);
         });
       }
     });
+
+    // 當前激活的下拉菜單
+    const activeDropdownMenu = ref<HTMLElement | null>(null);
+    const activeDropdownType = ref<string>('');
+    const activeDropdownMessageIndex = ref<number>(-1);
+
+    // 創建動態下拉菜單
+    const createDropdownMenu = (type: string, messageIndex: number, targetElement: HTMLElement) => {
+      // 移除現有的下拉菜單
+      removeActiveDropdownMenu();
+
+      const menu = document.createElement('div');
+      menu.className = 'dynamic-dropdown-menu';
+      menu.style.cssText = `
+        position: fixed;
+        z-index: 9999999;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        min-width: 160px;
+        max-width: 250px;
+        overflow: hidden;
+        font-family: inherit;
+        font-size: 14px;
+      `;
+
+      const message = messages.value[messageIndex];
+      let menuItems = '';
+
+      if (type === 'labels') {
+        availableLabels.value.forEach(label => {
+          const isActive = hasLabel(message, label.id);
+          menuItems += `
+            <div class="dropdown-item ${isActive ? 'active' : ''}" data-action="toggleLabel" data-label-id="${label.id}">
+              <i class="tag icon ${label.color}"></i>
+              ${label.name}
+            </div>
+          `;
+        });
+      } else if (type === 'status') {
+        availableStatuses.value.forEach(status => {
+          const isActive = message.status === status.value;
+          menuItems += `
+            <div class="dropdown-item ${isActive ? 'active' : ''}" data-action="changeStatus" data-status="${status.value}">
+              <i class="icon ${status.icon}"></i>
+              ${status.text}
+            </div>
+          `;
+        });
+      } else if (type === 'priority') {
+        availablePriorities.value.forEach(priority => {
+          const isActive = message.priority === priority.value;
+          menuItems += `
+            <div class="dropdown-item ${isActive ? 'active' : ''}" data-action="changePriority" data-priority="${priority.value}">
+              <i class="icon ${priority.icon}"></i>
+              ${priority.text}
+            </div>
+          `;
+        });
+      }
+
+      menu.innerHTML = menuItems;
+
+      // 添加樣式
+      const style = document.createElement('style');
+      style.textContent = `
+        .dynamic-dropdown-menu .dropdown-item {
+          padding: 0.75rem 1rem;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          transition: background-color 0.2s ease;
+          border-bottom: 1px solid #f0f0f0;
+          font-size: 0.9rem;
+        }
+        .dynamic-dropdown-menu .dropdown-item:last-child {
+          border-bottom: none;
+        }
+        .dynamic-dropdown-menu .dropdown-item:hover {
+          background-color: #f8f9fa;
+        }
+        .dynamic-dropdown-menu .dropdown-item.active {
+          background-color: #0066FF;
+          color: white;
+        }
+        .dynamic-dropdown-menu .dropdown-item i.icon {
+          opacity: 0.7;
+        }
+        .dynamic-dropdown-menu .dropdown-item.active i.icon {
+          opacity: 1;
+        }
+      `;
+      document.head.appendChild(style);
+
+      // 計算位置
+      const rect = targetElement.getBoundingClientRect();
+      let top = rect.bottom + 4;
+      let left = rect.left;
+
+      document.body.appendChild(menu);
+
+      // 檢查邊界並調整位置
+      const menuRect = menu.getBoundingClientRect();
+
+      // 檢查右邊界
+      if (menuRect.right > window.innerWidth - 10) {
+        left = window.innerWidth - menuRect.width - 10;
+      }
+
+      // 檢查底部邊界
+      if (menuRect.bottom > window.innerHeight - 10) {
+        top = rect.top - menuRect.height - 4;
+      }
+
+      menu.style.top = `${top}px`;
+      menu.style.left = `${left}px`;
+
+      // 添加事件監聽器
+      menu.addEventListener('click', (e) => {
+        const item = (e.target as HTMLElement).closest('.dropdown-item');
+        if (item) {
+          const action = item.getAttribute('data-action');
+
+          if (action === 'toggleLabel') {
+            const labelId = item.getAttribute('data-label-id');
+            const label = availableLabels.value.find(l => l.id === labelId);
+            if (label) {
+              toggleLabel(messageIndex, label);
+            }
+          } else if (action === 'changeStatus') {
+            const status = item.getAttribute('data-status');
+            if (status) {
+              changeStatus(messageIndex, status);
+            }
+          } else if (action === 'changePriority') {
+            const priority = item.getAttribute('data-priority');
+            if (priority) {
+              changePriority(messageIndex, priority);
+            }
+          }
+
+          removeActiveDropdownMenu();
+        }
+      });
+
+      activeDropdownMenu.value = menu;
+      activeDropdownType.value = type;
+      activeDropdownMessageIndex.value = messageIndex;
+    };
+
+    // 移除激活的下拉菜單
+    const removeActiveDropdownMenu = () => {
+      if (activeDropdownMenu.value) {
+        activeDropdownMenu.value.remove();
+        activeDropdownMenu.value = null;
+        activeDropdownType.value = '';
+        activeDropdownMessageIndex.value = -1;
+      }
+    };
+
+    // 處理下拉菜單的顯示和隱藏
+    const handleDropdownClick = (event: Event) => {
+      event.stopPropagation();
+      const button = (event.target as HTMLElement).closest('.dropdown-trigger');
+      if (button) {
+        const type = button.getAttribute('data-dropdown-type');
+        const messageIndex = parseInt(button.getAttribute('data-message-index') || '0');
+
+        if (type && messageIndex >= 0) {
+          createDropdownMenu(type, messageIndex, button as HTMLElement);
+        }
+      }
+    };
+
+
+
+    // 點擊其他地方關閉下拉菜單
+    const handleDocumentClick = (event: Event) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.dropdown-trigger') && !target.closest('.dynamic-dropdown-menu')) {
+        removeActiveDropdownMenu();
+      }
+    };
+
+    // 保存事件監聽器引用以便清理
+    const scrollHandler = () => {
+      removeActiveDropdownMenu();
+    };
 
     onMounted(() => {
       console.log('mounted');
@@ -1034,15 +1340,30 @@ export default defineComponent({
             reactions: reply.reactions || {}
           })) : [],
           hrefs: message.hrefs || [],
-          attachments: message.attachments || []
+          attachments: message.attachments || [],
+          labels: message.labels || [],
+          status: message.status || 'open',
+          references: message.references || [],
+          tasks: message.tasks || [],
+          priority: message.priority || 'low',
+          assignees: message.assignees || []
         }));
         dataLoaded.value = true;
 
-        // 在數據載入後恢復展開狀態
         restoreRepliesExpandedState();
 
-        // 處理 highlight
         handleHighlight();
+
+        // 設置下拉菜單事件監聽器
+        nextTick(() => {
+          document.addEventListener('click', handleDocumentClick);
+          // 添加滾動事件監聽器，滾動時關閉所有下拉菜單
+          document.addEventListener('scroll', scrollHandler, true);
+
+          document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
+            trigger.addEventListener('click', handleDropdownClick);
+          });
+        });
       });
       setInterval(async () => {
         console.log('tick');
@@ -1050,18 +1371,25 @@ export default defineComponent({
         messages.value = [...messages.value];
       }, 60 * 1000);
 
-      // 添加點擊事件監聽器
       document.addEventListener('click', handleMentionClick);
 
-      // 在開發環境中運行測試
       if (process.env.NODE_ENV === 'development') {
         testMentions();
       }
     });
 
+    onBeforeUnmount(() => {
+      // 清理事件監聽器
+      document.removeEventListener('click', handleDocumentClick);
+      document.removeEventListener('scroll', scrollHandler, true);
+      document.removeEventListener('click', handleMentionClick);
+
+      // 清理激活的下拉菜單
+      removeActiveDropdownMenu();
+    });
+
     const addHref = () => {
       if (newMessageHref.value) {
-        // 檢查是否為有效的 URL
         try {
           new URL(newMessageHref.value);
           newMessageHrefs.value.push(newMessageHref.value);
@@ -1094,7 +1422,6 @@ export default defineComponent({
       maxShowMessages.value -= 10;
     };
 
-    // 檢測@提及的用戶
     const detectMentionedUsers = (text: string): string[] => {
       if (!text) return [];
 
@@ -1105,7 +1432,6 @@ export default defineComponent({
       while ((match = mentionRegex.exec(text)) !== null) {
         const username = match[1];
 
-        // 查找對應的用戶ID
         const userEntry = Object.entries(props.users).find(([_, user]) =>
           ((user as User).name || '').toLowerCase() === username.toLowerCase()
         );
@@ -1121,18 +1447,12 @@ export default defineComponent({
       return mentionedUsers;
     };
 
-    // 發送@提及通知
     const sendMentionNotifications = (mentionedUserIds: string[], message: Message, reply?: Reply | null, actualIndex?: number) => {
-
-      // 如果 reply 存在，則將 message.uid 和 message.replies 的 uid 加入 mentionedUserIds
       if (reply) {
-
-        // 如果 message.uid 不在 mentionedUserIds 中，且不是自己，則加入
         if (!mentionedUserIds.includes(message.uid) && message.uid !== props.uid) {
           mentionedUserIds.push(message.uid);
         }
 
-        // 如果 reply.uid 不在 mentionedUserIds 中，且不是自己，則加入
         for (const r of message.replies || []) {
           if (!mentionedUserIds.includes(r.uid) && r.uid !== props.uid) {
             mentionedUserIds.push(r.uid);
@@ -1140,17 +1460,12 @@ export default defineComponent({
         }
       }
 
-      // 如果沒有任何用戶被提及，則不發送通知
       if (!props.uid || mentionedUserIds.length === 0) return;
 
-      // 發送通知給所有被提及的用戶
       mentionedUserIds.forEach(userId => {
-        // 確保用戶存在且有電子郵件
         const mentionedUser = props.users[userId];
         console.log('mentionedUser', mentionedUser);
         if (!mentionedUser || !mentionedUser.email) return;
-
-        // 創建通知數據
 
         const now = Date.now();
         const id = `${actualIndex}_${userId}_${now}`;
@@ -1168,8 +1483,6 @@ export default defineComponent({
           createdAt: now
         };
 
-        // 將通知發送到 Firebase Realtime Database
-        // 這將觸發 Cloud Function 發送電子郵件
         set(dbRef(database, `notifications/${id}`), notificationData)
           .then(() => {
             console.log(`已發送通知給 ${mentionedUser.name}`);
@@ -1178,6 +1491,173 @@ export default defineComponent({
             console.error('發送通知失敗:', error);
           });
       });
+    };
+
+    // 標籤系統相關函數
+    const toggleLabel = (messageIndex: number, label: {id: string, name: string, color: string}) => {
+      if (!dataLoaded.value || !props.uid) return;
+
+      const message = messages.value[messageIndex];
+      if (!message.labels) {
+        message.labels = [];
+      }
+
+      const existingLabelIndex = message.labels.findIndex(l => l.id === label.id);
+      if (existingLabelIndex > -1) {
+        // 移除標籤
+        message.labels.splice(existingLabelIndex, 1);
+      } else {
+        // 新增標籤
+        message.labels.push(label);
+      }
+
+      // 更新到 Firebase
+      set(dbRef(database, `bulletin/${messageIndex}/labels`), message.labels).then(() => {
+        console.log('標籤更新成功');
+      });
+    };
+
+    const hasLabel = (message: Message, labelId: string): boolean => {
+      return message.labels?.some(label => label.id === labelId) || false;
+    };
+
+    // 狀態管理相關函數
+    const changeStatus = (messageIndex: number, newStatus: string) => {
+      if (!dataLoaded.value || !props.uid) return;
+
+      const message = messages.value[messageIndex];
+      message.status = newStatus as 'open' | 'closed' | 'resolved' | 'in-progress';
+
+      // 更新到 Firebase
+      set(dbRef(database, `bulletin/${messageIndex}/status`), newStatus).then(() => {
+        console.log('狀態更新成功');
+      });
+    };
+
+    const getStatusIcon = (status: string): string => {
+      const statusConfig = availableStatuses.value.find(s => s.value === status);
+      return statusConfig ? statusConfig.icon : 'circle outline';
+    };
+
+    const getStatusText = (status: string): string => {
+      const statusConfig = availableStatuses.value.find(s => s.value === status);
+      return statusConfig ? statusConfig.text : '開啟';
+    };
+
+    // 優先級管理相關函數
+    const changePriority = (messageIndex: number, newPriority: string) => {
+      if (!dataLoaded.value || !props.uid) return;
+
+      const message = messages.value[messageIndex];
+      message.priority = newPriority as 'low' | 'medium' | 'high' | 'urgent';
+
+      // 更新到 Firebase
+      set(dbRef(database, `bulletin/${messageIndex}/priority`), newPriority).then(() => {
+        console.log('優先級更新成功');
+      });
+    };
+
+    const getPriorityIcon = (priority: string): string => {
+      const priorityConfig = availablePriorities.value.find(p => p.value === priority);
+      return priorityConfig ? priorityConfig.icon : 'chevron down';
+    };
+
+    const getPriorityText = (priority: string): string => {
+      const priorityConfig = availablePriorities.value.find(p => p.value === priority);
+      return priorityConfig ? priorityConfig.text : '低';
+    };
+
+    // 引用功能相關函數
+    const quoteMessage = (messageIndex: number) => {
+      if (!dataLoaded.value || !props.uid) return;
+
+      const message = messages.value[messageIndex];
+      const quotedText = `> ${message.author}: ${message.text.substring(0, 100)}${message.text.length > 100 ? '...' : ''}\n\n`;
+
+      // 設置引用內容到新留言框
+      newMessage.value = quotedText + newMessage.value;
+
+      // 聚焦到留言框
+      nextTick(() => {
+        if (messageTextarea.value) {
+          messageTextarea.value.focus();
+          messageTextarea.value.setSelectionRange(newMessage.value.length, newMessage.value.length);
+        }
+      });
+    };
+
+    const scrollToMessage = (messageId: number) => {
+      const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+      if (messageElement) {
+        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        messageElement.classList.add('highlight-message');
+        setTimeout(() => {
+          messageElement.classList.remove('highlight-message');
+        }, 3000);
+      }
+    };
+
+    // 任務列表相關函數
+    const parseTaskList = (text: string): Array<{id: string, text: string, completed: boolean}> => {
+      const taskRegex = /^(\s*[-*+]\s*\[([x\s])\]\s*(.+))$/gm;
+      const tasks: Array<{id: string, text: string, completed: boolean}> = [];
+      let match;
+
+      while ((match = taskRegex.exec(text)) !== null) {
+        tasks.push({
+          id: Math.random().toString(36).substr(2, 9),
+          text: match[3].trim(),
+          completed: match[2] === 'x'
+        });
+      }
+
+      return tasks;
+    };
+
+    const toggleTask = (messageIndex: number, taskId: string) => {
+      if (!dataLoaded.value || !props.uid) return;
+
+      const message = messages.value[messageIndex];
+      if (message.tasks) {
+        const task = message.tasks.find(t => t.id === taskId);
+        if (task) {
+          task.completed = !task.completed;
+
+          // 更新到 Firebase
+          set(dbRef(database, `bulletin/${messageIndex}/tasks`), message.tasks).then(() => {
+            console.log('任務狀態更新成功');
+          });
+        }
+      }
+    };
+
+    const getCompletedTaskCount = (tasks: Array<{id: string, text: string, completed: boolean}>): number => {
+      return tasks.filter(task => task.completed).length;
+    };
+
+    // 檢測引用的函數
+    const detectReferences = (text: string): Array<{id: number, preview: string, type: 'message' | 'reply'}> => {
+      const references: Array<{id: number, preview: string, type: 'message' | 'reply'}> = [];
+
+      // 檢測引用格式 (例如 #123 或 引用 #123)
+      const referenceRegex = /(?:引用\s*)?#(\d+)/g;
+      let match;
+
+      while ((match = referenceRegex.exec(text)) !== null) {
+        const messageId = parseInt(match[1]);
+        if (messageId < messages.value.length) {
+          const referencedMessage = messages.value[messageId];
+          if (referencedMessage) {
+            references.push({
+              id: messageId,
+              preview: referencedMessage.text.substring(0, 50) + (referencedMessage.text.length > 50 ? '...' : ''),
+              type: 'message'
+            });
+          }
+        }
+      }
+
+      return references;
     };
 
     return {
@@ -1225,13 +1705,36 @@ export default defineComponent({
       handleMessageInput,
       handleKeydown,
       selectMention,
-      parseMentions,
+      parseMentionsAndHideTasks,
       searchKeyword,
       filteredMessages,
       handleSearch,
       clearSearch,
       detectMentionedUsers,
       sendMentionNotifications,
+      availableLabels,
+      availableStatuses,
+      availablePriorities,
+      toggleLabel,
+      hasLabel,
+      changeStatus,
+      getStatusIcon,
+      getStatusText,
+      changePriority,
+      getPriorityIcon,
+      getPriorityText,
+      quoteMessage,
+      scrollToMessage,
+      parseTaskList,
+      toggleTask,
+      getCompletedTaskCount,
+      detectReferences,
+      handleDropdownClick,
+      activeDropdownMenu,
+      activeDropdownType,
+      activeDropdownMessageIndex,
+      createDropdownMenu,
+      removeActiveDropdownMenu,
     }
   }
 })
@@ -1299,7 +1802,6 @@ export default defineComponent({
     -ms-user-select: none;
   }
 }
-
 
 .replies {
   margin-top: 1rem;
@@ -1523,6 +2025,10 @@ img.ui.avatar.image {
   text-decoration: underline;
 }
 
+.ui.upload.segment .ui.list .item .content a:hover {
+  text-decoration: underline;
+}
+
 .ui.upload.segment .ui.mini.red.button {
   padding: 0.3rem 0.6rem;
   font-size: 0.8rem;
@@ -1651,7 +2157,6 @@ img.ui.avatar.image {
   opacity: 1;
 }
 
-/* 為提及的用戶添加樣式 */
 :deep(.mention-link) {
   color: #0066FF;
   font-weight: 500;
@@ -1666,5 +2171,262 @@ img.ui.avatar.image {
   background-color: rgba(0, 102, 255, 0.2);
 }
 
+/* 標籤系統樣式 */
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.message-status-priority {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.message-status {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  background-color: #f8f9fa;
+  color: #666;
+}
+
+.message-status.in-progress {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.message-status.resolved {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.message-status.closed {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.message-priority {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.message-priority.medium {
+  background-color: #499e2b;
+  color: white
+}
+
+.message-priority.high {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.message-priority.urgent {
+  background-color: #f4ff2b;
+  color: rgb(0, 0, 0);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
+
+.message-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.message-labels .ui.label {
+  margin: 0;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 10px;
+}
+
+/* 引用樣式 */
+.message-references {
+  margin-bottom: 1rem;
+}
+
+.referenced-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: #f8f9fa;
+  border-left: 4px solid #0066FF;
+  border-radius: 0 8px 8px 0;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-bottom: 0.5rem;
+}
+
+.referenced-message:hover {
+  background-color: #e9ecef;
+}
+
+.reference-text {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+/* 任務列表樣式 */
+.task-list {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.task-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  color: #495057;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.task-item:last-child {
+  border-bottom: none;
+}
+
+.task-item.completed .task-text {
+  text-decoration: line-through;
+  color: #6c757d;
+}
+
+.task-item input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.task-text {
+  flex: 1;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* 下拉菜單觸發按鈕樣式 */
+.dropdown-trigger {
+  position: relative;
+  z-index: 1;
+}
+
+/* 高亮消息樣式 */
+.highlight-message {
+  background-color: #fff3cd !important;
+  border-left: 4px solid #ffc107 !important;
+  animation: highlight-fade 3s ease-in-out;
+}
+
+@keyframes highlight-fade {
+  0% { background-color: #fff3cd; }
+  100% { background-color: transparent; }
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .message-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .message-status-priority {
+    flex-wrap: wrap;
+  }
+
+  .message-labels {
+    width: 100%;
+  }
+
+  .dropdown .menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    max-width: none;
+    min-width: auto;
+    width: auto;
+    margin-left: 0;
+    margin-right: 0;
+    z-index: 99999;
+    transform: none;
+  }
+
+  .task-list {
+    margin: 0.5rem 0;
+    padding: 0.75rem;
+  }
+
+  .referenced-message {
+    padding: 0.5rem;
+  }
+
+  /* 確保下拉按鈕在小螢幕上有足夠的點擊區域 */
+  .dropdown.ui.button {
+    min-height: 44px;
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* 超小螢幕優化 */
+@media (max-width: 480px) {
+  .ui.buttons {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .dropdown.ui.tiny.basic.button {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .dropdown .menu {
+    font-size: 0.85rem;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .dropdown .menu .item {
+    padding: 0.6rem 0.8rem;
+  }
+}
+
+/* 確保下拉菜單觸發按鈕有良好的視覺回饋 */
+.dropdown-trigger:hover,
+.dropdown-trigger:focus {
+  background-color: #f8f9fa;
+  border-color: #0066FF;
+}
+
+.dropdown-trigger:active {
+  background-color: #e9ecef;
+}
 
 </style>
