@@ -225,7 +225,7 @@
                 |  或
                 code - [x] 已完成項目
                 |  格式
-            .item.fat-only
+            //- .item.fat-only
               i.quote.left.icon
               .content
                 strong 引用留言:
