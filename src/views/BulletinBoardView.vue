@@ -28,51 +28,51 @@
               .message-status(v-if="message.status && message.status !== 'open'")
                 i.icon(:class="getStatusIcon(message.status)")
                 span.status-text {{ getStatusText(message.status) }}
-              .message-priority(v-if="message.priority && message.priority !== 'low'")
+              .message-priority(v-if="message.priority && message.priority !== 'low'", :class="message.priority")
                 i.icon(:class="getPriorityIcon(message.priority)")
                 span.priority-text {{ getPriorityText(message.priority) }}
             .message-labels(v-if="message.labels && message.labels.length > 0")
               span.ui.mini.label(
-                v-for="label in message.labels" 
+                v-for="label in message.labels"
                 :key="label.id"
                 :class="label.color"
               ) {{ label.name }}
-          
+
           img.ui.avatar.image(v-if="users && users[message.uid] && users[message.uid].photoURL" :src="users[message.uid].photoURL")
           .author {{ message.author }}
           .metadata
             .date {{ parseDate(message.date) }}
               span.updated(v-if="message.updated") ({{ parseDate(message.updated) }}已更新)
-          
+
           .message-references(v-if="message.references && message.references.length > 0")
             .referenced-message(
-              v-for="ref in message.references" 
+              v-for="ref in message.references"
               :key="ref.id"
               v-if="ref && ref.id !== undefined"
               @click="scrollToMessage(ref.id)"
             )
               i.quote.left.icon
               span.reference-text(v-text="`引用 #${ref.id}: ${ref.preview}`")
-          
-          .text(v-html="parseMentions(message.text)")
-          
+
+          .text(v-html="parseMentionsAndHideTasks(message.text)")
+
           .task-list(v-if="message.tasks && message.tasks.length > 0")
             .task-summary
               i.tasks.icon
               span {{ getCompletedTaskCount(message.tasks) }}/{{ message.tasks.length }} 項任務已完成
             .task-item(
-              v-for="task in message.tasks" 
+              v-for="task in message.tasks"
               :key="task.id"
               :class="{ completed: task.completed }"
             )
               input(
-                type="checkbox" 
+                type="checkbox"
                 :checked="task.completed"
                 @change="toggleTask(message.actualIndex, task.id)"
                 :disabled="message.uid !== uid"
               )
               span.task-text {{ task.text }}
-          
+
           .attachments(v-if="message.attachments && message.attachments.length > 0")
             i.paperclip.icon
             .ui.buttons
@@ -103,6 +103,7 @@
                   | {{ getReactionUsers(message, emoji) }}
                 span.emoji {{ emoji }}
                 span.count {{ getReactionCount(message, emoji) }}
+
           .ui.buttons
             button.ui.tiny.basic.blue.button(@click="toggleReplyForm(message.actualIndex)")
               | 回覆&nbsp;&nbsp;
@@ -118,33 +119,36 @@
             button.ui.tiny.basic.purple.button(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="editMessage(message.actualIndex)")
               i.edit.icon
               span 編輯
-            
-            button.ui.tiny.basic.button.dropdown-trigger(
-              v-if="uid"
-              :data-dropdown-type="'labels'"
-              :data-message-index="message.actualIndex"
-              @click.stop="handleDropdownClick"
-            )
-              i.tags.icon
-              span 標籤
-            
-            button.ui.tiny.basic.button.dropdown-trigger(
-              v-if="uid"
-              :data-dropdown-type="'status'"
-              :data-message-index="message.actualIndex"
-              @click.stop="handleDropdownClick"
-            )
-              i.flag.icon
-              span 狀態
-            
-            button.ui.tiny.basic.button.dropdown-trigger(
-              v-if="uid"
-              :data-dropdown-type="'priority'"
-              :data-message-index="message.actualIndex"
-              @click.stop="handleDropdownClick"
-            )
-              i.exclamation.icon
-              span 優先級
+
+          div.flex.flex-row(v-if="uid")
+            .filler
+            .ui.buttons
+              button.ui.tiny.basic.button.dropdown-trigger(
+                v-if="uid"
+                :data-dropdown-type="'labels'"
+                :data-message-index="message.actualIndex"
+                @click.stop="handleDropdownClick"
+              )
+                i.tags.icon
+                span 標籤
+
+              button.ui.tiny.basic.button.dropdown-trigger(
+                v-if="uid"
+                :data-dropdown-type="'status'"
+                :data-message-index="message.actualIndex"
+                @click.stop="handleDropdownClick"
+              )
+                i.flag.icon
+                span 狀態
+
+              button.ui.tiny.basic.button.dropdown-trigger(
+                v-if="uid"
+                :data-dropdown-type="'priority'"
+                :data-message-index="message.actualIndex"
+                @click.stop="handleDropdownClick"
+              )
+                i.exclamation.icon
+                span 優先級
 
           .replies(v-if="message.replies && message.replies.length > 0")
             .unexpended(v-if="!message.repliesExpanded")
@@ -212,29 +216,29 @@
         .ui.info.message
           .header 💡 進階功能提示
           .list
-            .item
+            .item.fat-only
               i.tags.icon
               .content
-                strong 任務列表: 
-                | 使用 
+                strong 任務列表:
+                | 使用
                 code - [ ] 任務項目
-                |  或 
+                |  或
                 code - [x] 已完成項目
                 |  格式
-            .item
+            .item.fat-only
               i.quote.left.icon
               .content
-                strong 引用留言: 
-                | 使用 
+                strong 引用留言:
+                | 使用
                 code #123
-                |  或 
+                |  或
                 code 引用 #123
                 |  格式引用特定留言
             .item
               i.at.icon
               .content
-                strong 提及用戶: 
-                | 使用 
+                strong 提及用戶:
+                | 使用
                 code @用戶名
                 |  格式提及其他用戶
         .mention-suggestions(v-if="showMentions && mentionSuggestions.length > 0")
@@ -298,7 +302,7 @@
 
 <script lang="ts">
 import { ref, defineComponent, onMounted, onBeforeUnmount, nextTick, computed, watch } from 'vue';
-import { onValue, ref as dbRef, get, set, push } from 'firebase/database';
+import { onValue, ref as dbRef, get, set } from 'firebase/database';
 import { bulletinRef, database } from '@/firebase';
 import { useRouter } from 'vue-router';
 
@@ -444,10 +448,10 @@ export default defineComponent({
       const m_length = messages.value.length;
 
       const mentionedUsers = detectMentionedUsers(newMessage.value);
-      
+
       // 解析任務列表
       const tasks = parseTaskList(newMessage.value);
-      
+
       // 檢測是否有引用
       const referencedMessages = detectReferences(newMessage.value);
 
@@ -470,11 +474,11 @@ export default defineComponent({
       if (newMessageHrefs.value.length > 0) {
         newMessageObj.hrefs = newMessageHrefs.value;
       }
-      
+
       if (tasks.length > 0) {
         newMessageObj.tasks = tasks;
       }
-      
+
       if (referencedMessages.length > 0) {
         newMessageObj.references = referencedMessages;
       }
@@ -951,14 +955,19 @@ export default defineComponent({
       return div.innerHTML;
     };
 
-    const parseMentions = (text: string) => {
+    const parseMentionsAndHideTasks = (text: string) => {
       if (!text) return '';
 
       const escapedText = escapeHtml(text);
 
       const mentionRegex = /@([a-zA-Z0-9\u4e00-\u9fa5_]+)/g;
 
-      return escapedText.replace(mentionRegex, (match, username) => {
+      const taskRegex = /^.*-\s?\[[\sxX]\].*$/gm;
+
+      // 還要把空行也去掉
+      const emptyLineRegex = /^\s*$/gm;
+
+      return escapedText.replace(taskRegex, '').replace(emptyLineRegex, '').replace(mentionRegex, (match, username) => {
         const user = Object.entries(props.users).find(([_, user]) =>
           (user as User).name === username
         );
@@ -985,7 +994,7 @@ export default defineComponent({
       console.log('測試 @ 標記解析：');
       testCases.forEach(test => {
         console.log('原文:', test);
-        console.log('解析後:', parseMentions(test));
+        console.log('解析後:', parseMentionsAndHideTasks(test));
       });
     };
 
@@ -1225,12 +1234,12 @@ export default defineComponent({
 
       // 檢查邊界並調整位置
       const menuRect = menu.getBoundingClientRect();
-      
+
       // 檢查右邊界
       if (menuRect.right > window.innerWidth - 10) {
         left = window.innerWidth - menuRect.width - 10;
       }
-      
+
       // 檢查底部邊界
       if (menuRect.bottom > window.innerHeight - 10) {
         top = rect.top - menuRect.height - 4;
@@ -1244,7 +1253,7 @@ export default defineComponent({
         const item = (e.target as HTMLElement).closest('.dropdown-item');
         if (item) {
           const action = item.getAttribute('data-action');
-          
+
           if (action === 'toggleLabel') {
             const labelId = item.getAttribute('data-label-id');
             const label = availableLabels.value.find(l => l.id === labelId);
@@ -1262,7 +1271,7 @@ export default defineComponent({
               changePriority(messageIndex, priority);
             }
           }
-          
+
           removeActiveDropdownMenu();
         }
       });
@@ -1289,7 +1298,7 @@ export default defineComponent({
       if (button) {
         const type = button.getAttribute('data-dropdown-type');
         const messageIndex = parseInt(button.getAttribute('data-message-index') || '0');
-        
+
         if (type && messageIndex >= 0) {
           createDropdownMenu(type, messageIndex, button as HTMLElement);
         }
@@ -1344,13 +1353,13 @@ export default defineComponent({
         restoreRepliesExpandedState();
 
         handleHighlight();
-        
+
         // 設置下拉菜單事件監聽器
         nextTick(() => {
           document.addEventListener('click', handleDocumentClick);
           // 添加滾動事件監聽器，滾動時關閉所有下拉菜單
           document.addEventListener('scroll', scrollHandler, true);
-          
+
           document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
             trigger.addEventListener('click', handleDropdownClick);
           });
@@ -1374,7 +1383,7 @@ export default defineComponent({
       document.removeEventListener('click', handleDocumentClick);
       document.removeEventListener('scroll', scrollHandler, true);
       document.removeEventListener('click', handleMentionClick);
-      
+
       // 清理激活的下拉菜單
       removeActiveDropdownMenu();
     });
@@ -1487,12 +1496,12 @@ export default defineComponent({
     // 標籤系統相關函數
     const toggleLabel = (messageIndex: number, label: {id: string, name: string, color: string}) => {
       if (!dataLoaded.value || !props.uid) return;
-      
+
       const message = messages.value[messageIndex];
       if (!message.labels) {
         message.labels = [];
       }
-      
+
       const existingLabelIndex = message.labels.findIndex(l => l.id === label.id);
       if (existingLabelIndex > -1) {
         // 移除標籤
@@ -1501,7 +1510,7 @@ export default defineComponent({
         // 新增標籤
         message.labels.push(label);
       }
-      
+
       // 更新到 Firebase
       set(dbRef(database, `bulletin/${messageIndex}/labels`), message.labels).then(() => {
         console.log('標籤更新成功');
@@ -1515,10 +1524,10 @@ export default defineComponent({
     // 狀態管理相關函數
     const changeStatus = (messageIndex: number, newStatus: string) => {
       if (!dataLoaded.value || !props.uid) return;
-      
+
       const message = messages.value[messageIndex];
       message.status = newStatus as 'open' | 'closed' | 'resolved' | 'in-progress';
-      
+
       // 更新到 Firebase
       set(dbRef(database, `bulletin/${messageIndex}/status`), newStatus).then(() => {
         console.log('狀態更新成功');
@@ -1538,10 +1547,10 @@ export default defineComponent({
     // 優先級管理相關函數
     const changePriority = (messageIndex: number, newPriority: string) => {
       if (!dataLoaded.value || !props.uid) return;
-      
+
       const message = messages.value[messageIndex];
       message.priority = newPriority as 'low' | 'medium' | 'high' | 'urgent';
-      
+
       // 更新到 Firebase
       set(dbRef(database, `bulletin/${messageIndex}/priority`), newPriority).then(() => {
         console.log('優先級更新成功');
@@ -1561,13 +1570,13 @@ export default defineComponent({
     // 引用功能相關函數
     const quoteMessage = (messageIndex: number) => {
       if (!dataLoaded.value || !props.uid) return;
-      
+
       const message = messages.value[messageIndex];
       const quotedText = `> ${message.author}: ${message.text.substring(0, 100)}${message.text.length > 100 ? '...' : ''}\n\n`;
-      
+
       // 設置引用內容到新留言框
       newMessage.value = quotedText + newMessage.value;
-      
+
       // 聚焦到留言框
       nextTick(() => {
         if (messageTextarea.value) {
@@ -1593,7 +1602,7 @@ export default defineComponent({
       const taskRegex = /^(\s*[-*+]\s*\[([x\s])\]\s*(.+))$/gm;
       const tasks: Array<{id: string, text: string, completed: boolean}> = [];
       let match;
-      
+
       while ((match = taskRegex.exec(text)) !== null) {
         tasks.push({
           id: Math.random().toString(36).substr(2, 9),
@@ -1601,19 +1610,19 @@ export default defineComponent({
           completed: match[2] === 'x'
         });
       }
-      
+
       return tasks;
     };
 
     const toggleTask = (messageIndex: number, taskId: string) => {
       if (!dataLoaded.value || !props.uid) return;
-      
+
       const message = messages.value[messageIndex];
       if (message.tasks) {
         const task = message.tasks.find(t => t.id === taskId);
         if (task) {
           task.completed = !task.completed;
-          
+
           // 更新到 Firebase
           set(dbRef(database, `bulletin/${messageIndex}/tasks`), message.tasks).then(() => {
             console.log('任務狀態更新成功');
@@ -1629,11 +1638,11 @@ export default defineComponent({
     // 檢測引用的函數
     const detectReferences = (text: string): Array<{id: number, preview: string, type: 'message' | 'reply'}> => {
       const references: Array<{id: number, preview: string, type: 'message' | 'reply'}> = [];
-      
+
       // 檢測引用格式 (例如 #123 或 引用 #123)
       const referenceRegex = /(?:引用\s*)?#(\d+)/g;
       let match;
-      
+
       while ((match = referenceRegex.exec(text)) !== null) {
         const messageId = parseInt(match[1]);
         if (messageId < messages.value.length) {
@@ -1647,7 +1656,7 @@ export default defineComponent({
           }
         }
       }
-      
+
       return references;
     };
 
@@ -1696,7 +1705,7 @@ export default defineComponent({
       handleMessageInput,
       handleKeydown,
       selectMention,
-      parseMentions,
+      parseMentionsAndHideTasks,
       searchKeyword,
       filteredMessages,
       handleSearch,
@@ -2214,14 +2223,19 @@ img.ui.avatar.image {
   font-weight: 500;
 }
 
+.message-priority.medium {
+  background-color: #499e2b;
+  color: white
+}
+
 .message-priority.high {
   background-color: #ff6b6b;
   color: white;
 }
 
 .message-priority.urgent {
-  background-color: #ff4757;
-  color: white;
+  background-color: #f4ff2b;
+  color: rgb(0, 0, 0);
   animation: pulse 2s infinite;
 }
 
