@@ -72,24 +72,7 @@
               i.edit.icon
               span 編輯
 
-          .replies(v-if="message.nestedReplies && message.nestedReplies.length > 0")
-            .unexpended(v-if="!message.repliesExpanded")
-              | 共有{{ ReplyManager.countReplies(message.nestedReplies) }}則回覆
-            .expended(v-else)
-              .nested-reply-integration
-                NestedReplyComponent(
-                  :replies="message.nestedReplies"
-                  :current-user-id="uid"
-                  :max-depth="10"
-                  :available-emojis="['👍', '❤️', '🙏', '🫡', '❤️‍🔥', '😢']"
-                  @add-reply="handleAddNestedReply"
-                  @edit-reply="handleEditNestedReply"
-                  @delete-reply="handleDeleteNestedReply"
-                  @toggle-reaction="handleToggleNestedReaction"
-                )
-          
-          // 保留舊的回覆顯示用於向後相容
-          .replies(v-if="message.replies && message.replies.length > 0 && (!message.nestedReplies || message.nestedReplies.length === 0)")
+          .replies(v-if="message.replies && message.replies.length > 0")
             .unexpended(v-if="!message.repliesExpanded")
               | 共有{{ message.replies.length }}則回覆
             .expended(v-else)
@@ -214,12 +197,9 @@
 
 <script lang="ts">
 import { ref, defineComponent, onMounted, nextTick, computed, watch } from 'vue';
-import { onValue, ref as dbRef, get, set, update } from 'firebase/database';
+import { onValue, ref as dbRef, get, set, push } from 'firebase/database';
 import { bulletinRef, database } from '@/firebase';
 import { useRouter } from 'vue-router';
-import NestedReplyComponent from '@/components/NestedReplyComponent.vue';
-import type { NestedReply } from '@/types/bulletin';
-import { ReplyManager } from '@/utils/replyUtils';
 
 interface User {
   name: string;
@@ -239,7 +219,6 @@ interface Message {
     };
   };
   replies?: Reply[];
-  nestedReplies?: NestedReply[];
   repliesExpanded?: boolean;
   actualIndex?: number;
   attachments?: Array<{name: string, url: string, size: number, type: string}>;
@@ -260,9 +239,6 @@ interface Reply {
 }
 
 export default defineComponent({
-  components: {
-    NestedReplyComponent
-  },
   props: {
     uid: {
       required: false,
@@ -1025,8 +1001,6 @@ export default defineComponent({
               text: reply.text,
               reactions: reply.reactions || {}
             })) : [],
-            nestedReplies: message.nestedReplies || 
-                          (message.replies ? ReplyManager.convertOldRepliesToNested(message.replies) : []),
             hrefs: message.hrefs || [],
             attachments: message.attachments || []
           }));
@@ -1059,8 +1033,6 @@ export default defineComponent({
             text: reply.text,
             reactions: reply.reactions || {}
           })) : [],
-          nestedReplies: message.nestedReplies || 
-                        (message.replies ? ReplyManager.convertOldRepliesToNested(message.replies) : []),
           hrefs: message.hrefs || [],
           attachments: message.attachments || []
         }));
@@ -1208,147 +1180,6 @@ export default defineComponent({
       });
     };
 
-    // 新增的嵌套回覆處理函數
-    const handleAddNestedReply = async (data: { parentId: string; text: string; replyToUser: string }) => {
-      if (!props.uid) return;
-      
-      const messageIndex = filteredMessages.value.findIndex(msg => 
-        ReplyManager.findReplyById(msg.nestedReplies || [], data.parentId)
-      );
-      
-      if (messageIndex === -1) return;
-      
-      const message = filteredMessages.value[messageIndex];
-      const parentReply = ReplyManager.findReplyById(message.nestedReplies || [], data.parentId);
-      
-      if (!parentReply) return;
-      
-      const newReply = ReplyManager.createNewReply(
-        { text: data.text, parentId: data.parentId, replyToUser: data.replyToUser },
-        props.users[props.uid].name || '匿名',
-        props.uid,
-        parentReply.level
-      );
-      
-      // 更新本地狀態
-      message.nestedReplies = ReplyManager.addReplyToTree(
-        message.nestedReplies || [], 
-        newReply, 
-        data.parentId
-      );
-      
-      // 更新 Firebase
-      await updateMessageInFirebase(message.actualIndex || messageIndex, message);
-      
-      // 發送通知
-      const mentionedUsers = detectMentionedUsers(data.text);
-      if (mentionedUsers.length > 0) {
-        sendReplyNotification(data.replyToUser, data.text, props.users[props.uid].name || '匿名');
-      }
-    };
-
-    const handleEditNestedReply = async (data: { replyId: string; text: string }) => {
-      const messageIndex = filteredMessages.value.findIndex(msg => 
-        ReplyManager.findReplyById(msg.nestedReplies || [], data.replyId)
-      );
-      
-      if (messageIndex === -1) return;
-      
-      const message = filteredMessages.value[messageIndex];
-      message.nestedReplies = ReplyManager.updateReplyInTree(
-        message.nestedReplies || [], 
-        data.replyId, 
-        data.text
-      );
-      
-      await updateMessageInFirebase(message.actualIndex || messageIndex, message);
-    };
-
-    const handleDeleteNestedReply = async (replyId: string) => {
-      const messageIndex = filteredMessages.value.findIndex(msg => 
-        ReplyManager.findReplyById(msg.nestedReplies || [], replyId)
-      );
-      
-      if (messageIndex === -1) return;
-      
-      const message = filteredMessages.value[messageIndex];
-      message.nestedReplies = ReplyManager.removeReplyFromTree(
-        message.nestedReplies || [], 
-        replyId
-      );
-      
-      await updateMessageInFirebase(message.actualIndex || messageIndex, message);
-    };
-
-    const handleToggleNestedReaction = async (replyId: string, emoji: string) => {
-      if (!props.uid) return;
-      
-      const messageIndex = filteredMessages.value.findIndex(msg => 
-        ReplyManager.findReplyById(msg.nestedReplies || [], replyId)
-      );
-      
-      if (messageIndex === -1) return;
-      
-      const message = filteredMessages.value[messageIndex];
-      message.nestedReplies = ReplyManager.toggleReactionInTree(
-        message.nestedReplies || [], 
-        replyId, 
-        emoji, 
-        props.uid
-      );
-      
-      await updateMessageInFirebase(message.actualIndex || messageIndex, message);
-    };
-
-    // 更新 Firebase 中的留言
-    const updateMessageInFirebase = async (messageIndex: number, message: Message) => {
-      try {
-        const messageRef = dbRef(database, `bulletin/${messageIndex}`);
-        await update(messageRef, {
-          nestedReplies: message.nestedReplies,
-          replies: message.replies // 保留向後相容
-        });
-      } catch (error) {
-        console.error('更新留言失敗:', error);
-      }
-    };
-
-    // 發送回覆通知
-    const sendReplyNotification = async (replyToUser: string, text: string, senderName: string) => {
-      const user = Object.entries(props.users).find(([_, user]) => (user as User).name === replyToUser);
-      if (!user || user[0] === props.uid) return;
-
-      const id = Date.now() + Math.random();
-      const notificationData = {
-        id,
-        recipient: {
-          uid: user[0],
-          name: (user[1] as User).name,
-          email: (user[1] as User).email,
-        },
-        sender: {
-          uid: props.uid,
-          name: senderName,
-          email: props.users[props.uid].email,
-        },
-        message: {
-          text: text,
-          date: new Date().toISOString(),
-        },
-        timestamp: new Date().toISOString(),
-        read: false,
-        type: 'nested_reply',
-      };
-
-      set(dbRef(database, `notifications/${id}`), notificationData)
-        .then(() => {
-          console.log(`已發送嵌套回覆通知給 ${replyToUser}`);
-        })
-        .catch(error => {
-          console.error('發送嵌套回覆通知失敗:', error);
-        });
-    };
-
     return {
       isBigFile,
       uploadProgress,
@@ -1401,11 +1232,6 @@ export default defineComponent({
       clearSearch,
       detectMentionedUsers,
       sendMentionNotifications,
-      handleAddNestedReply,
-      handleEditNestedReply,
-      handleDeleteNestedReply,
-      handleToggleNestedReaction,
-      ReplyManager,
     }
   }
 })
@@ -1838,37 +1664,6 @@ img.ui.avatar.image {
 
 :deep(.mention-link:hover) {
   background-color: rgba(0, 102, 255, 0.2);
-}
-
-/* 嵌套回覆自定義樣式 */
-.nested-reply-integration {
-  margin-top: 15px;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 15px;
-}
-
-/* 深色主題支援 */
-@media (prefers-color-scheme: dark) {
-  .nested-reply-integration {
-    border-top-color: #374151;
-  }
-}
-
-/* 加強嵌套回覆的視覺層級 */
-:deep(.nested-reply-container .reply-item) {
-  transition: all 0.3s ease;
-}
-
-:deep(.nested-reply-container .reply-item:hover) {
-  background-color: rgba(0, 102, 255, 0.02);
-  border-radius: 8px;
-}
-
-:deep(.nested-reply-container .reply-content) {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 
