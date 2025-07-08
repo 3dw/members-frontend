@@ -244,10 +244,11 @@
           .mention-item(
             v-for="(user, index) in mentionSuggestions"
             :key="user.uid"
-            :class="{ active: index === mentionIndex }"
+            :class="{ active: index === mentionIndex, 'mention-all': user.uid === 'all' }"
             @click="selectMention(user)"
           )
             img.ui.avatar.image(v-if="user.photoURL" :src="user.photoURL")
+            i.envelope.icon(v-if="user.uid === 'all'")
             span {{ user.name }}
 
       .field
@@ -335,6 +336,7 @@ interface Message {
   tasks?: Array<{id: string, text: string, completed: boolean}>;
   priority?: 'low' | 'medium' | 'high' | 'urgent';
   assignees?: string[];
+  notifyAllUsers?: boolean;
 }
 
 interface Reply {
@@ -390,6 +392,7 @@ export default defineComponent({
     const mentionStart = ref(-1);
     const searchKeyword = ref('');
     const filteredMessages = ref<Message[]>([]);
+    const notifyAllUsers = ref(false);
 
     // 標籤系統相關變數 - 直接在組件中定義
     const availableLabels = ref([
@@ -482,15 +485,25 @@ export default defineComponent({
         newMessageObj.references = referencedMessages;
       }
 
+      if (notifyAllUsers.value) {
+        newMessageObj.notifyAllUsers = true;
+      }
+
       messages.value.push(newMessageObj);
 
       if (mentionedUsers.length > 0) {
         sendMentionNotifications(mentionedUsers, newMessageObj, null, m_length);
       }
 
+      // 如果勾選了發送給所有用戶，則發送通知給所有用戶
+      if (notifyAllUsers.value) {
+        sendNotificationToAllUsers(newMessageObj, m_length);
+      }
+
       newMessage.value = '';
       newMessageHrefs.value = [];
       newMessageAttachments.value = [];
+      notifyAllUsers.value = false; // 重置通知狀態
       set(dbRef(database, 'bulletin/' + m_length), newMessageObj).then(() => {
         console.log('留言成功');
       });
@@ -878,7 +891,15 @@ export default defineComponent({
               name: (user as User).name,
               photoURL: (user as User).photoURL
             }));
-          mentionSuggestions.value = firstFiveUsers;
+          
+          // 添加 "All" 選項到列表最前面
+          const allOption = {
+            uid: 'all',
+            name: 'All',
+            photoURL: undefined
+          };
+          
+          mentionSuggestions.value = [allOption, ...firstFiveUsers];
           showMentions.value = true;
           mentionIndex.value = 0;
           return;
@@ -894,7 +915,19 @@ export default defineComponent({
               name: (user as User).name,
               photoURL: (user as User).photoURL
             }));
-          mentionSuggestions.value = filteredUsers;
+          
+          // 如果搜索文本匹配 "all"，則添加 All 選項
+          const suggestions: Array<{uid: string, name: string, photoURL?: string}> = [];
+          if ('all'.toLowerCase().includes(searchText.toLowerCase())) {
+            suggestions.push({
+              uid: 'all',
+              name: 'All',
+              photoURL: undefined
+            });
+          }
+          suggestions.push(...filteredUsers);
+          
+          mentionSuggestions.value = suggestions;
           showMentions.value = true;
           mentionIndex.value = 0;
           return;
@@ -934,6 +967,12 @@ export default defineComponent({
       const text = newMessage.value;
       const beforeMention = text.slice(0, mentionStart.value);
       const afterMention = text.slice(messageTextarea.value?.selectionStart || 0);
+      
+      // 如果選擇的是 "All"，設置通知所有用戶的標記
+      if (user.uid === 'all') {
+        notifyAllUsers.value = true;
+      }
+      
       newMessage.value = `${beforeMention}@${user.name} ${afterMention}`;
 
       showMentions.value = false;
@@ -1118,7 +1157,8 @@ export default defineComponent({
             references: message.references || [],
             tasks: message.tasks || [],
             priority: message.priority || 'low',
-            assignees: message.assignees || []
+            assignees: message.assignees || [],
+            notifyAllUsers: message.notifyAllUsers || false
           }));
           dataLoaded.value = true;
 
@@ -1342,12 +1382,13 @@ export default defineComponent({
           attachments: message.attachments || [],
           labels: message.labels || [],
           status: message.status || 'open',
-          references: message.references || [],
-          tasks: message.tasks || [],
-          priority: message.priority || 'low',
-          assignees: message.assignees || []
-        }));
-        dataLoaded.value = true;
+                      references: message.references || [],
+            tasks: message.tasks || [],
+            priority: message.priority || 'low',
+            assignees: message.assignees || [],
+            notifyAllUsers: message.notifyAllUsers || false
+          }));
+          dataLoaded.value = true;
 
         restoreRepliesExpandedState();
 
@@ -1488,6 +1529,45 @@ export default defineComponent({
           })
           .catch(error => {
             console.error('發送通知失敗:', error);
+          });
+      });
+    };
+
+    // 發送通知給所有用戶的函數
+    const sendNotificationToAllUsers = (message: Message, actualIndex: number) => {
+      if (!props.uid || !props.users) return;
+
+      const allUserIds = Object.keys(props.users);
+      
+      allUserIds.forEach(userId => {
+        // 不發送給自己
+        if (userId === props.uid) return;
+        
+        const user = props.users[userId];
+        if (!user || !user.email) return;
+
+        const now = Date.now();
+        const id = `all_${actualIndex}_${userId}_${now}`;
+        const notificationData = {
+          id,
+          mentionedUserId: userId,
+          mentionedUserEmail: user.email,
+          mentioningUserId: props.uid,
+          mentioningUserName: props.users[props.uid].name || '匿名使用者',
+          messageId: String(actualIndex),
+          messageText: message.text,
+          messageTime: now,
+          status: 'pending',
+          type: 'broadcast', // 使用新的類型來標識這是廣播訊息
+          createdAt: now
+        };
+
+        set(dbRef(database, `notifications/${id}`), notificationData)
+          .then(() => {
+            console.log(`已發送廣播通知給 ${user.name}`);
+          })
+          .catch(error => {
+            console.error('發送廣播通知失敗:', error);
           });
       });
     };
@@ -1734,6 +1814,8 @@ export default defineComponent({
       activeDropdownMessageIndex,
       createDropdownMenu,
       removeActiveDropdownMenu,
+      notifyAllUsers,
+      sendNotificationToAllUsers,
     }
   }
 })
@@ -2220,6 +2302,24 @@ img.ui.avatar.image {
     width: 24px;
     height: 24px;
     border-radius: 50%;
+  }
+}
+
+.mention-item.mention-all {
+  background-color: #EEF3FF;
+  border: 1px solid #0066FF;
+  border-radius: 6px;
+  font-weight: 600;
+  color: #0066FF;
+  
+  &:hover, &.active {
+    background-color: #d4e6ff;
+    border-color: #0052cc;
+  }
+  
+  i.envelope.icon {
+    color: #0066FF;
+    font-size: 16px;
   }
 }
 
