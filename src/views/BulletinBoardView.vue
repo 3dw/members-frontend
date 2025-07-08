@@ -215,7 +215,7 @@
         .ui.info.message
           .header 💡 進階功能提示
           .list
-            .item.fat-only
+            .item
               i.tags.icon
               .content
                 strong 任務列表:
