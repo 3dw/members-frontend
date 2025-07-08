@@ -885,11 +885,11 @@ export default defineComponent({
 
       const textarea = messageTextarea.value;
       const textareaRect = textarea.getBoundingClientRect();
-      
+
       // 創建一個臨時的 span 來測量文本寬度
       const measurer = document.createElement('span');
       const computedStyle = getComputedStyle(textarea);
-      
+
       measurer.style.cssText = `
         visibility: hidden;
         position: absolute;
@@ -900,44 +900,44 @@ export default defineComponent({
         line-height: ${computedStyle.lineHeight};
         letter-spacing: ${computedStyle.letterSpacing};
       `;
-      
+
       document.body.appendChild(measurer);
-      
+
       // 獲取到 @ 符號為止的文本
       const textBeforeMention = newMessage.value.slice(0, mentionStart.value + 1);
-      
+
       // 處理換行
       const lines = textBeforeMention.split('\n');
       const lastLine = lines[lines.length - 1];
-      
+
       // 測量最後一行的寬度
       measurer.textContent = lastLine;
       const textWidth = measurer.getBoundingClientRect().width;
-      
+
       document.body.removeChild(measurer);
-      
+
       // 計算位置
       const paddingLeft = parseInt(computedStyle.paddingLeft, 10) || 0;
       const paddingTop = parseInt(computedStyle.paddingTop, 10) || 0;
       const borderLeft = parseInt(computedStyle.borderLeftWidth, 10) || 0;
       const borderTop = parseInt(computedStyle.borderTopWidth, 10) || 0;
       const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
-      
+
       // 計算 @ 符號的位置
       const left = textareaRect.left + paddingLeft + borderLeft + textWidth;
       const top = textareaRect.top + paddingTop + borderTop + (lines.length * lineHeight) + window.scrollY;
-      
+
       // 確保不超出螢幕邊界
       const menuWidth = Math.min(220, window.innerWidth - 20);
       const maxLeft = window.innerWidth - menuWidth - 10;
       const minLeft = 10;
       const finalLeft = Math.min(Math.max(left, minLeft), maxLeft);
-      
+
       // 確保不超出底部邊界
       const menuHeight = 250;
       const maxTop = window.innerHeight - menuHeight - 10;
       const finalTop = Math.min(top, maxTop);
-      
+
       mentionPosition.value = { top: finalTop, left: finalLeft };
     };
 
@@ -957,18 +957,18 @@ export default defineComponent({
               name: (user as User).name,
               photoURL: (user as User).photoURL
             }));
-          
+
           // 添加 "All" 選項到列表最前面
           const allOption = {
             uid: 'all',
             name: 'All',
             photoURL: undefined
           };
-          
+
           mentionSuggestions.value = [allOption, ...firstFiveUsers];
           showMentions.value = true;
           mentionIndex.value = 0;
-          
+
           // 計算位置
           nextTick(() => {
             calculateMentionPosition();
@@ -986,7 +986,7 @@ export default defineComponent({
               name: (user as User).name,
               photoURL: (user as User).photoURL
             }));
-          
+
           // 如果搜索文本匹配 "all"，則添加 All 選項
           const suggestions: Array<{uid: string, name: string, photoURL?: string}> = [];
           if ('all'.toLowerCase().includes(searchText.toLowerCase())) {
@@ -997,11 +997,11 @@ export default defineComponent({
             });
           }
           suggestions.push(...filteredUsers);
-          
+
           mentionSuggestions.value = suggestions;
           showMentions.value = true;
           mentionIndex.value = 0;
-          
+
           // 計算位置
           nextTick(() => {
             calculateMentionPosition();
@@ -1043,12 +1043,12 @@ export default defineComponent({
       const text = newMessage.value;
       const beforeMention = text.slice(0, mentionStart.value);
       const afterMention = text.slice(messageTextarea.value?.selectionStart || 0);
-      
+
       // 如果選擇的是 "All"，設置通知所有用戶的標記
       if (user.uid === 'all') {
         notifyAllUsers.value = true;
       }
-      
+
       newMessage.value = `${beforeMention}@${user.name} ${afterMention}`;
 
       showMentions.value = false;
@@ -1475,12 +1475,12 @@ export default defineComponent({
           document.addEventListener('click', handleDocumentClick);
           // 添加滾動事件監聽器，滾動時關閉所有下拉菜單
           document.addEventListener('scroll', scrollHandler, true);
-          
+
           // 添加監聽器來關閉 @ 提及選單
           const closeMentionSuggestions = () => {
             showMentions.value = false;
           };
-          
+
           document.addEventListener('scroll', closeMentionSuggestions, true);
           window.addEventListener('resize', closeMentionSuggestions);
 
@@ -1553,22 +1553,27 @@ export default defineComponent({
       const mentionRegex = /@([a-zA-Z0-9\u4e00-\u9fa5_]+)/g;
       let match;
 
-      while ((match = mentionRegex.exec(text)) !== null) {
-        const username = match[1];
+      // 如果@all或@All 則返回所有用戶的uid，除自己外
+      if (text.includes('@all') || text.includes('@All')) {
+        return Object.keys(props.users).filter(uid => uid !== props.uid);
+      } else {
 
-        const userEntry = Object.entries(props.users).find(([_, user]) =>
-          ((user as User).name || '').toLowerCase() === username.toLowerCase()
-        );
+        while ((match = mentionRegex.exec(text)) !== null) {
+          const username = match[1];
 
-        if (userEntry) {
-          const userId = userEntry[0];
-          if (!mentionedUsers.includes(userId)) {
-            mentionedUsers.push(userId);
+          const userEntry = Object.entries(props.users).find(([_, user]) =>
+            ((user as User).name || '').toLowerCase() === username.toLowerCase()
+          );
+
+          if (userEntry) {
+            const userId = userEntry[0];
+            if (!mentionedUsers.includes(userId)) {
+              mentionedUsers.push(userId);
+            }
           }
         }
+        return mentionedUsers;
       }
-
-      return mentionedUsers;
     };
 
     const sendMentionNotifications = (mentionedUserIds: string[], message: Message, reply?: Reply | null, actualIndex?: number) => {
@@ -1622,11 +1627,11 @@ export default defineComponent({
       if (!props.uid || !props.users) return;
 
       const allUserIds = Object.keys(props.users);
-      
+
       allUserIds.forEach(userId => {
         // 不發送給自己
         if (userId === props.uid) return;
-        
+
         const user = props.users[userId];
         if (!user || !user.email) return;
 
@@ -2398,12 +2403,12 @@ img.ui.avatar.image {
   border-radius: 6px;
   font-weight: 600;
   color: #0066FF;
-  
+
   &:hover, &.active {
     background-color: #d4e6ff;
     border-color: #0052cc;
   }
-  
+
   i.envelope.icon {
     color: #0066FF;
     font-size: 16px;
