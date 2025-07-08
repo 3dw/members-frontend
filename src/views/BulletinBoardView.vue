@@ -94,7 +94,7 @@
           .actions
             .reaction-buttons
               button.reaction-btn(
-                v-for="emoji in ['👍', '❤️', '🙏', '🫡', '❤️‍🔥', '😢']"
+                v-for="emoji in ['👍', '❤️', '🙏', '🫡', '🌟', '💡', '😊', '😁', '😢']"
                 :key="emoji"
                 @click="toggleReaction(message, emoji)"
                 :class="{ active: hasReacted(message, emoji) }"
@@ -104,26 +104,9 @@
                 span.emoji {{ emoji }}
                 span.count {{ getReactionCount(message, emoji) }}
 
-          .ui.buttons
-            button.ui.tiny.basic.blue.button(@click="toggleReplyForm(message.actualIndex)")
-              | 回覆&nbsp;&nbsp;
-              i.reply.icon
-            button.ui.tiny.basic.green.button(@click="quoteMessage(message.actualIndex)")
-              | 引用&nbsp;&nbsp;
-              i.quote.left.icon
-            button.ui.tiny.basic.orange.button(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
-              span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開&nbsp;&nbsp;
-                i.expand.icon
-              span(v-else) 收起&nbsp;&nbsp;
-                i.chevron.up.icon
-            button.ui.tiny.basic.purple.button(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="editMessage(message.actualIndex)")
-              i.edit.icon
-              span 編輯
-
           div.flex.flex-row(v-if="uid")
-            .filler
-            .ui.buttons
-              button.ui.tiny.basic.button.dropdown-trigger(
+            .action-buttons
+              button.action-btn.dropdown-trigger(
                 v-if="uid"
                 :data-dropdown-type="'labels'"
                 :data-message-index="message.actualIndex"
@@ -132,7 +115,7 @@
                 i.tags.icon
                 span 標籤
 
-              button.ui.tiny.basic.button.dropdown-trigger(
+              button.action-btn.dropdown-trigger(
                 v-if="uid"
                 :data-dropdown-type="'status'"
                 :data-message-index="message.actualIndex"
@@ -141,7 +124,7 @@
                 i.flag.icon
                 span 狀態
 
-              button.ui.tiny.basic.button.dropdown-trigger(
+              button.action-btn.dropdown-trigger(
                 v-if="uid"
                 :data-dropdown-type="'priority'"
                 :data-message-index="message.actualIndex"
@@ -149,6 +132,22 @@
               )
                 i.exclamation.icon
                 span 優先級
+
+          .action-buttons
+            button.action-btn.reply-btn(@click="toggleReplyForm(message.actualIndex)")
+              i.reply.icon
+              span 回覆
+            button.action-btn.quote-btn(@click="quoteMessage(message.actualIndex)")
+              i.quote.left.icon
+              span 引用
+            button.action-btn.expand-btn(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
+              i.expand.icon(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded")
+              i.chevron.up.icon(v-else)
+              span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開
+              span(v-else) 收起
+            button.action-btn.edit-btn(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="editMessage(message.actualIndex)")
+              i.edit.icon
+              span 編輯
 
           .replies(v-if="message.replies && message.replies.length > 0")
             .unexpended(v-if="!message.repliesExpanded")
@@ -165,7 +164,7 @@
                   .actions(v-if="reply.uid === uid")
                     .reaction-buttons
                       button.reaction-btn(
-                        v-for="emoji in ['👍', '❤️', '🙏', '🫡', '❤️‍🔥', '😢']"
+                        v-for="emoji in ['👍', '❤️', '🙏', '🫡', '🌟', '💡', '😊', '😁', '😢']"
                         :key="emoji"
                         @click="toggleReplyReaction(reply, message.actualIndex, rIndex, emoji)"
                         :class="{ active: hasReacted(reply, emoji) }"
@@ -174,16 +173,16 @@
                           | {{ getReactionUsers(reply, emoji) }}
                         span.emoji {{ emoji }}
                         span.count {{ getReactionCount(reply, emoji) }}
-                  .ui.buttons
-                    button.ui.tiny.basic.blue.button(@click="toggleReplyForm(message.actualIndex)")
-                      | 回覆&nbsp;&nbsp;
+                  .action-buttons
+                    button.action-btn.reply-btn(@click="toggleReplyForm(message.actualIndex)")
                       i.reply.icon
-                    button.ui.tiny.basic.orange.button(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
-                      span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開&nbsp;&nbsp;
-                        i.expand.icon
-                      span(v-else) 收起&nbsp;&nbsp;
-                        i.chevron.up.icon
-                    button.ui.tiny.basic.red.button(@click="deleteReply(message.actualIndex, rIndex)")
+                      span 回覆
+                    button.action-btn.expand-btn(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
+                      i.expand.icon(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded")
+                      i.chevron.up.icon(v-else)
+                      span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開
+                      span(v-else) 收起
+                    button.action-btn.delete-btn(@click="deleteReply(message.actualIndex, rIndex)")
                       i.trash.icon
                       span.fat-only 刪除
 
@@ -1909,6 +1908,97 @@ img.ui.avatar.image {
   color: #0066FF;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.action-btn:hover {
+  background-color: #f8f9fa;
+  border-color: #0066FF;
+  color: #0066FF;
+  transform: translateY(-1px);
+}
+
+.action-btn.active {
+  background-color: #EEF3FF;
+  border-color: #0066FF;
+  color: #0066FF;
+}
+
+/* 不同按鈕的特定顏色 */
+.reply-btn {
+  border-color: #0066FF;
+  color: #0066FF;
+}
+
+.reply-btn:hover {
+  background-color: #EEF3FF;
+  border-color: #0066FF;
+  color: #0066FF;
+}
+
+.quote-btn {
+  border-color: #28a745;
+  color: #28a745;
+}
+
+.quote-btn:hover {
+  background-color: #d4edda;
+  border-color: #28a745;
+  color: #28a745;
+}
+
+.edit-btn {
+  border-color: #6f42c1;
+  color: #6f42c1;
+}
+
+.edit-btn:hover {
+  background-color: #e2d5f1;
+  border-color: #6f42c1;
+  color: #6f42c1;
+}
+
+.expand-btn {
+  border-color: #fd7e14;
+  color: #fd7e14;
+}
+
+.expand-btn:hover {
+  background-color: #fff3cd;
+  border-color: #fd7e14;
+  color: #fd7e14;
+}
+
+.delete-btn {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.delete-btn:hover {
+  background-color: #f8d7da;
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
 .emoji {
   font-size: 1.1rem;
 }
@@ -1971,6 +2061,15 @@ img.ui.avatar.image {
   }
 
   .reaction-btn {
+    padding: 0.3rem 0.6rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .action-buttons {
+    gap: 0.3rem;
+  }
+
+  .action-btn {
     padding: 0.3rem 0.6rem;
     margin-bottom: 0.3rem;
   }
