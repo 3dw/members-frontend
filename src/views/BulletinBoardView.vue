@@ -94,7 +94,7 @@
           .actions
             .reaction-buttons
               button.reaction-btn(
-                v-for="emoji in ['👍', '❤️', '🙏', '🫡', '❤️‍🔥', '😢']"
+                v-for="emoji in ['👍', '❤️', '🙏', '🫡', '🌟', '💡', '😊', '😁', '😢']"
                 :key="emoji"
                 @click="toggleReaction(message, emoji)"
                 :class="{ active: hasReacted(message, emoji) }"
@@ -104,26 +104,9 @@
                 span.emoji {{ emoji }}
                 span.count {{ getReactionCount(message, emoji) }}
 
-          .ui.buttons
-            button.ui.tiny.basic.blue.button(@click="toggleReplyForm(message.actualIndex)")
-              | 回覆&nbsp;&nbsp;
-              i.reply.icon
-            button.ui.tiny.basic.green.button(@click="quoteMessage(message.actualIndex)")
-              | 引用&nbsp;&nbsp;
-              i.quote.left.icon
-            button.ui.tiny.basic.orange.button(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
-              span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開&nbsp;&nbsp;
-                i.expand.icon
-              span(v-else) 收起&nbsp;&nbsp;
-                i.chevron.up.icon
-            button.ui.tiny.basic.purple.button(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="editMessage(message.actualIndex)")
-              i.edit.icon
-              span 編輯
-
           div.flex.flex-row(v-if="uid")
-            .filler
-            .ui.buttons
-              button.ui.tiny.basic.button.dropdown-trigger(
+            .action-buttons
+              button.action-btn.dropdown-trigger(
                 v-if="uid"
                 :data-dropdown-type="'labels'"
                 :data-message-index="message.actualIndex"
@@ -132,7 +115,7 @@
                 i.tags.icon
                 span 標籤
 
-              button.ui.tiny.basic.button.dropdown-trigger(
+              button.action-btn.dropdown-trigger(
                 v-if="uid"
                 :data-dropdown-type="'status'"
                 :data-message-index="message.actualIndex"
@@ -141,7 +124,7 @@
                 i.flag.icon
                 span 狀態
 
-              button.ui.tiny.basic.button.dropdown-trigger(
+              button.action-btn.dropdown-trigger(
                 v-if="uid"
                 :data-dropdown-type="'priority'"
                 :data-message-index="message.actualIndex"
@@ -149,6 +132,22 @@
               )
                 i.exclamation.icon
                 span 優先級
+
+          .action-buttons
+            button.action-btn.reply-btn(@click="toggleReplyForm(message.actualIndex)")
+              i.reply.icon
+              span 回覆
+            button.action-btn.quote-btn(@click="quoteMessage(message.actualIndex)")
+              i.quote.left.icon
+              span 引用
+            button.action-btn.expand-btn(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
+              i.expand.icon(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded")
+              i.chevron.up.icon(v-else)
+              span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開
+              span(v-else) 收起
+            button.action-btn.edit-btn(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="editMessage(message.actualIndex)")
+              i.edit.icon
+              span 編輯
 
           .replies(v-if="message.replies && message.replies.length > 0")
             .unexpended(v-if="!message.repliesExpanded")
@@ -165,7 +164,7 @@
                   .actions(v-if="reply.uid === uid")
                     .reaction-buttons
                       button.reaction-btn(
-                        v-for="emoji in ['👍', '❤️', '🙏', '🫡', '❤️‍🔥', '😢']"
+                        v-for="emoji in ['👍', '❤️', '🙏', '🫡', '🌟', '💡', '😊', '😁', '😢']"
                         :key="emoji"
                         @click="toggleReplyReaction(reply, message.actualIndex, rIndex, emoji)"
                         :class="{ active: hasReacted(reply, emoji) }"
@@ -174,16 +173,16 @@
                           | {{ getReactionUsers(reply, emoji) }}
                         span.emoji {{ emoji }}
                         span.count {{ getReactionCount(reply, emoji) }}
-                  .ui.buttons
-                    button.ui.tiny.basic.blue.button(@click="toggleReplyForm(message.actualIndex)")
-                      | 回覆&nbsp;&nbsp;
+                  .action-buttons
+                    button.action-btn.reply-btn(@click="toggleReplyForm(message.actualIndex)")
                       i.reply.icon
-                    button.ui.tiny.basic.orange.button(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
-                      span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開&nbsp;&nbsp;
-                        i.expand.icon
-                      span(v-else) 收起&nbsp;&nbsp;
-                        i.chevron.up.icon
-                    button.ui.tiny.basic.red.button(@click="deleteReply(message.actualIndex, rIndex)")
+                      span 回覆
+                    button.action-btn.expand-btn(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
+                      i.expand.icon(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded")
+                      i.chevron.up.icon(v-else)
+                      span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開
+                      span(v-else) 收起
+                    button.action-btn.delete-btn(@click="deleteReply(message.actualIndex, rIndex)")
                       i.trash.icon
                       span.fat-only 刪除
 
@@ -216,7 +215,7 @@
         .ui.info.message
           .header 💡 進階功能提示
           .list
-            .item.fat-only
+            .item
               i.tags.icon
               .content
                 strong 任務列表:
@@ -241,14 +240,18 @@
                 | 使用
                 code @用戶名
                 |  格式提及其他用戶
-        .mention-suggestions(v-if="showMentions && mentionSuggestions.length > 0")
+        .mention-suggestions(
+          v-if="showMentions && mentionSuggestions.length > 0"
+          :style="{ top: mentionPosition.top + 'px', left: mentionPosition.left + 'px' }"
+        )
           .mention-item(
             v-for="(user, index) in mentionSuggestions"
             :key="user.uid"
-            :class="{ active: index === mentionIndex }"
+            :class="{ active: index === mentionIndex, 'mention-all': user.uid === 'all' }"
             @click="selectMention(user)"
           )
             img.ui.avatar.image(v-if="user.photoURL" :src="user.photoURL")
+            i.envelope.icon(v-if="user.uid === 'all'")
             span {{ user.name }}
 
       .field
@@ -336,6 +339,7 @@ interface Message {
   tasks?: Array<{id: string, text: string, completed: boolean}>;
   priority?: 'low' | 'medium' | 'high' | 'urgent';
   assignees?: string[];
+  notifyAllUsers?: boolean;
 }
 
 interface Reply {
@@ -391,6 +395,8 @@ export default defineComponent({
     const mentionStart = ref(-1);
     const searchKeyword = ref('');
     const filteredMessages = ref<Message[]>([]);
+    const notifyAllUsers = ref(false);
+    const mentionPosition = ref({ top: 0, left: 0 });
 
     // 標籤系統相關變數 - 直接在組件中定義
     const availableLabels = ref([
@@ -483,15 +489,30 @@ export default defineComponent({
         newMessageObj.references = referencedMessages;
       }
 
+      if (notifyAllUsers.value) {
+        newMessageObj.notifyAllUsers = true;
+      }
+
       messages.value.push(newMessageObj);
 
-      if (mentionedUsers.length > 0) {
+
+      // 如果勾選了發送給所有用戶，則發送通知給所有用戶
+      if (notifyAllUsers.value) {
+        sendNotificationToAllUsers(newMessageObj, m_length);
+      }
+
+      // 如果沒有勾選發送給所有用戶，則發送通知給被提及的用戶
+      // 這麼做是為了避免發送給所有用戶時，被提及的用戶會收到重複的通知
+
+      if (mentionedUsers.length > 0 && !notifyAllUsers.value) {
         sendMentionNotifications(mentionedUsers, newMessageObj, null, m_length);
       }
+
 
       newMessage.value = '';
       newMessageHrefs.value = [];
       newMessageAttachments.value = [];
+      notifyAllUsers.value = false; // 重置通知狀態
       set(dbRef(database, 'bulletin/' + m_length), newMessageObj).then(() => {
         console.log('留言成功');
       });
@@ -863,6 +884,68 @@ export default defineComponent({
       }
     };
 
+    // 計算 @ 符號位置
+    const calculateMentionPosition = () => {
+      if (!messageTextarea.value || mentionStart.value === -1) return;
+
+      const textarea = messageTextarea.value;
+      const textareaRect = textarea.getBoundingClientRect();
+
+      // 創建一個臨時的 span 來測量文本寬度
+      const measurer = document.createElement('span');
+      const computedStyle = getComputedStyle(textarea);
+
+      measurer.style.cssText = `
+        visibility: hidden;
+        position: absolute;
+        white-space: pre;
+        font-family: ${computedStyle.fontFamily};
+        font-size: ${computedStyle.fontSize};
+        font-weight: ${computedStyle.fontWeight};
+        line-height: ${computedStyle.lineHeight};
+        letter-spacing: ${computedStyle.letterSpacing};
+      `;
+
+      document.body.appendChild(measurer);
+
+      // 獲取到 @ 符號為止的文本
+      const textBeforeMention = newMessage.value.slice(0, mentionStart.value + 1);
+
+      // 處理換行
+      const lines = textBeforeMention.split('\n');
+      const lastLine = lines[lines.length - 1];
+
+      // 測量最後一行的寬度
+      measurer.textContent = lastLine;
+      const textWidth = measurer.getBoundingClientRect().width;
+
+      document.body.removeChild(measurer);
+
+      // 計算位置
+      const paddingLeft = parseInt(computedStyle.paddingLeft, 10) || 0;
+      const paddingTop = parseInt(computedStyle.paddingTop, 10) || 0;
+      const borderLeft = parseInt(computedStyle.borderLeftWidth, 10) || 0;
+      const borderTop = parseInt(computedStyle.borderTopWidth, 10) || 0;
+      const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
+
+      // 計算 @ 符號的位置
+      const left = textareaRect.left + paddingLeft + borderLeft + textWidth;
+      const top = textareaRect.top + paddingTop + borderTop + (lines.length * lineHeight) + window.scrollY;
+
+      // 確保不超出螢幕邊界
+      const menuWidth = Math.min(220, window.innerWidth - 20);
+      const maxLeft = window.innerWidth - menuWidth - 10;
+      const minLeft = 10;
+      const finalLeft = Math.min(Math.max(left, minLeft), maxLeft);
+
+      // 確保不超出底部邊界
+      const menuHeight = 250;
+      const maxTop = window.innerHeight - menuHeight - 10;
+      const finalTop = Math.min(top, maxTop);
+
+      mentionPosition.value = { top: finalTop, left: finalLeft };
+    };
+
     const handleMessageInput = (event: KeyboardEvent) => {
       const text = newMessage.value;
       const cursorPosition = messageTextarea.value?.selectionStart || 0;
@@ -879,9 +962,22 @@ export default defineComponent({
               name: (user as User).name,
               photoURL: (user as User).photoURL
             }));
-          mentionSuggestions.value = firstFiveUsers;
+
+          // 添加 "All" 選項到列表最前面
+          const allOption = {
+            uid: 'all',
+            name: 'All',
+            photoURL: undefined
+          };
+
+          mentionSuggestions.value = [allOption, ...firstFiveUsers];
           showMentions.value = true;
           mentionIndex.value = 0;
+
+          // 計算位置
+          nextTick(() => {
+            calculateMentionPosition();
+          });
           return;
         }
 
@@ -895,9 +991,26 @@ export default defineComponent({
               name: (user as User).name,
               photoURL: (user as User).photoURL
             }));
-          mentionSuggestions.value = filteredUsers;
+
+          // 如果搜索文本匹配 "all"，則添加 All 選項
+          const suggestions: Array<{uid: string, name: string, photoURL?: string}> = [];
+          if ('all'.toLowerCase().includes(searchText.toLowerCase())) {
+            suggestions.push({
+              uid: 'all',
+              name: 'All',
+              photoURL: undefined
+            });
+          }
+          suggestions.push(...filteredUsers);
+
+          mentionSuggestions.value = suggestions;
           showMentions.value = true;
           mentionIndex.value = 0;
+
+          // 計算位置
+          nextTick(() => {
+            calculateMentionPosition();
+          });
           return;
         }
       }
@@ -935,6 +1048,12 @@ export default defineComponent({
       const text = newMessage.value;
       const beforeMention = text.slice(0, mentionStart.value);
       const afterMention = text.slice(messageTextarea.value?.selectionStart || 0);
+
+      // 如果選擇的是 "All"，設置通知所有用戶的標記
+      if (user.uid === 'all') {
+        notifyAllUsers.value = true;
+      }
+
       newMessage.value = `${beforeMention}@${user.name} ${afterMention}`;
 
       showMentions.value = false;
@@ -1119,7 +1238,8 @@ export default defineComponent({
             references: message.references || [],
             tasks: message.tasks || [],
             priority: message.priority || 'low',
-            assignees: message.assignees || []
+            assignees: message.assignees || [],
+            notifyAllUsers: message.notifyAllUsers || false
           }));
           dataLoaded.value = true;
 
@@ -1343,12 +1463,13 @@ export default defineComponent({
           attachments: message.attachments || [],
           labels: message.labels || [],
           status: message.status || 'open',
-          references: message.references || [],
-          tasks: message.tasks || [],
-          priority: message.priority || 'low',
-          assignees: message.assignees || []
-        }));
-        dataLoaded.value = true;
+                      references: message.references || [],
+            tasks: message.tasks || [],
+            priority: message.priority || 'low',
+            assignees: message.assignees || [],
+            notifyAllUsers: message.notifyAllUsers || false
+          }));
+          dataLoaded.value = true;
 
         restoreRepliesExpandedState();
 
@@ -1359,6 +1480,14 @@ export default defineComponent({
           document.addEventListener('click', handleDocumentClick);
           // 添加滾動事件監聽器，滾動時關閉所有下拉菜單
           document.addEventListener('scroll', scrollHandler, true);
+
+          // 添加監聽器來關閉 @ 提及選單
+          const closeMentionSuggestions = () => {
+            showMentions.value = false;
+          };
+
+          document.addEventListener('scroll', closeMentionSuggestions, true);
+          window.addEventListener('resize', closeMentionSuggestions);
 
           document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
             trigger.addEventListener('click', handleDropdownClick);
@@ -1489,6 +1618,45 @@ export default defineComponent({
           })
           .catch(error => {
             console.error('發送通知失敗:', error);
+          });
+      });
+    };
+
+    // 發送通知給所有用戶的函數
+    const sendNotificationToAllUsers = (message: Message, actualIndex: number) => {
+      if (!props.uid || !props.users) return;
+
+      const allUserIds = Object.keys(props.users);
+
+      allUserIds.forEach(userId => {
+        // 不發送給自己
+        if (userId === props.uid) return;
+
+        const user = props.users[userId];
+        if (!user || !user.email) return;
+
+        const now = Date.now();
+        const id = `all_${actualIndex}_${userId}_${now}`;
+        const notificationData = {
+          id,
+          mentionedUserId: userId,
+          mentionedUserEmail: user.email,
+          mentioningUserId: props.uid,
+          mentioningUserName: props.users[props.uid].name || '匿名使用者',
+          messageId: String(actualIndex),
+          messageText: message.text,
+          messageTime: now,
+          status: 'pending',
+          type: 'broadcast', // 使用新的類型來標識這是廣播訊息
+          createdAt: now
+        };
+
+        set(dbRef(database, `notifications/${id}`), notificationData)
+          .then(() => {
+            console.log(`已發送廣播通知給 ${user.name}`);
+          })
+          .catch(error => {
+            console.error('發送廣播通知失敗:', error);
           });
       });
     };
@@ -1735,6 +1903,10 @@ export default defineComponent({
       activeDropdownMessageIndex,
       createDropdownMenu,
       removeActiveDropdownMenu,
+      notifyAllUsers,
+      sendNotificationToAllUsers,
+      mentionPosition,
+      calculateMentionPosition,
     }
   }
 })
@@ -1909,6 +2081,97 @@ img.ui.avatar.image {
   color: #0066FF;
 }
 
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 20px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #666;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.action-btn:hover {
+  background-color: #f8f9fa;
+  border-color: #0066FF;
+  color: #0066FF;
+  transform: translateY(-1px);
+}
+
+.action-btn.active {
+  background-color: #EEF3FF;
+  border-color: #0066FF;
+  color: #0066FF;
+}
+
+/* 不同按鈕的特定顏色 */
+.reply-btn {
+  border-color: #0066FF;
+  color: #0066FF;
+}
+
+.reply-btn:hover {
+  background-color: #EEF3FF;
+  border-color: #0066FF;
+  color: #0066FF;
+}
+
+.quote-btn {
+  border-color: #28a745;
+  color: #28a745;
+}
+
+.quote-btn:hover {
+  background-color: #d4edda;
+  border-color: #28a745;
+  color: #28a745;
+}
+
+.edit-btn {
+  border-color: #6f42c1;
+  color: #6f42c1;
+}
+
+.edit-btn:hover {
+  background-color: #e2d5f1;
+  border-color: #6f42c1;
+  color: #6f42c1;
+}
+
+.expand-btn {
+  border-color: #fd7e14;
+  color: #fd7e14;
+}
+
+.expand-btn:hover {
+  background-color: #fff3cd;
+  border-color: #fd7e14;
+  color: #fd7e14;
+}
+
+.delete-btn {
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+.delete-btn:hover {
+  background-color: #f8d7da;
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
 .emoji {
   font-size: 1.1rem;
 }
@@ -1971,6 +2234,15 @@ img.ui.avatar.image {
   }
 
   .reaction-btn {
+    padding: 0.3rem 0.6rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .action-buttons {
+    gap: 0.3rem;
+  }
+
+  .action-btn {
     padding: 0.3rem 0.6rem;
     margin-bottom: 0.3rem;
   }
@@ -2096,14 +2368,15 @@ img.ui.avatar.image {
 }
 
 .mention-suggestions {
-  position: absolute;
+  position: fixed;
   background: white;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   max-height: 200px;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 10000;
+  min-width: 200px;
 }
 
 .mention-item {
@@ -2121,6 +2394,24 @@ img.ui.avatar.image {
     width: 24px;
     height: 24px;
     border-radius: 50%;
+  }
+}
+
+.mention-item.mention-all {
+  background-color: #EEF3FF;
+  border: 1px solid #0066FF;
+  border-radius: 6px;
+  font-weight: 600;
+  color: #0066FF;
+
+  &:hover, &.active {
+    background-color: #d4e6ff;
+    border-color: #0052cc;
+  }
+
+  i.envelope.icon {
+    color: #0066FF;
+    font-size: 16px;
   }
 }
 
@@ -2391,6 +2682,23 @@ img.ui.avatar.image {
   .dropdown.ui.button {
     min-height: 44px;
     padding: 0.5rem 1rem;
+  }
+
+  /* 小螢幕上的 @ 提及選單優化 */
+  .mention-suggestions {
+    min-width: 180px;
+    max-width: calc(100vw - 20px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  .mention-item {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .mention-item img {
+    width: 20px;
+    height: 20px;
   }
 }
 
