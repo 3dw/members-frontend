@@ -240,7 +240,10 @@
                 | 使用
                 code @用戶名
                 |  格式提及其他用戶
-        .mention-suggestions(v-if="showMentions && mentionSuggestions.length > 0")
+        .mention-suggestions(
+          v-if="showMentions && mentionSuggestions.length > 0"
+          :style="{ top: mentionPosition.top + 'px', left: mentionPosition.left + 'px' }"
+        )
           .mention-item(
             v-for="(user, index) in mentionSuggestions"
             :key="user.uid"
@@ -393,6 +396,7 @@ export default defineComponent({
     const searchKeyword = ref('');
     const filteredMessages = ref<Message[]>([]);
     const notifyAllUsers = ref(false);
+    const mentionPosition = ref({ top: 0, left: 0 });
 
     // 標籤系統相關變數 - 直接在組件中定義
     const availableLabels = ref([
@@ -875,6 +879,68 @@ export default defineComponent({
       }
     };
 
+    // 計算 @ 符號位置
+    const calculateMentionPosition = () => {
+      if (!messageTextarea.value || mentionStart.value === -1) return;
+
+      const textarea = messageTextarea.value;
+      const textareaRect = textarea.getBoundingClientRect();
+      
+      // 創建一個臨時的 span 來測量文本寬度
+      const measurer = document.createElement('span');
+      const computedStyle = getComputedStyle(textarea);
+      
+      measurer.style.cssText = `
+        visibility: hidden;
+        position: absolute;
+        white-space: pre;
+        font-family: ${computedStyle.fontFamily};
+        font-size: ${computedStyle.fontSize};
+        font-weight: ${computedStyle.fontWeight};
+        line-height: ${computedStyle.lineHeight};
+        letter-spacing: ${computedStyle.letterSpacing};
+      `;
+      
+      document.body.appendChild(measurer);
+      
+      // 獲取到 @ 符號為止的文本
+      const textBeforeMention = newMessage.value.slice(0, mentionStart.value + 1);
+      
+      // 處理換行
+      const lines = textBeforeMention.split('\n');
+      const lastLine = lines[lines.length - 1];
+      
+      // 測量最後一行的寬度
+      measurer.textContent = lastLine;
+      const textWidth = measurer.getBoundingClientRect().width;
+      
+      document.body.removeChild(measurer);
+      
+      // 計算位置
+      const paddingLeft = parseInt(computedStyle.paddingLeft, 10) || 0;
+      const paddingTop = parseInt(computedStyle.paddingTop, 10) || 0;
+      const borderLeft = parseInt(computedStyle.borderLeftWidth, 10) || 0;
+      const borderTop = parseInt(computedStyle.borderTopWidth, 10) || 0;
+      const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
+      
+      // 計算 @ 符號的位置
+      const left = textareaRect.left + paddingLeft + borderLeft + textWidth;
+      const top = textareaRect.top + paddingTop + borderTop + (lines.length * lineHeight) + window.scrollY;
+      
+      // 確保不超出螢幕邊界
+      const menuWidth = Math.min(220, window.innerWidth - 20);
+      const maxLeft = window.innerWidth - menuWidth - 10;
+      const minLeft = 10;
+      const finalLeft = Math.min(Math.max(left, minLeft), maxLeft);
+      
+      // 確保不超出底部邊界
+      const menuHeight = 250;
+      const maxTop = window.innerHeight - menuHeight - 10;
+      const finalTop = Math.min(top, maxTop);
+      
+      mentionPosition.value = { top: finalTop, left: finalLeft };
+    };
+
     const handleMessageInput = (event: KeyboardEvent) => {
       const text = newMessage.value;
       const cursorPosition = messageTextarea.value?.selectionStart || 0;
@@ -902,6 +968,11 @@ export default defineComponent({
           mentionSuggestions.value = [allOption, ...firstFiveUsers];
           showMentions.value = true;
           mentionIndex.value = 0;
+          
+          // 計算位置
+          nextTick(() => {
+            calculateMentionPosition();
+          });
           return;
         }
 
@@ -930,6 +1001,11 @@ export default defineComponent({
           mentionSuggestions.value = suggestions;
           showMentions.value = true;
           mentionIndex.value = 0;
+          
+          // 計算位置
+          nextTick(() => {
+            calculateMentionPosition();
+          });
           return;
         }
       }
@@ -1399,6 +1475,14 @@ export default defineComponent({
           document.addEventListener('click', handleDocumentClick);
           // 添加滾動事件監聽器，滾動時關閉所有下拉菜單
           document.addEventListener('scroll', scrollHandler, true);
+          
+          // 添加監聽器來關閉 @ 提及選單
+          const closeMentionSuggestions = () => {
+            showMentions.value = false;
+          };
+          
+          document.addEventListener('scroll', closeMentionSuggestions, true);
+          window.addEventListener('resize', closeMentionSuggestions);
 
           document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
             trigger.addEventListener('click', handleDropdownClick);
@@ -1816,6 +1900,8 @@ export default defineComponent({
       removeActiveDropdownMenu,
       notifyAllUsers,
       sendNotificationToAllUsers,
+      mentionPosition,
+      calculateMentionPosition,
     }
   }
 })
@@ -2277,14 +2363,15 @@ img.ui.avatar.image {
 }
 
 .mention-suggestions {
-  position: absolute;
+  position: fixed;
   background: white;
   border: 1px solid #ddd;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
   max-height: 200px;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 10000;
+  min-width: 200px;
 }
 
 .mention-item {
@@ -2590,6 +2677,23 @@ img.ui.avatar.image {
   .dropdown.ui.button {
     min-height: 44px;
     padding: 0.5rem 1rem;
+  }
+
+  /* 小螢幕上的 @ 提及選單優化 */
+  .mention-suggestions {
+    min-width: 180px;
+    max-width: calc(100vw - 20px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+
+  .mention-item {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .mention-item img {
+    width: 20px;
+    height: 20px;
   }
 }
 
