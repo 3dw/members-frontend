@@ -1133,20 +1133,22 @@ export default defineComponent({
         return;
       }
 
+      console.log('searchKeyword.value', searchKeyword.value);
+
       const keyword = searchKeyword.value.toLowerCase().trim();
       filteredMessages.value = sortedMessages.value.filter(message => {
-        if (message.text.toLowerCase().includes(keyword)) {
+        if (message.text && message.text.toLowerCase().includes(keyword)) {
           return true;
         }
 
-        if (message.author.toLowerCase().includes(keyword)) {
+        if (message.author && message.author.toLowerCase().includes(keyword)) {
           return true;
         }
 
         if (message.replies) {
           return message.replies.some(reply =>
-            reply.text.toLowerCase().includes(keyword) ||
-            reply.author.toLowerCase().includes(keyword)
+            reply.text && reply.text.toLowerCase().includes(keyword) ||
+            reply.author && reply.author.toLowerCase().includes(keyword)
           );
         }
 
