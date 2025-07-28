@@ -54,7 +54,12 @@
               i.quote.left.icon
               span.reference-text(v-text="`引用 #${ref.id}: ${ref.preview}`")
 
-          .text(v-html="parseMentionsAndHideTasks(message.text)")
+          .text(v-if="!message.textExpanded")
+            span(v-html="parseMentionsAndHideTasks(message.text.length > 50 ? message.text.slice(0, 50) + '...' : message.text)")
+            a.read-more-link(@click="expandMessage(message.actualIndex)" v-if="message.text.length > 50") 閱讀全文
+          .text(v-else)
+            span(v-html="parseMentionsAndHideTasks(message.text)")
+            a.read-more-link(@click="collapseMessage(message.actualIndex)") 收起全文
 
           .task-list(v-if="message.tasks && message.tasks.length > 0")
             .task-summary
@@ -160,7 +165,12 @@
                   .author {{ reply.author }}
                   .metadata
                     .date {{ parseDate(reply.date) }}
-                  .text {{ reply.text }}
+                  .text(v-if="!reply.textExpanded")
+                    span {{ reply.text.length > 50 ? reply.text.slice(0, 50) + '...' : reply.text }}
+                    a.read-more-link(@click="expandReply(message.actualIndex, rIndex)" v-if="reply.text.length > 50") 閱讀全文
+                  .text(v-else)
+                    span {{ reply.text }}
+                    a.read-more-link(@click="collapseReply(message.actualIndex, rIndex)") 收起全文
                   //- .actions(v-if="reply.uid === uid")
                     .reaction-buttons
                       button.reaction-btn(
@@ -329,6 +339,7 @@ interface Message {
   };
   replies?: Reply[];
   repliesExpanded?: boolean;
+  textExpanded?: boolean;
   actualIndex?: number;
   attachments?: Array<{name: string, url: string, size: number, type: string}>;
   hrefs?: string[];
@@ -347,6 +358,7 @@ interface Reply {
   uid: string;
   date: string;
   text: string;
+  textExpanded?: boolean;
   reactions?: {
     [key: string]: {
       [uid: string]: boolean;
@@ -397,6 +409,31 @@ export default defineComponent({
     const filteredMessages = ref<Message[]>([]);
     const notifyAllUsers = ref(false);
     const mentionPosition = ref({ top: 0, left: 0 });
+
+    // 文字展開狀態管理
+    const expandMessage = (messageIndex: number) => {
+      if (messages.value[messageIndex]) {
+        messages.value[messageIndex].textExpanded = true;
+      }
+    };
+
+    const collapseMessage = (messageIndex: number) => {
+      if (messages.value[messageIndex]) {
+        messages.value[messageIndex].textExpanded = false;
+      }
+    };
+
+    const expandReply = (messageIndex: number, replyIndex: number) => {
+      if (messages.value[messageIndex] && messages.value[messageIndex].replies) {
+        messages.value[messageIndex].replies![replyIndex].textExpanded = true;
+      }
+    };
+
+    const collapseReply = (messageIndex: number, replyIndex: number) => {
+      if (messages.value[messageIndex] && messages.value[messageIndex].replies) {
+        messages.value[messageIndex].replies![replyIndex].textExpanded = false;
+      }
+    };
 
     // 標籤系統相關變數 - 直接在組件中定義
     const availableLabels = ref([
@@ -1909,6 +1946,10 @@ export default defineComponent({
       sendNotificationToAllUsers,
       mentionPosition,
       calculateMentionPosition,
+      expandMessage,
+      collapseMessage,
+      expandReply,
+      collapseReply,
     }
   }
 })
@@ -2641,6 +2682,21 @@ img.ui.avatar.image {
 @keyframes highlight-fade {
   0% { background-color: #fff3cd; }
   100% { background-color: transparent; }
+}
+
+/* 閱讀全文連結樣式 */
+.read-more-link {
+  color: #0066FF;
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+  margin-left: 0.5rem;
+  transition: color 0.2s ease;
+}
+
+.read-more-link:hover {
+  color: #0052cc;
+  text-decoration: underline;
 }
 
 /* 響應式設計 */
