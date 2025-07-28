@@ -161,7 +161,7 @@
                   .metadata
                     .date {{ parseDate(reply.date) }}
                   .text {{ reply.text }}
-                  .actions(v-if="reply.uid === uid")
+                  //- .actions(v-if="reply.uid === uid")
                     .reaction-buttons
                       button.reaction-btn(
                         v-for="emoji in ['👍', '❤️', '🙏', '🫡', '🌟', '💡', '😊', '😁', '😢']"
