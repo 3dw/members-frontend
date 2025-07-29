@@ -1,14 +1,18 @@
 <template lang="pug">
 .ui.comments.flex-column.column(v-if="uid")
   .ui.search.segment
-    .ui.icon.input.fluid
-      input(
-        type="text"
-        v-model="searchKeyword"
-        placeholder="搜尋留言..."
-        @input="handleSearch"
-      )
-      i.search.icon
+    .search-container
+      .ui.icon.input.search-input
+        input(
+          type="text"
+          v-model="searchKeyword"
+          placeholder="搜尋留言..."
+          @input="handleSearch"
+        )
+        i.search.icon
+      button.publish-button(@click="scrollToMessageEditor")
+        i.edit.icon
+        span 發佈留言
     .ui.label(v-if="searchKeyword")
       | 搜尋結果: {{ filteredMessages.length }} 則留言
       i.close.icon(@click="clearSearch")
@@ -592,6 +596,13 @@ export default defineComponent({
       editText.value = '';
     };
 
+    const scrollToMessageEditor = () => {
+      const messageEditor = document.querySelector('.ui.form.reply');
+      if (messageEditor) {
+        messageEditor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    };
+
     onMounted(() => {
       document.addEventListener('click', handleMentionClick);
     });
@@ -641,6 +652,7 @@ export default defineComponent({
       startEditMessage,
       saveEdit,
       cancelEdit,
+      scrollToMessageEditor,
     }
   }
 });
