@@ -678,6 +678,23 @@ img.ui.avatar.image {
   padding: 1.5rem;
 }
 
+.edit-title-input {
+  width: 100%;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+  background: #f8f9fa;
+
+  &:focus {
+    outline: none;
+    border-color: #1A1A1A;
+    background: #fff;
+  }
+}
+
 .edit-textarea {
   width: 100%;
   border: 1px solid #e0e0e0;

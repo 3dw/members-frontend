@@ -149,7 +149,7 @@
           i.chevron.up.icon(v-else)
           span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開
           span(v-else) 收起
-        button.action-btn.edit-btn(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="startEditMessage(message.actualIndex, message.text)")
+        button.action-btn.edit-btn(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="startEditMessage(message.actualIndex, message.title, message.text)")
           i.edit.icon
           span 編輯
 
@@ -207,12 +207,24 @@
         button.close-btn(@click="cancelEdit")
           i.times.icon
       .edit-modal-body
-        textarea.edit-textarea(
-          v-model="editText"
-          rows="8"
-          placeholder="編輯您的留言..."
-          ref="editTextarea"
-        )
+        .field
+          label 留言標題 *
+          input.edit-title-input(
+            type="text"
+            v-model="editTitle"
+            placeholder="請輸入留言標題"
+            maxlength="100"
+            required
+          )
+        .field
+          label 留言內容 *
+          textarea.edit-textarea(
+            v-model="editText"
+            rows="8"
+            placeholder="編輯您的留言..."
+            ref="editTextarea"
+            required
+          )
       .edit-modal-footer
         button.ui.primary.button(@click="saveEdit") 儲存
         button.ui.button(@click="cancelEdit") 取消
@@ -233,6 +245,7 @@ interface Message {
   uid: string;
   date: string;
   updated?: string;
+  title?: string;
   text: string;
   reactions: {
     [key: string]: {
@@ -298,6 +311,7 @@ export default defineComponent({
     const filteredMessages = ref<Message[]>([]);
     const localReplyText = ref('');
     const editingMessageIndex = ref(-1);
+    const editTitle = ref('');
     const editText = ref('');
     const editTextarea = ref<HTMLTextAreaElement | null>(null);
 
@@ -577,9 +591,15 @@ export default defineComponent({
     };
 
     // 編輯相關函數
-    const startEditMessage = (messageIndex: number, originalText: string) => {
+    const startEditMessage = (messageIndex: number, originalTitle: string, originalText: string) => {
       editingMessageIndex.value = messageIndex;
-      editText.value = originalText;
+      
+      // 直接使用傳入的標題和內容
+      editTitle.value = originalTitle || '';
+      editText.value = originalText || '';
+      
+      console.log('編輯留言:', originalTitle, originalText);
+      
       nextTick(() => {
         if (editTextarea.value) {
           editTextarea.value.focus();
@@ -588,14 +608,26 @@ export default defineComponent({
     };
 
     const saveEdit = () => {
+      if (!editTitle.value.trim()) {
+        alert('請輸入留言標題');
+        return;
+      }
       if (editText.value.trim() !== '') {
-        emit('save-edit', editingMessageIndex.value, editText.value.trim());
+        // 根據 actualIndex 找到對應的留言索引
+        const messageIndex = props.messages.findIndex(msg => msg.actualIndex === editingMessageIndex.value);
+        
+        if (messageIndex !== -1) {
+          emit('save-edit', messageIndex, editTitle.value.trim(), editText.value.trim());
+        } else {
+          console.error('找不到對應的留言索引:', editingMessageIndex.value);
+        }
         cancelEdit();
       }
     };
 
     const cancelEdit = () => {
       editingMessageIndex.value = -1;
+      editTitle.value = '';
       editText.value = '';
     };
 
@@ -650,6 +682,7 @@ export default defineComponent({
       handleAddReply,
       handleCancelReply,
       editingMessageIndex,
+      editTitle,
       editText,
       editTextarea,
       startEditMessage,

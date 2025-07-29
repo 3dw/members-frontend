@@ -354,7 +354,7 @@ export default defineComponent({
       console.log('Legacy editMessage called for index:', index);
     };
 
-    const saveEditMessage = (index: number, newText: string) => {
+    const saveEditMessage = (index: number, newTitle: string, newText: string) => {
       if (!dataLoaded.value || !props.uid) return;
 
       const messageToEdit = messages.value[index];
@@ -362,11 +362,15 @@ export default defineComponent({
       if (messageToEdit.uid !== props.uid || (messageToEdit.replies && messageToEdit.replies.length > 0)) return;
 
       if (newText.trim() !== '') {
+        messageToEdit.title = newTitle.trim();
         messageToEdit.text = newText.trim();
         messageToEdit.updated = new Date().toISOString();
 
+        set(dbRef(database, `bulletin/${index}/title`), newTitle.trim()).then(() => {
+          console.log('留言標題編輯成功');
+        });
         set(dbRef(database, `bulletin/${index}/text`), newText.trim()).then(() => {
-          console.log('留言編輯成功');
+          console.log('留言內容編輯成功');
         });
         set(dbRef(database, `bulletin/${index}/updated`), messageToEdit.updated).then(() => {
           console.log('更新時間記錄成功');
@@ -825,12 +829,14 @@ export default defineComponent({
       onValue(bulletinRef, (snapshot) => {
         const data = snapshot.val();
         console.log(data);
-        messages.value = data.map((message: FirebaseMessage) => ({
+        messages.value = data.map((message: FirebaseMessage, index: number) => ({
           author: message.author,
           uid: message.uid,
           date: message.date,
+          title: message.title,
           text: message.text,
           updated: message.updated,
+          actualIndex: index,
           reactions: message.reactions || {},
           replies: message.replies ? message.replies.map((reply: FirebaseReply): Reply => ({
             author: reply.author,
