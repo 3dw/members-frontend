@@ -608,6 +608,8 @@ export default defineComponent({
   background: #f8f9fa;
   padding: 2rem;
   border-radius: 12px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .ui.form.reply textarea {

@@ -1,4 +1,9 @@
 /* 所有留言顯示相關的樣式 */
+.ui.comments.flex-column.column {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
 .ui.comments .comment {
   background: #fff;
   border-radius: 12px;

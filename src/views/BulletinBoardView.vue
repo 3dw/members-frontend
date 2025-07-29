@@ -1,42 +1,41 @@
 <template lang="pug">
-  .ui.container.two.column.stackable.grid
-    .column(v-if="!uid")
+  .ui.container.two.column.stackable.grid(v-if="!uid")
+    .column
       .ui.segment
         .ui.header 留言板
         .ui.description 請先登入才能留言
         .ui.divider
         button.ui.large.green.basic.button(@click="toggleLogin") 登入
 
-  BulletinMessageDisplay(
-                v-if="uid"
-    :uid="uid"
-    :users="users"
-    :messages="messages"
-    :replying-to="replyingTo"
-    @toggle-reaction="toggleReaction"
-    @toggle-reply-form="toggleReplyForm"
-    @quote-message="quoteMessage"
-    @edit-message="editMessage"
-    @save-edit="saveEditMessage"
-    @cancel-edit="cancelEditMessage"
-    @delete-reply="deleteReply"
-    @add-reply="addReply"
-    @cancel-reply="cancelReply"
-    @toggle-task="toggleTask"
-    @handle-dropdown-click="handleDropdownClick"
-    @expand-message="handleExpandMessage"
-    @collapse-message="handleCollapseMessage"
-    @expand-reply="handleExpandReply"
-    @collapse-reply="handleCollapseReply"
-    @toggle-replies="handleToggleReplies"
-  )
+  .bulletin-container(v-else)
+    BulletinMessageDisplay(
+      :uid="uid"
+      :users="users"
+      :messages="messages"
+      :replying-to="replyingTo"
+      @toggle-reaction="toggleReaction"
+      @toggle-reply-form="toggleReplyForm"
+      @quote-message="quoteMessage"
+      @edit-message="editMessage"
+      @save-edit="saveEditMessage"
+      @cancel-edit="cancelEditMessage"
+      @delete-reply="deleteReply"
+      @add-reply="addReply"
+      @cancel-reply="cancelReply"
+      @toggle-task="toggleTask"
+      @handle-dropdown-click="handleDropdownClick"
+      @expand-message="handleExpandMessage"
+      @collapse-message="handleCollapseMessage"
+      @expand-reply="handleExpandReply"
+      @collapse-reply="handleCollapseReply"
+      @toggle-replies="handleToggleReplies"
+    )
 
-  BulletinMessageEditor(
-                v-if="uid"
-    :uid="uid"
-    :users="users"
-    @add-message="addMessage"
-  )
+    BulletinMessageEditor(
+      :uid="uid"
+      :users="users"
+      @add-message="addMessage"
+    )
 </template>
 
 <script lang="ts">
@@ -948,8 +947,17 @@ export default defineComponent({
   color: #1A1A1A;
 }
 
+.bulletin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #1A1A1A;
+}
+
 @media (max-width: 768px) {
-  .ui.container {
+  .ui.container,
+  .bulletin-container {
     padding: 1rem;
   }
 }

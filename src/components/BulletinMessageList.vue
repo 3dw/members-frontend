@@ -1,3 +1,4 @@
+
 <template lang="pug">
 .ui.comments.full-width(v-if="uid")
   .ui.search.segment
@@ -373,10 +374,17 @@ export default defineComponent({
   max-width: none;
   margin: 0;
   padding: 0;
+
+  .ui.search.segment {
+    max-width: 1200px;
+    margin: 0 auto 1rem auto;
+  }
 }
 
 .message-list {
   width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
   
   .message-card {
     display: flex;
@@ -590,6 +598,9 @@ export default defineComponent({
 .message-action-section {
   margin-top: 2rem;
   text-align: center;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 
   .message-btn {
     padding: 1rem 2rem;
@@ -718,6 +729,9 @@ export default defineComponent({
 .show-less-messages {
   text-align: center;
   margin: 2rem 0;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 
   button {
     padding: 0.75rem 1.5rem;
