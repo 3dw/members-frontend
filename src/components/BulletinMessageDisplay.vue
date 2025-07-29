@@ -142,7 +142,7 @@
           i.chevron.up.icon(v-else)
           span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開
           span(v-else) 收起
-        button.action-btn.edit-btn(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="$emit('edit-message', message.actualIndex)")
+        button.action-btn.edit-btn(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="startEditMessage(message.actualIndex, message.text)")
           i.edit.icon
           span 編輯
 
@@ -191,10 +191,28 @@
     button.ui.basic.orange.button(@click="showLessMessages")
       i.chevron.up.icon
       | 顯示更少留言
+
+  // 編輯模態框
+  .edit-modal-overlay(v-if="editingMessageIndex !== -1" @click="cancelEdit")
+    .edit-modal(@click.stop="")
+      .edit-modal-header
+        h3 編輯留言
+        button.close-btn(@click="cancelEdit")
+          i.times.icon
+      .edit-modal-body
+        textarea.edit-textarea(
+          v-model="editText"
+          rows="8"
+          placeholder="編輯您的留言..."
+          ref="editTextarea"
+        )
+      .edit-modal-footer
+        button.ui.primary.button(@click="saveEdit") 儲存
+        button.ui.button(@click="cancelEdit") 取消
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, onMounted, onBeforeUnmount, computed, watch } from 'vue';
+import { ref, defineComponent, onMounted, onBeforeUnmount, computed, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 
 interface User {
@@ -265,13 +283,16 @@ export default defineComponent({
       default: -1
     }
   },
-  emits: ['toggle-reaction', 'toggle-reply-form', 'quote-message', 'edit-message', 'delete-reply', 'add-reply', 'cancel-reply', 'toggle-task', 'handle-dropdown-click', 'expand-message', 'collapse-message', 'expand-reply', 'collapse-reply', 'toggle-replies'],
+  emits: ['toggle-reaction', 'toggle-reply-form', 'quote-message', 'edit-message', 'save-edit', 'cancel-edit', 'delete-reply', 'add-reply', 'cancel-reply', 'toggle-task', 'handle-dropdown-click', 'expand-message', 'collapse-message', 'expand-reply', 'collapse-reply', 'toggle-replies'],
   setup(props, { emit }) {
     const router = useRouter();
     const maxShowMessages = ref(5);
     const searchKeyword = ref('');
     const filteredMessages = ref<Message[]>([]);
     const localReplyText = ref('');
+    const editingMessageIndex = ref(-1);
+    const editText = ref('');
+    const editTextarea = ref<HTMLTextAreaElement | null>(null);
 
     // 新增狀態管理相關變數
     const availableStatuses = ref([
@@ -548,6 +569,29 @@ export default defineComponent({
       localReplyText.value = '';
     };
 
+    // 編輯相關函數
+    const startEditMessage = (messageIndex: number, originalText: string) => {
+      editingMessageIndex.value = messageIndex;
+      editText.value = originalText;
+      nextTick(() => {
+        if (editTextarea.value) {
+          editTextarea.value.focus();
+        }
+      });
+    };
+
+    const saveEdit = () => {
+      if (editText.value.trim() !== '') {
+        emit('save-edit', editingMessageIndex.value, editText.value.trim());
+        cancelEdit();
+      }
+    };
+
+    const cancelEdit = () => {
+      editingMessageIndex.value = -1;
+      editText.value = '';
+    };
+
     onMounted(() => {
       document.addEventListener('click', handleMentionClick);
     });
@@ -591,6 +635,12 @@ export default defineComponent({
       localReplyText,
       handleAddReply,
       handleCancelReply,
+      editingMessageIndex,
+      editText,
+      editTextarea,
+      startEditMessage,
+      saveEdit,
+      cancelEdit,
     }
   }
 });
@@ -1203,6 +1253,161 @@ img.ui.avatar.image {
 
   .referenced-message {
     padding: 0.5rem;
+  }
+}
+
+/* 編輯模態框樣式 */
+.edit-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.edit-modal {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  animation: modalFadeIn 0.3s ease;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.edit-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.edit-modal-header h3 {
+  margin: 0;
+  color: #333;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+  font-size: 1.2rem;
+  padding: 0.5rem;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.close-btn:hover {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.edit-modal-body {
+  padding: 1.5rem;
+}
+
+.edit-textarea {
+  width: 100%;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 1rem;
+  font-family: inherit;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 200px;
+  transition: border-color 0.2s ease;
+}
+
+.edit-textarea:focus {
+  outline: none;
+  border-color: #0066FF;
+  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
+}
+
+.edit-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.edit-modal-footer .ui.button {
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.edit-modal-footer .ui.primary.button {
+  background-color: #0066FF;
+  color: white;
+  border: none;
+}
+
+.edit-modal-footer .ui.primary.button:hover {
+  background-color: #0052cc;
+  transform: translateY(-1px);
+}
+
+.edit-modal-footer .ui.button:not(.primary) {
+  background-color: white;
+  color: #666;
+  border: 1px solid #e0e0e0;
+}
+
+.edit-modal-footer .ui.button:not(.primary):hover {
+  background-color: #f8f9fa;
+  border-color: #ccc;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .edit-modal {
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .edit-modal-header,
+  .edit-modal-body,
+  .edit-modal-footer {
+    padding: 1rem;
+  }
+
+  .edit-textarea {
+    min-height: 150px;
+  }
+
+  .edit-modal-footer {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .edit-modal-footer .ui.button {
+    width: 100%;
   }
 }
 </style>

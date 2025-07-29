@@ -17,6 +17,8 @@
     @toggle-reply-form="toggleReplyForm"
     @quote-message="quoteMessage"
     @edit-message="editMessage"
+    @save-edit="saveEditMessage"
+    @cancel-edit="cancelEditMessage"
     @delete-reply="deleteReply"
     @add-reply="addReply"
     @cancel-reply="cancelReply"
@@ -345,25 +347,33 @@ export default defineComponent({
     };
 
     const editMessage = (index: number) => {
+      // 這個函數保留但不做任何事，因為編輯功能已移到模態框
+      console.log('Legacy editMessage called for index:', index);
+    };
+
+    const saveEditMessage = (index: number, newText: string) => {
       if (!dataLoaded.value || !props.uid) return;
 
       const messageToEdit = messages.value[index];
 
       if (messageToEdit.uid !== props.uid || (messageToEdit.replies && messageToEdit.replies.length > 0)) return;
 
-      const editedText = prompt('編輯留言', messageToEdit.text);
-
-      if (editedText !== null && editedText.trim() !== '') {
-        messageToEdit.text = editedText.trim();
+      if (newText.trim() !== '') {
+        messageToEdit.text = newText.trim();
         messageToEdit.updated = new Date().toISOString();
 
-        set(dbRef(database, `bulletin/${index}/text`), editedText.trim()).then(() => {
+        set(dbRef(database, `bulletin/${index}/text`), newText.trim()).then(() => {
           console.log('留言編輯成功');
         });
         set(dbRef(database, `bulletin/${index}/updated`), messageToEdit.updated).then(() => {
           console.log('更新時間記錄成功');
         });
       }
+    };
+
+    const cancelEditMessage = () => {
+      // 編輯取消的處理邏輯，如果需要的話
+      console.log('編輯已取消');
     };
 
     const handleHighlight = () => {
@@ -914,6 +924,8 @@ export default defineComponent({
       cancelReply,
       deleteReply,
       editMessage,
+      saveEditMessage,
+      cancelEditMessage,
       quoteMessage,
       toggleTask,
       handleDropdownClick,
