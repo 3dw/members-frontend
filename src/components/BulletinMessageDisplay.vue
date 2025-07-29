@@ -647,5 +647,5 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-@import '@/assets/BulletinMessageDisplay.scss';
+@use '@/assets/BulletinMessageDisplay.scss';
 </style>
