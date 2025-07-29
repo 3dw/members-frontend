@@ -605,46 +605,70 @@ export default defineComponent({
 
 <style scoped>
 .ui.form.reply {
-  background: #f8f9fa;
+  background: #fff;
   padding: 2rem;
-  border-radius: 12px;
+  border-radius: 8px;
   max-width: 1200px;
   margin: 0 auto;
+  border: 1px solid #e0e0e0;
 }
 
 .ui.form.reply textarea {
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
   padding: 1rem;
   font-size: 1rem;
   transition: border-color 0.2s ease;
+  background: #f8f9fa;
 }
 
 .ui.form.reply textarea:focus {
-  border-color: #0066FF;
+  border-color: #1A1A1A;
   outline: none;
+  background: #fff;
 }
 
 .ui.primary.submit.button {
-  background-color: #0066FF;
+  background-color: #1A1A1A;
   color: white;
-  border: none;
-  border-radius: 8px;
+  border: 1px solid #1A1A1A;
+  border-radius: 6px;
   padding: 0.8rem 1.5rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .ui.primary.submit.button:hover {
-  background-color: #0052cc;
+  background-color: #333;
+  border-color: #333;
 }
 
 .ui.upload.segment {
   background: #f8f9fa;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 6px;
   margin-top: 0.5rem;
+  border: 1px solid #e0e0e0;
+}
+
+.ui.info.message {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.ui.info.message .header {
+  color: #1A1A1A;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.ui.info.message .list {
+  color: #666;
+  font-size: 0.85rem;
 }
 
 .ui.upload.segment .ui.list {
@@ -668,7 +692,7 @@ export default defineComponent({
 }
 
 .ui.upload.segment .ui.list .item .content a {
-  color: #0066FF;
+  color: #1A1A1A;
   text-decoration: none;
 }
 
@@ -682,26 +706,26 @@ export default defineComponent({
 }
 
 .ui.upload.segment .ui.basic.button {
-  border: 1px solid #0066FF;
-  color: #0066FF;
+  border: 1px solid #1A1A1A;
+  color: #1A1A1A;
   background: transparent;
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 0.8rem 1.5rem;
   font-weight: 600;
   transition: all 0.2s ease;
 }
 
 .ui.upload.segment .ui.basic.button:hover {
-  background-color: #0066FF;
+  background-color: #1A1A1A;
   color: white;
 }
 
 .mention-suggestions {
   position: fixed;
   background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   max-height: 200px;
   overflow-y: auto;
   z-index: 10000;
@@ -727,19 +751,19 @@ export default defineComponent({
 }
 
 .mention-item.mention-all {
-  background-color: #EEF3FF;
-  border: 1px solid #0066FF;
+  background-color: #f8f9fa;
+  border: 1px solid #1A1A1A;
   border-radius: 6px;
   font-weight: 600;
-  color: #0066FF;
+  color: #1A1A1A;
 
   &:hover, &.active {
-    background-color: #d4e6ff;
-    border-color: #0052cc;
+    background-color: #e9ecef;
+    border-color: #1A1A1A;
   }
 
   i.envelope.icon {
-    color: #0066FF;
+    color: #1A1A1A;
     font-size: 16px;
   }
 }

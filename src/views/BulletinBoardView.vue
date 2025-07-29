@@ -953,6 +953,7 @@ export default defineComponent({
   padding: 2rem;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: #1A1A1A;
+  background: #fff;
 }
 
 @media (max-width: 768px) {
