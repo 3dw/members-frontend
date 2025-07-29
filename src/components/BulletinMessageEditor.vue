@@ -2,12 +2,23 @@
 .ui.form.reply.column(v-if="uid")
   .ui.divider.thin-only
   .field
-    label 輸入留言
+    label 留言標題 *
+    input(
+      type="text"
+      v-model="newMessageTitle"
+      placeholder="請輸入留言標題"
+      maxlength="100"
+      required
+    )
+  .field
+    label 留言內容 *
     textarea(
       v-model="newMessage"
       @input="handleMessageInput"
       @keydown="handleKeydown"
       ref="messageTextarea"
+      placeholder="請輸入留言內容"
+      required
     )
     .ui.info.message
       .header 💡 進階功能提示
@@ -116,6 +127,7 @@ export default defineComponent({
   setup(props, { emit }) {
     const uploadProgress = ref('');
     const isBigFile = ref(false);
+    const newMessageTitle = ref('');
     const newMessage = ref('');
     const newMessageHref = ref('');
     const newMessageHrefs = ref<string[]>([]);
@@ -130,6 +142,15 @@ export default defineComponent({
     const mentionPosition = ref({ top: 0, left: 0 });
 
     const addMessage = () => {
+      if (!newMessageTitle.value.trim()) {
+        alert('請輸入留言標題');
+        return;
+      }
+      if (!newMessage.value.trim()) {
+        alert('請輸入留言內容');
+        return;
+      }
+
       if (newMessageHref.value) {
         newMessageHrefs.value.push(newMessageHref.value);
         newMessageHref.value = '';
@@ -140,6 +161,7 @@ export default defineComponent({
       const referencedMessages = detectReferences(newMessage.value);
 
       const messageData = {
+        title: newMessageTitle.value.trim(),
         text: newMessage.value,
         attachments: newMessageAttachments.value,
         hrefs: newMessageHrefs.value,
@@ -152,6 +174,7 @@ export default defineComponent({
       emit('add-message', messageData);
 
       // 清空表單
+      newMessageTitle.value = '';
       newMessage.value = '';
       newMessageHrefs.value = [];
       newMessageAttachments.value = [];
@@ -575,6 +598,7 @@ export default defineComponent({
     return {
       uploadProgress,
       isBigFile,
+      newMessageTitle,
       newMessage,
       newMessageHref,
       newMessageHrefs,
@@ -605,44 +629,86 @@ export default defineComponent({
 
 <style scoped>
 .ui.form.reply {
-  background: #f8f9fa;
+  background: #fff;
   padding: 2rem;
-  border-radius: 12px;
+  border-radius: 8px;
+  max-width: 1200px;
+  margin: 0 auto;
+  border: 1px solid #e0e0e0;
 }
 
-.ui.form.reply textarea {
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+.ui.form.reply input[type="text"] {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
   padding: 1rem;
   font-size: 1rem;
   transition: border-color 0.2s ease;
+  background: #f8f9fa;
+  width: 100%;
+}
+
+.ui.form.reply input[type="text"]:focus {
+  border-color: #1A1A1A;
+  outline: none;
+  background: #fff;
+}
+
+.ui.form.reply textarea {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+  background: #f8f9fa;
 }
 
 .ui.form.reply textarea:focus {
-  border-color: #0066FF;
+  border-color: #1A1A1A;
   outline: none;
+  background: #fff;
 }
 
 .ui.primary.submit.button {
-  background-color: #0066FF;
+  background-color: #1A1A1A;
   color: white;
-  border: none;
-  border-radius: 8px;
+  border: 1px solid #1A1A1A;
+  border-radius: 6px;
   padding: 0.8rem 1.5rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .ui.primary.submit.button:hover {
-  background-color: #0052cc;
+  background-color: #333;
+  border-color: #333;
 }
 
 .ui.upload.segment {
   background: #f8f9fa;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: 6px;
   margin-top: 0.5rem;
+  border: 1px solid #e0e0e0;
+}
+
+.ui.info.message {
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.ui.info.message .header {
+  color: #1A1A1A;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.ui.info.message .list {
+  color: #666;
+  font-size: 0.85rem;
 }
 
 .ui.upload.segment .ui.list {
@@ -666,7 +732,7 @@ export default defineComponent({
 }
 
 .ui.upload.segment .ui.list .item .content a {
-  color: #0066FF;
+  color: #1A1A1A;
   text-decoration: none;
 }
 
@@ -680,26 +746,26 @@ export default defineComponent({
 }
 
 .ui.upload.segment .ui.basic.button {
-  border: 1px solid #0066FF;
-  color: #0066FF;
+  border: 1px solid #1A1A1A;
+  color: #1A1A1A;
   background: transparent;
-  border-radius: 8px;
+  border-radius: 6px;
   padding: 0.8rem 1.5rem;
   font-weight: 600;
   transition: all 0.2s ease;
 }
 
 .ui.upload.segment .ui.basic.button:hover {
-  background-color: #0066FF;
+  background-color: #1A1A1A;
   color: white;
 }
 
 .mention-suggestions {
   position: fixed;
   background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   max-height: 200px;
   overflow-y: auto;
   z-index: 10000;
@@ -725,19 +791,19 @@ export default defineComponent({
 }
 
 .mention-item.mention-all {
-  background-color: #EEF3FF;
-  border: 1px solid #0066FF;
+  background-color: #f8f9fa;
+  border: 1px solid #1A1A1A;
   border-radius: 6px;
   font-weight: 600;
-  color: #0066FF;
+  color: #1A1A1A;
 
   &:hover, &.active {
-    background-color: #d4e6ff;
-    border-color: #0052cc;
+    background-color: #e9ecef;
+    border-color: #1A1A1A;
   }
 
   i.envelope.icon {
-    color: #0066FF;
+    color: #1A1A1A;
     font-size: 16px;
   }
 }

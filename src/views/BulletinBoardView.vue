@@ -1,42 +1,41 @@
 <template lang="pug">
-.ui.container.two.column.stackable.grid
-  .column(v-if="!uid")
-    .ui.segment
-      .ui.header 留言板
-      .ui.description 請先登入才能留言
-      .ui.divider
-      button.ui.large.green.basic.button(@click="toggleLogin") 登入
+  .ui.container.two.column.stackable.grid(v-if="!uid")
+    .column
+      .ui.segment
+        .ui.header 留言板
+        .ui.description 請先登入才能留言
+        .ui.divider
+        button.ui.large.green.basic.button(@click="toggleLogin") 登入
 
-  BulletinMessageDisplay(
-    v-if="uid"
-    :uid="uid"
-    :users="users"
-    :messages="messages"
-    :replying-to="replyingTo"
-    @toggle-reaction="toggleReaction"
-    @toggle-reply-form="toggleReplyForm"
-    @quote-message="quoteMessage"
-    @edit-message="editMessage"
-    @save-edit="saveEditMessage"
-    @cancel-edit="cancelEditMessage"
-    @delete-reply="deleteReply"
-    @add-reply="addReply"
-    @cancel-reply="cancelReply"
-    @toggle-task="toggleTask"
-    @handle-dropdown-click="handleDropdownClick"
-    @expand-message="handleExpandMessage"
-    @collapse-message="handleCollapseMessage"
-    @expand-reply="handleExpandReply"
-    @collapse-reply="handleCollapseReply"
-    @toggle-replies="handleToggleReplies"
-  )
+  .bulletin-container(v-else)
+    BulletinMessageDisplay(
+      :uid="uid"
+      :users="users"
+      :messages="messages"
+      :replying-to="replyingTo"
+      @toggle-reaction="toggleReaction"
+      @toggle-reply-form="toggleReplyForm"
+      @quote-message="quoteMessage"
+      @edit-message="editMessage"
+      @save-edit="saveEditMessage"
+      @cancel-edit="cancelEditMessage"
+      @delete-reply="deleteReply"
+      @add-reply="addReply"
+      @cancel-reply="cancelReply"
+      @toggle-task="toggleTask"
+      @handle-dropdown-click="handleDropdownClick"
+      @expand-message="handleExpandMessage"
+      @collapse-message="handleCollapseMessage"
+      @expand-reply="handleExpandReply"
+      @collapse-reply="handleCollapseReply"
+      @toggle-replies="handleToggleReplies"
+    )
 
-  BulletinMessageEditor(
-    v-if="uid"
-    :uid="uid"
-    :users="users"
-    @add-message="addMessage"
-  )
+    BulletinMessageEditor(
+      :uid="uid"
+      :users="users"
+      @add-message="addMessage"
+    )
 </template>
 
 <script lang="ts">
@@ -57,6 +56,7 @@ interface Message {
   uid: string;
   date: string;
   updated?: string;
+  title?: string;
   text: string;
   reactions: {
     [key: string]: {
@@ -93,6 +93,7 @@ interface Reply {
 }
 
 interface MessageData {
+  title: string;
   text: string;
   attachments: Array<{name: string, url: string, size: number, type: string}>;
   hrefs: string[];
@@ -106,6 +107,7 @@ interface FirebaseMessage {
   author: string;
   uid: string;
   date: string;
+  title?: string;
   text: string;
   updated?: string;
   reactions?: {[key: string]: {[uid: string]: boolean}};
@@ -191,6 +193,7 @@ export default defineComponent({
     const addMessage = (messageData: MessageData) => {
       if (!dataLoaded.value) return;
 
+      // 使用 Firebase 中的實際數據長度，而不是過濾後的長度
       const m_length = messages.value.length;
 
       // 檢測引用時需要驗證消息是否存在
@@ -209,6 +212,7 @@ export default defineComponent({
         author: props.users[props.uid].name || '匿名',
         uid: props.uid || '123',
         date: new Date().toISOString(),
+        title: messageData.title,
         text: messageData.text,
         reactions: {},
       }
@@ -351,21 +355,28 @@ export default defineComponent({
       console.log('Legacy editMessage called for index:', index);
     };
 
-    const saveEditMessage = (index: number, newText: string) => {
+    const saveEditMessage = (index: number, newTitle: string, newText: string) => {
       if (!dataLoaded.value || !props.uid) return;
 
       const messageToEdit = messages.value[index];
 
-      if (messageToEdit.uid !== props.uid || (messageToEdit.replies && messageToEdit.replies.length > 0)) return;
+      if (messageToEdit.uid !== props.uid) return;
 
       if (newText.trim() !== '') {
+        messageToEdit.title = newTitle.trim();
         messageToEdit.text = newText.trim();
         messageToEdit.updated = new Date().toISOString();
 
-        set(dbRef(database, `bulletin/${index}/text`), newText.trim()).then(() => {
-          console.log('留言編輯成功');
+        // 使用 actualIndex 作為 Firebase 索引
+        const firebaseIndex = messageToEdit.actualIndex || index;
+        
+        set(dbRef(database, `bulletin/${firebaseIndex}/title`), newTitle.trim()).then(() => {
+          console.log('留言標題編輯成功');
         });
-        set(dbRef(database, `bulletin/${index}/updated`), messageToEdit.updated).then(() => {
+        set(dbRef(database, `bulletin/${firebaseIndex}/text`), newText.trim()).then(() => {
+          console.log('留言內容編輯成功');
+        });
+        set(dbRef(database, `bulletin/${firebaseIndex}/updated`), messageToEdit.updated).then(() => {
           console.log('更新時間記錄成功');
         });
       }
@@ -383,17 +394,17 @@ export default defineComponent({
 
       if (highlightMessageId) {
         nextTick(() => {
-          const messageElement = document.querySelector(`[data-message-id="${highlightMessageId}"]`);
-          console.log('messageElement', messageElement);
+              const messageElement = document.querySelector(`[data-message-id="${highlightMessageId}"]`);
+              console.log('messageElement', messageElement);
 
-          if (messageElement) {
-            messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              if (messageElement) {
+                messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            messageElement.classList.add('highlight-message');
+                messageElement.classList.add('highlight-message');
 
-            setTimeout(() => {
-              messageElement.classList.remove('highlight-message');
-            }, 3000);
+                setTimeout(() => {
+                  messageElement.classList.remove('highlight-message');
+                }, 3000);
           }
         });
       }
@@ -822,12 +833,14 @@ export default defineComponent({
       onValue(bulletinRef, (snapshot) => {
         const data = snapshot.val();
         console.log(data);
-        messages.value = data.map((message: FirebaseMessage) => ({
+        messages.value = data.map((message: FirebaseMessage, index: number) => ({
           author: message.author,
           uid: message.uid,
           date: message.date,
+          title: message.title,
           text: message.text,
           updated: message.updated,
+          actualIndex: index,
           reactions: message.reactions || {},
           replies: message.replies ? message.replies.map((reply: FirebaseReply): Reply => ({
             author: reply.author,
@@ -948,8 +961,18 @@ export default defineComponent({
   color: #1A1A1A;
 }
 
+.bulletin-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #1A1A1A;
+  background: #fff;
+}
+
 @media (max-width: 768px) {
-  .ui.container {
+  .ui.container,
+  .bulletin-container {
     padding: 1rem;
   }
 }

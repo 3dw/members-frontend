@@ -1,14 +1,18 @@
 <template lang="pug">
 .ui.comments.flex-column.column(v-if="uid")
   .ui.search.segment
-    .ui.icon.input.fluid
-      input(
-        type="text"
-        v-model="searchKeyword"
-        placeholder="搜尋留言..."
-        @input="handleSearch"
-      )
-      i.search.icon
+    .search-container
+      .ui.icon.input.search-input
+        input(
+          type="text"
+          v-model="searchKeyword"
+          placeholder="搜尋留言..."
+          @input="handleSearch"
+        )
+        i.search.icon
+      button.publish-button(@click="scrollToMessageEditor")
+        i.edit.icon
+        span 發佈留言
     .ui.label(v-if="searchKeyword")
       | 搜尋結果: {{ filteredMessages.length }} 則留言
       i.close.icon(@click="clearSearch")
@@ -35,6 +39,9 @@
       .metadata
         .date {{ parseDate(message.date) }}
           span.updated(v-if="message.updated") ({{ parseDate(message.updated) }}已更新)
+
+      .message-title(v-if="message.title")
+        h3.title-text {{ message.title }}
 
       .message-references(v-if="message.references && message.references.length > 0")
         .referenced-message(
@@ -142,7 +149,7 @@
           i.chevron.up.icon(v-else)
           span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開
           span(v-else) 收起
-        button.action-btn.edit-btn(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="startEditMessage(message.actualIndex, message.text)")
+        button.action-btn.edit-btn(v-if="message.uid === uid" @click="startEditMessage(message.actualIndex, message.title, message.text)")
           i.edit.icon
           span 編輯
 
@@ -200,12 +207,24 @@
         button.close-btn(@click="cancelEdit")
           i.times.icon
       .edit-modal-body
-        textarea.edit-textarea(
-          v-model="editText"
-          rows="8"
-          placeholder="編輯您的留言..."
-          ref="editTextarea"
-        )
+        .field
+          label 留言標題 *
+          input.edit-title-input(
+            type="text"
+            v-model="editTitle"
+            placeholder="請輸入留言標題"
+            maxlength="100"
+            required
+          )
+        .field
+          label 留言內容 *
+          textarea.edit-textarea(
+            v-model="editText"
+            rows="8"
+            placeholder="編輯您的留言..."
+            ref="editTextarea"
+            required
+          )
       .edit-modal-footer
         button.ui.primary.button(@click="saveEdit") 儲存
         button.ui.button(@click="cancelEdit") 取消
@@ -226,6 +245,7 @@ interface Message {
   uid: string;
   date: string;
   updated?: string;
+  title?: string;
   text: string;
   reactions: {
     [key: string]: {
@@ -291,6 +311,7 @@ export default defineComponent({
     const filteredMessages = ref<Message[]>([]);
     const localReplyText = ref('');
     const editingMessageIndex = ref(-1);
+    const editTitle = ref('');
     const editText = ref('');
     const editTextarea = ref<HTMLTextAreaElement | null>(null);
 
@@ -570,9 +591,15 @@ export default defineComponent({
     };
 
     // 編輯相關函數
-    const startEditMessage = (messageIndex: number, originalText: string) => {
+    const startEditMessage = (messageIndex: number, originalTitle: string, originalText: string) => {
       editingMessageIndex.value = messageIndex;
-      editText.value = originalText;
+      
+      // 直接使用傳入的標題和內容
+      editTitle.value = originalTitle || '';
+      editText.value = originalText || '';
+      
+      console.log('編輯留言:', originalTitle, originalText);
+      
       nextTick(() => {
         if (editTextarea.value) {
           editTextarea.value.focus();
@@ -581,15 +608,55 @@ export default defineComponent({
     };
 
     const saveEdit = () => {
+      console.log('saveEdit 被調用');
+      console.log('editTitle:', editTitle.value);
+      console.log('editText:', editText.value);
+      console.log('editingMessageIndex:', editingMessageIndex.value);
+      console.log('props.messages:', props.messages);
+      
+      if (!editTitle.value.trim()) {
+        alert('請輸入留言標題');
+        return;
+      }
       if (editText.value.trim() !== '') {
-        emit('save-edit', editingMessageIndex.value, editText.value.trim());
+        // 檢查 messages 數組中是否有 undefined 元素
+        const invalidMessages = props.messages.filter((msg) => !msg);
+        if (invalidMessages.length > 0) {
+          console.error('發現無效的留言元素:', invalidMessages);
+        }
+        
+        // 根據 actualIndex 找到對應的留言索引
+        const messageIndex = props.messages.findIndex(msg => {
+          if (!msg) {
+            console.error('遇到無效的留言元素');
+            return false;
+          }
+          return msg.actualIndex === editingMessageIndex.value;
+        });
+        
+        console.log('找到的 messageIndex:', messageIndex);
+        
+        if (messageIndex !== -1) {
+          console.log('發送 save-edit 事件');
+          emit('save-edit', messageIndex, editTitle.value.trim(), editText.value.trim());
+        } else {
+          console.error('找不到對應的留言索引:', editingMessageIndex.value);
+        }
         cancelEdit();
       }
     };
 
     const cancelEdit = () => {
       editingMessageIndex.value = -1;
+      editTitle.value = '';
       editText.value = '';
+    };
+
+    const scrollToMessageEditor = () => {
+      const messageEditor = document.querySelector('.ui.form.reply');
+      if (messageEditor) {
+        messageEditor.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
     };
 
     onMounted(() => {
@@ -636,11 +703,13 @@ export default defineComponent({
       handleAddReply,
       handleCancelReply,
       editingMessageIndex,
+      editTitle,
       editText,
       editTextarea,
       startEditMessage,
       saveEdit,
       cancelEdit,
+      scrollToMessageEditor,
     }
   }
 });
