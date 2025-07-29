@@ -686,7 +686,8 @@ img.ui.avatar.image {
   font-size: 1rem;
   font-family: inherit;
   transition: border-color 0.2s ease;
-  background: #f8f9fa;
+  background: #fff;
+  color: #1A1A1A;
 
   &:focus {
     outline: none;
@@ -706,7 +707,8 @@ img.ui.avatar.image {
   resize: vertical;
   min-height: 200px;
   transition: border-color 0.2s ease;
-  background: #f8f9fa;
+  background: #fff;
+  color: #1A1A1A;
 
   &:focus {
     outline: none;
