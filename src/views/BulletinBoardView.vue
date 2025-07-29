@@ -193,6 +193,7 @@ export default defineComponent({
     const addMessage = (messageData: MessageData) => {
       if (!dataLoaded.value) return;
 
+      // 使用 Firebase 中的實際數據長度，而不是過濾後的長度
       const m_length = messages.value.length;
 
       // 檢測引用時需要驗證消息是否存在
@@ -359,20 +360,23 @@ export default defineComponent({
 
       const messageToEdit = messages.value[index];
 
-      if (messageToEdit.uid !== props.uid || (messageToEdit.replies && messageToEdit.replies.length > 0)) return;
+      if (messageToEdit.uid !== props.uid) return;
 
       if (newText.trim() !== '') {
         messageToEdit.title = newTitle.trim();
         messageToEdit.text = newText.trim();
         messageToEdit.updated = new Date().toISOString();
 
-        set(dbRef(database, `bulletin/${index}/title`), newTitle.trim()).then(() => {
+        // 使用 actualIndex 作為 Firebase 索引
+        const firebaseIndex = messageToEdit.actualIndex || index;
+        
+        set(dbRef(database, `bulletin/${firebaseIndex}/title`), newTitle.trim()).then(() => {
           console.log('留言標題編輯成功');
         });
-        set(dbRef(database, `bulletin/${index}/text`), newText.trim()).then(() => {
+        set(dbRef(database, `bulletin/${firebaseIndex}/text`), newText.trim()).then(() => {
           console.log('留言內容編輯成功');
         });
-        set(dbRef(database, `bulletin/${index}/updated`), messageToEdit.updated).then(() => {
+        set(dbRef(database, `bulletin/${firebaseIndex}/updated`), messageToEdit.updated).then(() => {
           console.log('更新時間記錄成功');
         });
       }

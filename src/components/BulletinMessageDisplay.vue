@@ -149,7 +149,7 @@
           i.chevron.up.icon(v-else)
           span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開
           span(v-else) 收起
-        button.action-btn.edit-btn(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="startEditMessage(message.actualIndex, message.title, message.text)")
+        button.action-btn.edit-btn(v-if="message.uid === uid" @click="startEditMessage(message.actualIndex, message.title, message.text)")
           i.edit.icon
           span 編輯
 
@@ -608,15 +608,36 @@ export default defineComponent({
     };
 
     const saveEdit = () => {
+      console.log('saveEdit 被調用');
+      console.log('editTitle:', editTitle.value);
+      console.log('editText:', editText.value);
+      console.log('editingMessageIndex:', editingMessageIndex.value);
+      console.log('props.messages:', props.messages);
+      
       if (!editTitle.value.trim()) {
         alert('請輸入留言標題');
         return;
       }
       if (editText.value.trim() !== '') {
+        // 檢查 messages 數組中是否有 undefined 元素
+        const invalidMessages = props.messages.filter((msg) => !msg);
+        if (invalidMessages.length > 0) {
+          console.error('發現無效的留言元素:', invalidMessages);
+        }
+        
         // 根據 actualIndex 找到對應的留言索引
-        const messageIndex = props.messages.findIndex(msg => msg.actualIndex === editingMessageIndex.value);
+        const messageIndex = props.messages.findIndex(msg => {
+          if (!msg) {
+            console.error('遇到無效的留言元素');
+            return false;
+          }
+          return msg.actualIndex === editingMessageIndex.value;
+        });
+        
+        console.log('找到的 messageIndex:', messageIndex);
         
         if (messageIndex !== -1) {
+          console.log('發送 save-edit 事件');
           emit('save-edit', messageIndex, editTitle.value.trim(), editText.value.trim());
         } else {
           console.error('找不到對應的留言索引:', editingMessageIndex.value);
