@@ -1,14 +1,14 @@
 <template lang="pug">
-.ui.container.two.column.stackable.grid
-  .column(v-if="!uid")
-    .ui.segment
-      .ui.header 留言板
-      .ui.description 請先登入才能留言
-      .ui.divider
-      button.ui.large.green.basic.button(@click="toggleLogin") 登入
+  .ui.container.two.column.stackable.grid
+    .column(v-if="!uid")
+      .ui.segment
+        .ui.header 留言板
+        .ui.description 請先登入才能留言
+        .ui.divider
+        button.ui.large.green.basic.button(@click="toggleLogin") 登入
 
   BulletinMessageDisplay(
-    v-if="uid"
+                v-if="uid"
     :uid="uid"
     :users="users"
     :messages="messages"
@@ -32,7 +32,7 @@
   )
 
   BulletinMessageEditor(
-    v-if="uid"
+                v-if="uid"
     :uid="uid"
     :users="users"
     @add-message="addMessage"
@@ -383,17 +383,17 @@ export default defineComponent({
 
       if (highlightMessageId) {
         nextTick(() => {
-          const messageElement = document.querySelector(`[data-message-id="${highlightMessageId}"]`);
-          console.log('messageElement', messageElement);
+              const messageElement = document.querySelector(`[data-message-id="${highlightMessageId}"]`);
+              console.log('messageElement', messageElement);
 
-          if (messageElement) {
-            messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              if (messageElement) {
+                messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            messageElement.classList.add('highlight-message');
+                messageElement.classList.add('highlight-message');
 
-            setTimeout(() => {
-              messageElement.classList.remove('highlight-message');
-            }, 3000);
+                setTimeout(() => {
+                  messageElement.classList.remove('highlight-message');
+                }, 3000);
           }
         });
       }
