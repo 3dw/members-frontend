@@ -1,324 +1,48 @@
 <template lang="pug">
-  .ui.container.two.column.stackable.grid
-    .column(v-if="!uid")
-      .ui.segment
-        .ui.header 留言板
-        .ui.description 請先登入才能留言
-        .ui.divider
-        button.ui.large.green.basic.button(@click="toggleLogin") 登入
+.ui.container.two.column.stackable.grid
+  .column(v-if="!uid")
+    .ui.segment
+      .ui.header 留言板
+      .ui.description 請先登入才能留言
+      .ui.divider
+      button.ui.large.green.basic.button(@click="toggleLogin") 登入
 
-    .ui.comments.flex-column.column(v-if="uid")
-      .ui.search.segment
-        .ui.icon.input.fluid
-          input(
-            type="text"
-            v-model="searchKeyword"
-            placeholder="搜尋留言..."
-            @input="handleSearch"
-          )
-          i.search.icon
-        .ui.label(v-if="searchKeyword")
-          | 搜尋結果: {{ filteredMessages.length }} 則留言
-          i.close.icon(@click="clearSearch")
+  BulletinMessageDisplay(
+    v-if="uid"
+    :uid="uid"
+    :users="users"
+    :messages="messages"
+    :replying-to="replyingTo"
+    @toggle-reaction="toggleReaction"
+    @toggle-reply-form="toggleReplyForm"
+    @quote-message="quoteMessage"
+    @edit-message="editMessage"
+    @delete-reply="deleteReply"
+    @add-reply="addReply"
+    @cancel-reply="cancelReply"
+    @toggle-task="toggleTask"
+    @handle-dropdown-click="handleDropdownClick"
+    @expand-message="handleExpandMessage"
+    @collapse-message="handleCollapseMessage"
+    @expand-reply="handleExpandReply"
+    @collapse-reply="handleCollapseReply"
+    @toggle-replies="handleToggleReplies"
+  )
 
-      .comment(v-for="(message, index) in filteredMessages.slice(0, maxShowMessages)" :key="index" :data-message-id="message.actualIndex")
-        .content
-          .message-header
-            .message-status-priority
-              .message-status(v-if="message.status && message.status !== 'open'")
-                i.icon(:class="getStatusIcon(message.status)")
-                span.status-text {{ getStatusText(message.status) }}
-              .message-priority(v-if="message.priority && message.priority !== 'low'", :class="message.priority")
-                i.icon(:class="getPriorityIcon(message.priority)")
-                span.priority-text {{ getPriorityText(message.priority) }}
-            .message-labels(v-if="message.labels && message.labels.length > 0")
-              span.ui.mini.label(
-                v-for="label in message.labels"
-                :key="label.id"
-                :class="label.color"
-              ) {{ label.name }}
-
-          img.ui.avatar.image(v-if="users && users[message.uid] && users[message.uid].photoURL" :src="users[message.uid].photoURL")
-          .author {{ message.author }}
-          .metadata
-            .date {{ parseDate(message.date) }}
-              span.updated(v-if="message.updated") ({{ parseDate(message.updated) }}已更新)
-
-          .message-references(v-if="message.references && message.references.length > 0")
-            .referenced-message(
-              v-for="ref in message.references"
-              :key="ref.id"
-              v-if="ref && ref.id !== undefined"
-              @click="scrollToMessage(ref.id)"
-            )
-              i.quote.left.icon
-              span.reference-text(v-text="`引用 #${ref.id}: ${ref.preview}`")
-
-          .text(v-if="!message.textExpanded")
-            span(v-html="parseMentionsAndHideTasks(message.text.length > 50 ? message.text.slice(0, 50) + '...' : message.text)")
-            a.read-more-link(@click="expandMessage(message.actualIndex)" v-if="message.text.length > 50") 閱讀全文
-          .text(v-else)
-            span(v-html="parseMentionsAndHideTasks(message.text)")
-            a.read-more-link(@click="collapseMessage(message.actualIndex)") 收起全文
-
-          .task-list(v-if="message.tasks && message.tasks.length > 0")
-            .task-summary
-              i.tasks.icon
-              span {{ getCompletedTaskCount(message.tasks) }}/{{ message.tasks.length }} 項任務已完成
-            .task-item(
-              v-for="task in message.tasks"
-              :key="task.id"
-              :class="{ completed: task.completed }"
-            )
-              input(
-                type="checkbox"
-                :checked="task.completed"
-                @change="toggleTask(message.actualIndex, task.id)"
-                :disabled="message.uid !== uid"
-              )
-              span.task-text {{ task.text }}
-
-          .attachments(v-if="message.attachments && message.attachments.length > 0")
-            i.paperclip.icon
-            .ui.buttons
-              a.ui.mini.basic.button.no-border(
-                v-for="(file, index) in message.attachments"
-                :key="index"
-                :href="file.url"
-                target="_blank"
-                download
-              )
-                i.file.icon
-                | {{ file.name }}
-          .hrefs(v-if="message.hrefs && message.hrefs.length > 0")
-            a.ui.mini.basic.button.no-border.text-underline(v-for="(href, index) in message.hrefs" :key="index" :href="href" target="_blank")
-              img(:src="'https://www.google.com/s2/favicons?domain=' + href" title='連結網址' alt='連結網址')
-              span(v-if="href.length > 50") {{ href.slice(0, 50) }}...
-              span(v-else) {{ href }}
-
-          .actions
-            .reaction-buttons
-              button.reaction-btn(
-                v-for="emoji in ['✅', '❌', '👍', '❤️', '🙏', '🫡', '🌟', '💡', '😊', '😁', '😢']"
-                :key="emoji"
-                @click="toggleReaction(message, emoji)"
-                :class="{ active: hasReacted(message, emoji) }"
-              )
-                .reaction-tooltip(v-if="getReactionCount(message, emoji) > 0")
-                  | {{ getReactionUsers(message, emoji) }}
-                span.emoji {{ emoji }}
-                span.count {{ getReactionCount(message, emoji) }}
-
-          div.flex.flex-row(v-if="uid")
-            .action-buttons
-              button.action-btn.dropdown-trigger(
-                v-if="uid"
-                :data-dropdown-type="'labels'"
-                :data-message-index="message.actualIndex"
-                @click.stop="handleDropdownClick"
-              )
-                i.tags.icon
-                span 標籤
-
-              button.action-btn.dropdown-trigger(
-                v-if="uid"
-                :data-dropdown-type="'status'"
-                :data-message-index="message.actualIndex"
-                @click.stop="handleDropdownClick"
-              )
-                i.flag.icon
-                span 狀態
-
-              button.action-btn.dropdown-trigger(
-                v-if="uid"
-                :data-dropdown-type="'priority'"
-                :data-message-index="message.actualIndex"
-                @click.stop="handleDropdownClick"
-              )
-                i.exclamation.icon
-                span 優先級
-
-          .action-buttons
-            button.action-btn.reply-btn(@click="toggleReplyForm(message.actualIndex)")
-              i.reply.icon
-              span 回覆
-            button.action-btn.quote-btn(@click="quoteMessage(message.actualIndex)")
-              i.quote.left.icon
-              span 引用
-            button.action-btn.expand-btn(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
-              i.expand.icon(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded")
-              i.chevron.up.icon(v-else)
-              span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開
-              span(v-else) 收起
-            button.action-btn.edit-btn(v-if="message.uid === uid && (!message.replies || message.replies.length === 0)" @click="editMessage(message.actualIndex)")
-              i.edit.icon
-              span 編輯
-
-          .replies(v-if="message.replies && message.replies.length > 0")
-            .unexpended(v-if="!message.repliesExpanded")
-              | 共有{{ message.replies.length }}則回覆
-            .expended(v-else)
-              .reply(v-for="(reply, rIndex) in message.replies" :key="rIndex")
-                .ui.divider
-                .content
-                  img.ui.avatar.image.small(v-if="users && users[reply.uid] && users[reply.uid].photoURL" :src="users[reply.uid].photoURL")
-                  .author {{ reply.author }}
-                  .metadata
-                    .date {{ parseDate(reply.date) }}
-                  .text(v-if="!reply.textExpanded")
-                    span {{ reply.text.length > 50 ? reply.text.slice(0, 50) + '...' : reply.text }}
-                    a.read-more-link(@click="expandReply(message.actualIndex, rIndex)" v-if="reply.text.length > 50") 閱讀全文
-                  .text(v-else)
-                    span {{ reply.text }}
-                    a.read-more-link(@click="collapseReply(message.actualIndex, rIndex)") 收起全文
-                  //- .actions(v-if="reply.uid === uid")
-                    .reaction-buttons
-                      button.reaction-btn(
-                        v-for="emoji in ['✅', '❌', '👍', '❤️', '🙏', '🫡', '🌟', '💡', '😊', '😁', '😢']"
-                        :key="emoji"
-                        @click="toggleReplyReaction(reply, message.actualIndex, rIndex, emoji)"
-                        :class="{ active: hasReacted(reply, emoji) }"
-                      )
-                        .reaction-tooltip(v-if="getReactionCount(reply, emoji) > 0")
-                          | {{ getReactionUsers(reply, emoji) }}
-                        span.emoji {{ emoji }}
-                        span.count {{ getReactionCount(reply, emoji) }}
-                  .action-buttons
-                    button.action-btn.reply-btn(@click="toggleReplyForm(message.actualIndex)")
-                      i.reply.icon
-                      span 回覆
-                    button.action-btn.expand-btn(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
-                      i.expand.icon(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded")
-                      i.chevron.up.icon(v-else)
-                      span(v-if="!message.replies || message.replies.length === 0 || !message.repliesExpanded") 展開
-                      span(v-else) 收起
-                    button.action-btn.delete-btn(@click="deleteReply(message.actualIndex, rIndex)")
-                      i.trash.icon
-                      span.fat-only 刪除
-
-          .ui.form.reply-form(v-if="replyingTo === message.actualIndex")
-            .ui.divider
-            textarea(v-model="replyText" class="reply-textarea" rows="2" cols="50" placeholder="輸入回覆...")
-            .actions
-              button.ui.primary.button(@click="addReply(message.actualIndex)") 發送
-              button.ui.button(@click="cancelReply") 取消
-
-      .show-more-messages(v-if="filteredMessages.length > maxShowMessages")
-        button.ui.basic.orange.button(@click="showMoreMessages")
-          i.chevron.down.icon
-          | 顯示更多留言
-      .show-less-messages(v-if="filteredMessages.length <= maxShowMessages && filteredMessages.length > 5")
-        button.ui.basic.orange.button(@click="showLessMessages")
-          i.chevron.up.icon
-          | 顯示更少留言
-
-    .ui.form.reply.column(v-if="uid")
-      .ui.divider.thin-only
-      .field
-        label 輸入留言
-        textarea(
-          v-model="newMessage"
-          @input="handleMessageInput"
-          @keydown="handleKeydown"
-          ref="messageTextarea"
-        )
-        .ui.info.message
-          .header 💡 進階功能提示
-          .list
-            .item
-              i.tags.icon
-              .content
-                strong 任務列表:
-                | 使用
-                code - [ ] 任務項目
-                |  或
-                code - [x] 已完成項目
-                |  格式
-            //- .item.fat-only
-              i.quote.left.icon
-              .content
-                strong 引用留言:
-                | 使用
-                code #123
-                |  或
-                code 引用 #123
-                |  格式引用特定留言
-            .item
-              i.at.icon
-              .content
-                strong 提及用戶:
-                | 使用
-                code @用戶名
-                |  格式提及其他用戶
-        .mention-suggestions(
-          v-if="showMentions && mentionSuggestions.length > 0"
-          :style="{ top: mentionPosition.top + 'px', left: mentionPosition.left + 'px' }"
-        )
-          .mention-item(
-            v-for="(user, index) in mentionSuggestions"
-            :key="user.uid"
-            :class="{ active: index === mentionIndex, 'mention-all': user.uid === 'all' }"
-            @click="selectMention(user)"
-          )
-            img.ui.avatar.image(v-if="user.photoURL" :src="user.photoURL")
-            i.envelope.icon(v-if="user.uid === 'all'")
-            span {{ user.name }}
-
-      .field
-        label
-          i.linkify.icon
-          | 附加連結(可選)
-
-        .ui.list(v-if="newMessageHrefs && newMessageHrefs.length > 0")
-          .item(v-for="(href, index) in newMessageHrefs" :key="index")
-            .content
-              img(:src="'https://www.google.com/s2/favicons?domain=' + href" title='連結網址' alt='連結網址')
-              a(:href="href" target="_blank" rel="noopener noreferrer") {{ href.length > 40 ? href.slice(0, 20) + '...' : href }}
-              .ui.mini.red.basic.button(@click="removeHrefByIndex(index)")
-                i.trash.icon
-                span 刪除
-        input(type="text" v-model="newMessageHref" placeholder="輸入連結")
-        .ui.buttons(v-if="newMessageHref && newMessageHref.length > 0")
-          a.ui.mini.basic.button(:href="newMessageHref" target="_blank" rel="noopener noreferrer")
-            img(:src="'https://www.google.com/s2/favicons?domain=' + newMessageHref" title='連結網址' alt='連結網址')
-            | 連結預覽
-          .ui.mini.basic.green.button(@click="addHref")
-            i.plus.icon
-            | 新增連結
-            .field
-        label
-          i.paperclip.icon
-          | 附加檔案
-          br
-          | (可選，建議10MB以下，最大1GB)
-        .ui.upload.segment
-          input(type="file" ref="fileUpload" @change="handleFileUpload" style="display: none")
-          .ui.basic.button(@click="$refs.fileUpload.click()")
-            i.upload.icon
-            | 選擇檔案
-          span(v-if="uploadingFile")
-            span(v-if="!isBigFile") 上傳中...
-            span(v-if="isBigFile")
-              br
-              | 檔案較大，分塊上傳中，請耐心等待...
-              br
-              | {{uploadProgress}}
-          .ui.list(v-if="newMessageAttachments && newMessageAttachments.length > 0")
-            .item(v-for="(file, index) in newMessageAttachments" :key="index")
-              i.file.icon
-              .content
-                a(:href="file.url" target="_blank") {{ file.name }}
-                .ui.mini.red.button(@click="removeAttachment(index)") 刪除
-
-      .ui.primary.submit.button(@click="addMessage") 留言
+  BulletinMessageEditor(
+    v-if="uid"
+    :uid="uid"
+    :users="users"
+    @add-message="addMessage"
+  )
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, onMounted, onBeforeUnmount, nextTick, computed, watch } from 'vue';
+import { ref, defineComponent, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { onValue, ref as dbRef, get, set } from 'firebase/database';
 import { bulletinRef, database } from '@/firebase';
-import { useRouter } from 'vue-router';
-
+import BulletinMessageDisplay from '@/components/BulletinMessageDisplay.vue';
+import BulletinMessageEditor from '@/components/BulletinMessageEditor.vue';
 
 interface User {
   name: string;
@@ -366,7 +90,48 @@ interface Reply {
   };
 }
 
+interface MessageData {
+  text: string;
+  attachments: Array<{name: string, url: string, size: number, type: string}>;
+  hrefs: string[];
+  mentionedUsers: string[];
+  tasks: Array<{id: string, text: string, completed: boolean}>;
+  referencedMessages: Array<{id: number, preview: string, type: 'message' | 'reply'}>;
+  notifyAllUsers: boolean;
+}
+
+interface FirebaseMessage {
+  author: string;
+  uid: string;
+  date: string;
+  text: string;
+  updated?: string;
+  reactions?: {[key: string]: {[uid: string]: boolean}};
+  replies?: FirebaseReply[];
+  hrefs?: string[];
+  attachments?: Array<{name: string, url: string, size: number, type: string}>;
+  labels?: Array<{id: string, name: string, color: string}>;
+  status?: string;
+  references?: Array<{id: number, preview: string, type: string}>;
+  tasks?: Array<{id: string, text: string, completed: boolean}>;
+  priority?: string;
+  assignees?: string[];
+  notifyAllUsers?: boolean;
+}
+
+interface FirebaseReply {
+  author: string;
+  uid: string;
+  date: string;
+  text: string;
+  reactions?: {[key: string]: {[uid: string]: boolean}};
+}
+
 export default defineComponent({
+  components: {
+    BulletinMessageDisplay,
+    BulletinMessageEditor
+  },
   props: {
     uid: {
       required: false,
@@ -378,9 +143,7 @@ export default defineComponent({
     }
   },
   setup(props, { emit }) {
-    const router = useRouter();
 
-    const maxShowMessages = ref(5);
     const messages = ref<Message[]>([
       { author: 'AliceS', uid: '123', date: '2025-03-18 10:00:00', text: 'This is a great post!' },
       { author: 'BobS', uid: '456', date: '2025-03-18 10:00:00', text: 'I totally agree with Alice.' },
@@ -389,51 +152,8 @@ export default defineComponent({
       reactions: {}
     })));
 
-    const uploadProgress = ref('');
-    const isBigFile = ref(false);
-    const newMessage = ref('');
-    const newMessageHref = ref('');
-    const newMessageHrefs = ref<string[]>([]);
     const dataLoaded = ref(false);
     const replyingTo = ref(-1);
-    const replyText = ref('');
-    const editingMessage = ref(-1);
-    const uploadingFile = ref(false);
-    const newMessageAttachments = ref<Array<{name: string, url: string, size: number, type: string}>>([]);
-    const messageTextarea = ref<HTMLTextAreaElement | null>(null);
-    const showMentions = ref(false);
-    const mentionSuggestions = ref<Array<{uid: string, name: string, photoURL?: string}>>([]);
-    const mentionIndex = ref(0);
-    const mentionStart = ref(-1);
-    const searchKeyword = ref('');
-    const filteredMessages = ref<Message[]>([]);
-    const notifyAllUsers = ref(false);
-    const mentionPosition = ref({ top: 0, left: 0 });
-
-    // 文字展開狀態管理
-    const expandMessage = (messageIndex: number) => {
-      if (messages.value[messageIndex]) {
-        messages.value[messageIndex].textExpanded = true;
-      }
-    };
-
-    const collapseMessage = (messageIndex: number) => {
-      if (messages.value[messageIndex]) {
-        messages.value[messageIndex].textExpanded = false;
-      }
-    };
-
-    const expandReply = (messageIndex: number, replyIndex: number) => {
-      if (messages.value[messageIndex] && messages.value[messageIndex].replies) {
-        messages.value[messageIndex].replies![replyIndex].textExpanded = true;
-      }
-    };
-
-    const collapseReply = (messageIndex: number, replyIndex: number) => {
-      if (messages.value[messageIndex] && messages.value[messageIndex].replies) {
-        messages.value[messageIndex].replies![replyIndex].textExpanded = false;
-      }
-    };
 
     // 標籤系統相關變數 - 直接在組件中定義
     const availableLabels = ref([
@@ -466,90 +186,67 @@ export default defineComponent({
       { value: 'urgent', text: '緊急', icon: 'exclamation triangle' }
     ]);
 
-    const sortedMessages = computed(() => {
-      return [...messages.value].map((obj, index) => {
-        const newObj = {
-          ...obj
-        }
-        newObj.actualIndex = index;
-        return newObj;
-      }).sort((a, b) => {
-        const dateA = new Date(a.date);
-        const dateB = new Date(b.date);
-        return dateB.getTime() - dateA.getTime();
-      });
-    });
-
-    const addMessage = () => {
-      if (newMessageHref.value) {
-        newMessageHrefs.value.push(newMessageHref.value);
-        newMessageHref.value = '';
-      }
+    const addMessage = (messageData: MessageData) => {
       if (!dataLoaded.value) return;
 
-      console.log(newMessage.value);
       const m_length = messages.value.length;
 
-      const mentionedUsers = detectMentionedUsers(newMessage.value);
-
-      // 解析任務列表
-      const tasks = parseTaskList(newMessage.value);
-
-      // 檢測是否有引用
-      const referencedMessages = detectReferences(newMessage.value);
+      // 檢測引用時需要驗證消息是否存在
+      const validatedReferences = messageData.referencedMessages.filter((ref) => {
+        if (ref.id < messages.value.length) {
+          const referencedMessage = messages.value[ref.id];
+          if (referencedMessage) {
+            ref.preview = referencedMessage.text.substring(0, 50) + (referencedMessage.text.length > 50 ? '...' : '');
+            return true;
+          }
+        }
+        return false;
+      });
 
       const newMessageObj: Message = {
         author: props.users[props.uid].name || '匿名',
         uid: props.uid || '123',
         date: new Date().toISOString(),
-        text: newMessage.value,
+        text: messageData.text,
         reactions: {},
       }
 
-      if (mentionedUsers.length > 0) {
-        newMessageObj.mentions = mentionedUsers;
+      if (messageData.mentionedUsers.length > 0) {
+        newMessageObj.mentions = messageData.mentionedUsers;
       }
 
-      if (newMessageAttachments.value.length > 0) {
-        newMessageObj.attachments = newMessageAttachments.value;
+      if (messageData.attachments.length > 0) {
+        newMessageObj.attachments = messageData.attachments;
       }
 
-      if (newMessageHrefs.value.length > 0) {
-        newMessageObj.hrefs = newMessageHrefs.value;
+      if (messageData.hrefs.length > 0) {
+        newMessageObj.hrefs = messageData.hrefs;
       }
 
-      if (tasks.length > 0) {
-        newMessageObj.tasks = tasks;
+      if (messageData.tasks.length > 0) {
+        newMessageObj.tasks = messageData.tasks;
       }
 
-      if (referencedMessages.length > 0) {
-        newMessageObj.references = referencedMessages;
+      if (validatedReferences.length > 0) {
+        newMessageObj.references = validatedReferences;
       }
 
-      if (notifyAllUsers.value) {
+      if (messageData.notifyAllUsers) {
         newMessageObj.notifyAllUsers = true;
       }
 
       messages.value.push(newMessageObj);
 
-
       // 如果勾選了發送給所有用戶，則發送通知給所有用戶
-      if (notifyAllUsers.value) {
+      if (messageData.notifyAllUsers) {
         sendNotificationToAllUsers(newMessageObj, m_length);
       }
 
       // 如果沒有勾選發送給所有用戶，則發送通知給被提及的用戶
-      // 這麼做是為了避免發送給所有用戶時，被提及的用戶會收到重複的通知
-
-      if (mentionedUsers.length > 0 && !notifyAllUsers.value) {
-        sendMentionNotifications(mentionedUsers, newMessageObj, null, m_length);
+      if (messageData.mentionedUsers.length > 0 && !messageData.notifyAllUsers) {
+        sendMentionNotifications(messageData.mentionedUsers, newMessageObj, null, m_length);
       }
 
-
-      newMessage.value = '';
-      newMessageHrefs.value = [];
-      newMessageAttachments.value = [];
-      notifyAllUsers.value = false; // 重置通知狀態
       set(dbRef(database, 'bulletin/' + m_length), newMessageObj).then(() => {
         console.log('留言成功');
       });
@@ -559,66 +256,7 @@ export default defineComponent({
       emit('toggleLogin');
     }
 
-    const parseDate = (date: string) => {
-      const now = new Date();
-      const messageDate = new Date(date);
 
-      if (isNaN(messageDate.getTime())) {
-        return '無效日期';
-      }
-
-      const diff = now.getTime() - messageDate.getTime();
-      const diffSeconds = Math.floor(diff / 1000);
-      const diffMinutes = Math.floor(diff / (1000 * 60));
-      const diffHours = Math.floor(diff / (1000 * 60 * 60));
-      const diffDays = Math.floor(diff / (1000 * 60 * 60 * 24));
-      if (diffSeconds < 60) {
-        if (diffSeconds === 0) {
-          return '剛剛';
-        }
-        return `${diffSeconds} 秒前`;
-      } else if (diffMinutes < 60) {
-        return `${diffMinutes} 分鐘前`;
-      } else if (diffHours < 24) {
-        return `${diffHours} 小時前`;
-      } else {
-        return `${diffDays} 天前`;
-      }
-    }
-
-    const toggleReplies = (index: number) => {
-      if (!props.uid) return;
-
-      if (messages.value[index].repliesExpanded) {
-        messages.value[index].repliesExpanded = false;
-      } else {
-        messages.value[index].repliesExpanded = true;
-      }
-
-      saveRepliesExpandedState();
-    }
-
-    const toggleReplyReaction = (reply: Reply, actualIndex: number, rIndex: number, reaction: string) => {
-      if (!props.uid) return;
-
-      if (!reply.reactions) {
-        reply.reactions = {};
-      }
-
-      if (!reply.reactions[reaction]) {
-        reply.reactions[reaction] = {};
-      }
-
-      if (reply.reactions[reaction][props.uid]) {
-        delete reply.reactions[reaction][props.uid];
-      } else {
-        reply.reactions[reaction][props.uid] = true;
-      }
-
-      set(dbRef(database, `bulletin/${actualIndex}/replies/${rIndex}/reactions`), reply.reactions).then(() => {
-        console.log('回覆反應更新成功');
-      });
-    }
 
     const toggleReaction = (message: Message, reaction: string) => {
       if (!props.uid) return;
@@ -644,22 +282,6 @@ export default defineComponent({
       }
     };
 
-    const hasReacted = (message: Message, reaction: string) => {
-      return message.reactions?.[reaction]?.[props.uid] || false;
-    };
-
-    const getReactionCount = (message: Message, reaction: string) => {
-      return Object.keys(message.reactions?.[reaction] || {}).length;
-    };
-
-    const getReactionUsers = (message: Message, reaction: string): string => {
-      if (!message.reactions?.[reaction]) return '';
-
-      return Object.keys(message.reactions[reaction])
-        .map(uid => props.users[uid]?.name || '匿名用戶')
-        .join('、');
-    };
-
     const toggleReplyForm = (index: number) => {
       if (!props.uid) return;
 
@@ -667,17 +289,15 @@ export default defineComponent({
         replyingTo.value = -1;
       } else {
         replyingTo.value = index;
-        replyText.value = '';
       }
     };
 
     const cancelReply = () => {
       replyingTo.value = -1;
-      replyText.value = '';
     };
 
-    const addReply = (index: number) => {
-      if (!dataLoaded.value || !props.uid || replyText.value.trim() === '') return;
+    const addReply = (index: number, text: string) => {
+      if (!dataLoaded.value || !props.uid || text.trim() === '') return;
 
       const messageToReply = messages.value[index];
 
@@ -685,20 +305,19 @@ export default defineComponent({
         messageToReply.replies = [];
       }
 
-      const mentionedUsers = detectMentionedUsers(replyText.value);
+      const mentionedUsers = detectMentionedUsers(text);
 
       const newReply: Reply = {
         author: props.users[props.uid].name || '匿名',
         uid: props.uid,
         date: new Date().toISOString(),
-        text: replyText.value.trim()
+        text: text.trim()
       };
 
       messageToReply.replies.push(newReply);
 
       sendMentionNotifications(mentionedUsers, messageToReply, newReply, index);
 
-      replyText.value = '';
       replyingTo.value = -1;
 
       set(dbRef(database, `bulletin/${index}/replies`), messageToReply.replies).then(() => {
@@ -725,30 +344,6 @@ export default defineComponent({
       }
     };
 
-    const saveRepliesExpandedState = () => {
-      const expandedState: Record<number, boolean> = {};
-      messages.value.forEach((message, index) => {
-        if (message.repliesExpanded) {
-          expandedState[index] = true;
-        }
-      });
-      sessionStorage.setItem('repliesExpandedState', JSON.stringify(expandedState));
-    };
-
-    const restoreRepliesExpandedState = () => {
-      const storedState = sessionStorage.getItem('repliesExpandedState');
-      if (storedState) {
-        try {
-          const expandedState = JSON.parse(storedState) as Record<number, boolean>;
-          messages.value.forEach((message, index) => {
-            message.repliesExpanded = expandedState[index] || false;
-          });
-        } catch (e) {
-          console.error('恢復展開狀態失敗', e);
-        }
-      }
-    };
-
     const editMessage = (index: number) => {
       if (!dataLoaded.value || !props.uid) return;
 
@@ -771,441 +366,6 @@ export default defineComponent({
       }
     };
 
-    const handleFileUpload = async (event: Event) => {
-      const file = (event.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-
-      if (file.name.includes('/') || file.name.includes('\\')) {
-        alert('檔名不能包含斜線「/」或反斜線「\\」');
-        return;
-      }
-
-      if (file.size > 1024 * 1024 * 1024) {
-        alert('檔案大小不能超過 1GB');
-        return;
-      }
-
-      uploadingFile.value = true;
-      try {
-        if (file.size <= 10 * 1024 * 1024) {
-          isBigFile.value = false;
-          const fileContent = await file.arrayBuffer();
-          const response = await fetch('https://members-backend.alearn13994229.workers.dev/uploadToR2/files/' + file.name, {
-            method: 'POST',
-            body: fileContent,
-            headers: {
-              'Content-Type': file.type
-            }
-          });
-
-          if (response.status === 400) {
-            const result = await response.json();
-            alert(result.error + ' 請更改名稱後重新上傳');
-            return;
-          }
-
-          if (!response.ok) {
-            throw new Error('上傳失敗');
-          }
-
-          const result = await response.json();
-          newMessageAttachments.value.push({
-            name: file.name,
-            url: result.url,
-            size: file.size,
-            type: file.type
-          });
-        } else {
-          isBigFile.value = true;
-          uploadProgress.value = '上傳中...';
-          const CHUNK_SIZE = 5 * 1024 * 1024;
-          const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-
-          console.log('開始分塊上傳:', {
-            fileName: file.name,
-            fileSize: file.size,
-            chunkSize: CHUNK_SIZE,
-            totalChunks: totalChunks
-          });
-
-          uploadProgress.value = '開始分塊上傳：' + file.name + '，共' + totalChunks + '塊';
-
-          for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-            const start = chunkIndex * CHUNK_SIZE;
-            const end = Math.min(start + CHUNK_SIZE, file.size);
-            const chunk = file.slice(start, end);
-
-            console.log(`上傳分塊 ${chunkIndex + 1}/${totalChunks}:`, {
-              start,
-              end,
-              chunkSize: chunk.size,
-              chunkType: chunk.type
-            });
-
-            uploadProgress.value = '上傳第 ' + (chunkIndex + 1) + ' 塊...(共' + totalChunks + '塊)';
-
-            const formData = new FormData();
-            formData.append('chunk', chunk);
-
-            const response = await fetch(
-              `https://members-backend.alearn13994229.workers.dev/uploadChunkToR2/files/${encodeURIComponent(file.name)}/${chunkIndex}/${totalChunks}`,
-              {
-                method: 'POST',
-                body: formData
-              }
-            );
-
-            console.log(`分塊 ${chunkIndex + 1}/${totalChunks} 上傳回應:`, {
-              status: response.status,
-              ok: response.ok,
-              statusText: response.statusText
-            });
-
-            if (response.ok) {
-              console.log(`成功上傳第 ${chunkIndex + 1} 塊分塊`);
-            } else {
-              const errorText = await response.text();
-              console.error(`分塊 ${chunkIndex + 1}/${totalChunks} 上傳失敗:`, errorText);
-              throw new Error(`分塊 ${chunkIndex + 1}/${totalChunks} 上傳失敗: ${errorText}`);
-            }
-          }
-
-          console.log('所有分塊上傳完成，開始合併');
-          uploadProgress.value = '合併中...';
-
-          const mergeResponse = await fetch(
-            `https://members-backend.alearn13994229.workers.dev/mergeChunksInR2/files/${file.name}/${totalChunks}`,
-            {
-              method: 'POST'
-            }
-          );
-
-          console.log('合併回應:', {
-            status: mergeResponse.status,
-            ok: mergeResponse.ok,
-            statusText: mergeResponse.statusText
-          });
-
-          if (!mergeResponse.ok) {
-            const errorText = await mergeResponse.text();
-            uploadProgress.value = '合併失敗';
-            console.error('合併失敗:', errorText);
-            throw new Error(`合併分塊失敗: ${errorText}`);
-          }
-
-          const result = await mergeResponse.json();
-          console.log('合併成功，檔案資訊:', result);
-          uploadProgress.value = '合併成功';
-          newMessageAttachments.value.push({
-            name: file.name,
-            url: result.url,
-            size: file.size,
-            type: file.type
-          });
-        }
-
-        (event.target as HTMLInputElement).value = '';
-        uploadProgress.value = '';
-      } catch (error) {
-        console.error('檔案上傳失敗:', error);
-        uploadProgress.value = '檔案上傳失敗';
-        alert('檔案上傳失敗，請重試');
-      } finally {
-        uploadingFile.value = false;
-      }
-    };
-
-    const removeAttachment = (index: number) => {
-      if (confirm('確定要刪除此檔案嗎？')) {
-        newMessageAttachments.value.splice(index, 1);
-      }
-    };
-
-    // 計算 @ 符號位置
-    const calculateMentionPosition = () => {
-      if (!messageTextarea.value || mentionStart.value === -1) return;
-
-      const textarea = messageTextarea.value;
-      const textareaRect = textarea.getBoundingClientRect();
-
-      // 創建一個臨時的 span 來測量文本寬度
-      const measurer = document.createElement('span');
-      const computedStyle = getComputedStyle(textarea);
-
-      measurer.style.cssText = `
-        visibility: hidden;
-        position: absolute;
-        white-space: pre;
-        font-family: ${computedStyle.fontFamily};
-        font-size: ${computedStyle.fontSize};
-        font-weight: ${computedStyle.fontWeight};
-        line-height: ${computedStyle.lineHeight};
-        letter-spacing: ${computedStyle.letterSpacing};
-      `;
-
-      document.body.appendChild(measurer);
-
-      // 獲取到 @ 符號為止的文本
-      const textBeforeMention = newMessage.value.slice(0, mentionStart.value + 1);
-
-      // 處理換行
-      const lines = textBeforeMention.split('\n');
-      const lastLine = lines[lines.length - 1];
-
-      // 測量最後一行的寬度
-      measurer.textContent = lastLine;
-      const textWidth = measurer.getBoundingClientRect().width;
-
-      document.body.removeChild(measurer);
-
-      // 計算位置
-      const paddingLeft = parseInt(computedStyle.paddingLeft, 10) || 0;
-      const paddingTop = parseInt(computedStyle.paddingTop, 10) || 0;
-      const borderLeft = parseInt(computedStyle.borderLeftWidth, 10) || 0;
-      const borderTop = parseInt(computedStyle.borderTopWidth, 10) || 0;
-      const lineHeight = parseInt(computedStyle.lineHeight, 10) || 20;
-
-      // 計算 @ 符號的位置
-      const left = textareaRect.left + paddingLeft + borderLeft + textWidth;
-      const top = textareaRect.top + paddingTop + borderTop + (lines.length * lineHeight) + window.scrollY;
-
-      // 確保不超出螢幕邊界
-      const menuWidth = Math.min(220, window.innerWidth - 20);
-      const maxLeft = window.innerWidth - menuWidth - 10;
-      const minLeft = 10;
-      const finalLeft = Math.min(Math.max(left, minLeft), maxLeft);
-
-      // 確保不超出底部邊界
-      const menuHeight = 250;
-      const maxTop = window.innerHeight - menuHeight - 10;
-      const finalTop = Math.min(top, maxTop);
-
-      mentionPosition.value = { top: finalTop, left: finalLeft };
-    };
-
-    const handleMessageInput = (event: KeyboardEvent) => {
-      const text = newMessage.value;
-      const cursorPosition = messageTextarea.value?.selectionStart || 0;
-      const lastAtSymbol = text.lastIndexOf('@', cursorPosition);
-
-      if (lastAtSymbol !== -1 && lastAtSymbol < cursorPosition) {
-        const searchText = text.slice(lastAtSymbol + 1, cursorPosition);
-        mentionStart.value = lastAtSymbol;
-
-        if (searchText.length === 0) {
-          const firstFiveUsers = Object.entries(props.users)
-            .map(([uid, user]) => ({
-              uid,
-              name: (user as User).name,
-              photoURL: (user as User).photoURL
-            }));
-
-          // 添加 "All" 選項到列表最前面
-          const allOption = {
-            uid: 'all',
-            name: 'All',
-            photoURL: undefined
-          };
-
-          mentionSuggestions.value = [allOption, ...firstFiveUsers];
-          showMentions.value = true;
-          mentionIndex.value = 0;
-
-          // 計算位置
-          nextTick(() => {
-            calculateMentionPosition();
-          });
-          return;
-        }
-
-        if (!searchText.includes(' ')) {
-          const filteredUsers = Object.entries(props.users)
-            .filter(([_, user]) =>
-              (user as User).name.toLowerCase().includes(searchText.toLowerCase())
-            )
-            .map(([uid, user]) => ({
-              uid,
-              name: (user as User).name,
-              photoURL: (user as User).photoURL
-            }));
-
-          // 如果搜索文本匹配 "all"，則添加 All 選項
-          const suggestions: Array<{uid: string, name: string, photoURL?: string}> = [];
-          if ('all'.toLowerCase().includes(searchText.toLowerCase())) {
-            suggestions.push({
-              uid: 'all',
-              name: 'All',
-              photoURL: undefined
-            });
-          }
-          suggestions.push(...filteredUsers);
-
-          mentionSuggestions.value = suggestions;
-          showMentions.value = true;
-          mentionIndex.value = 0;
-
-          // 計算位置
-          nextTick(() => {
-            calculateMentionPosition();
-          });
-          return;
-        }
-      }
-      showMentions.value = false;
-    };
-
-    const handleKeydown = (event: KeyboardEvent) => {
-      console.log('handleKeydown', event.key);
-      if (!showMentions.value) return;
-
-      switch (event.key) {
-        case 'ArrowDown':
-          event.preventDefault();
-          mentionIndex.value = (mentionIndex.value + 1) % mentionSuggestions.value.length;
-          break;
-        case 'ArrowUp':
-          event.preventDefault();
-          mentionIndex.value = (mentionIndex.value - 1 + mentionSuggestions.value.length) % mentionSuggestions.value.length;
-          break;
-        case 'Enter':
-          event.preventDefault();
-          if (mentionSuggestions.value[mentionIndex.value]) {
-            selectMention(mentionSuggestions.value[mentionIndex.value]);
-          }
-          break;
-        case 'Escape':
-          showMentions.value = false;
-          break;
-      }
-    };
-
-    const selectMention = (user: {uid: string, name: string}) => {
-      if (mentionStart.value === -1) return;
-
-      const text = newMessage.value;
-      const beforeMention = text.slice(0, mentionStart.value);
-      const afterMention = text.slice(messageTextarea.value?.selectionStart || 0);
-
-      // 如果選擇的是 "All"，設置通知所有用戶的標記
-      if (user.uid === 'all') {
-        notifyAllUsers.value = true;
-      }
-
-      newMessage.value = `${beforeMention}@${user.name} ${afterMention}`;
-
-      showMentions.value = false;
-      mentionStart.value = -1;
-
-      nextTick(() => {
-        if (messageTextarea.value) {
-          const newPosition = beforeMention.length + user.name.length + 2;
-          messageTextarea.value.setSelectionRange(newPosition, newPosition);
-          messageTextarea.value.focus();
-        }
-      });
-    };
-
-    const escapeHtml = (text: string): string => {
-      const div = document.createElement('div');
-      div.textContent = text;
-      return div.innerHTML;
-    };
-
-    const parseMentionsAndHideTasks = (text: string) => {
-      if (!text) return '';
-
-      const escapedText = escapeHtml(text);
-
-      const mentionRegex = /@([a-zA-Z0-9\u4e00-\u9fa5_]+)/g;
-
-      const taskRegex = /^.*-\s?\[[\sxX]\].*$/gm;
-
-      // 還要把空行也去掉
-      const emptyLineRegex = /^\s*$/gm;
-
-      return escapedText.replace(taskRegex, '').replace(emptyLineRegex, '').replace(mentionRegex, (match, username) => {
-        const user = Object.entries(props.users).find(([_, user]) =>
-          (user as User).name === username
-        );
-
-        if (user) {
-          return `<span class="mention-link" data-uid="${user[0]}">${match}</span>`;
-        }
-
-        return match;
-      });
-    };
-
-    const testMentions = () => {
-      const testCases = [
-        'Hello @Alice and @Bob',
-        '@Alice 你好 @Bob',
-        '這是@Alice的留言，@Bob也來看看',
-        '@Alice@Bob 連續標記',
-        '沒有標記的普通文字',
-        '@不存在的用戶',
-        '@Alice 和 @不存在的用戶'
-      ];
-
-      console.log('測試 @ 標記解析：');
-      testCases.forEach(test => {
-        console.log('原文:', test);
-        console.log('解析後:', parseMentionsAndHideTasks(test));
-      });
-    };
-
-    const handleMentionClick = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      if (target.classList.contains('mention-link')) {
-        const uid = target.getAttribute('data-uid');
-        if (uid) {
-          router.push(`/flag/${uid}`);
-        }
-      }
-    };
-
-    const handleSearch = () => {
-      if (!searchKeyword.value.trim()) {
-        filteredMessages.value = sortedMessages.value;
-        return;
-      }
-
-      console.log('searchKeyword.value', searchKeyword.value);
-
-      const keyword = searchKeyword.value.toLowerCase().trim();
-      filteredMessages.value = sortedMessages.value.filter(message => {
-        if (message.text && message.text.toLowerCase().includes(keyword)) {
-          return true;
-        }
-
-        if (message.author && message.author.toLowerCase().includes(keyword)) {
-          return true;
-        }
-
-        if (message.replies) {
-          return message.replies.some(reply =>
-            reply.text && reply.text.toLowerCase().includes(keyword) ||
-            reply.author && reply.author.toLowerCase().includes(keyword)
-          );
-        }
-
-        return false;
-      });
-    };
-
-    const clearSearch = () => {
-      searchKeyword.value = '';
-      filteredMessages.value = sortedMessages.value;
-    };
-
-    watch(sortedMessages, (newMessages) => {
-      if (!searchKeyword.value.trim()) {
-        filteredMessages.value = newMessages;
-      } else {
-        handleSearch();
-      }
-    }, { immediate: true });
-
     const handleHighlight = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const highlightMessageId = urlParams.get('highlight');
@@ -1213,81 +373,31 @@ export default defineComponent({
 
       if (highlightMessageId) {
         nextTick(() => {
-          const targetMessage = sortedMessages.value.find(msg => msg.actualIndex === Number(highlightMessageId));
-          console.log('targetMessage', targetMessage);
-          if (targetMessage) {
-            toggleReplies(targetMessage.actualIndex || sortedMessages.value.length - 1);
+          const messageElement = document.querySelector(`[data-message-id="${highlightMessageId}"]`);
+          console.log('messageElement', messageElement);
 
-            console.log('sortedMessages.value.length', sortedMessages.value.length);
-            console.log('targetMessage.actualIndex', targetMessage.actualIndex);
-            console.log('maxShowMessages.value', maxShowMessages.value);
-            console.log('sortedMessages.value.length - targetMessage.actualIndex', sortedMessages.value.length - (targetMessage.actualIndex || 0));
+          if (messageElement) {
+            messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-            if ((sortedMessages.value.length - (targetMessage.actualIndex || 0)) > maxShowMessages.value) {
-              console.log('showMoreMessages', maxShowMessages.value);
-              showMoreMessages(true);
-              console.log('maxShowMessages', maxShowMessages.value);
-            }
+            messageElement.classList.add('highlight-message');
 
-            nextTick(() => {
-              console.log('nextTick', maxShowMessages.value);
-              const messageElement = document.querySelector(`[data-message-id="${highlightMessageId}"]`);
-
-              console.log('messageElement', messageElement);
-
-              if (messageElement) {
-                messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                messageElement.classList.add('highlight-message');
-
-                setTimeout(() => {
-                  messageElement.classList.remove('highlight-message');
-                }, 3000);
-              }
-            });
+            setTimeout(() => {
+              messageElement.classList.remove('highlight-message');
+            }, 3000);
           }
         });
       }
     };
 
-    watch(() => props.uid, (newUid) => {
-      console.log('newUid', newUid);
-      if (newUid) {
-        get(bulletinRef).then((snapshot) => {
-          const data = snapshot.val();
-          console.log(data);
-          messages.value = data.map((message: any) => ({
-            author: message.author,
-            uid: message.uid,
-            date: message.date,
-            text: message.text,
-            updated: message.updated,
-            reactions: message.reactions || {},
-            replies: message.replies ? message.replies.map((reply: any): Reply => ({
-              author: reply.author,
-              uid: reply.uid,
-              date: reply.date,
-              text: reply.text,
-              reactions: reply.reactions || {}
-            })) : [],
-            hrefs: message.hrefs || [],
-            attachments: message.attachments || [],
-            labels: message.labels || [],
-            status: message.status || 'open',
-            references: message.references || [],
-            tasks: message.tasks || [],
-            priority: message.priority || 'low',
-            assignees: message.assignees || [],
-            notifyAllUsers: message.notifyAllUsers || false
-          }));
-          dataLoaded.value = true;
+    const quoteMessage = (messageIndex: number) => {
+      if (!dataLoaded.value || !props.uid) return;
 
-          setTimeout(() => {
-            handleHighlight();
-          }, 500);
-        });
-      }
-    });
+      const message = messages.value[messageIndex];
+      const quotedText = `> ${message.author}: ${message.text.substring(0, 100)}${message.text.length > 100 ? '...' : ''}\n\n`;
+
+      // 將引用內容傳給編輯組件
+      emit('quote-message', quotedText);
+    };
 
     // 當前激活的下拉菜單
     const activeDropdownMenu = ref<HTMLElement | null>(null);
@@ -1464,8 +574,6 @@ export default defineComponent({
       }
     };
 
-
-
     // 點擊其他地方關閉下拉菜單
     const handleDocumentClick = (event: Event) => {
       const target = event.target as HTMLElement;
@@ -1479,117 +587,6 @@ export default defineComponent({
       removeActiveDropdownMenu();
     };
 
-    onMounted(() => {
-      console.log('mounted');
-      onValue(bulletinRef, (snapshot) => {
-        const data = snapshot.val();
-        console.log(data);
-        messages.value = data.map((message: any) => ({
-          author: message.author,
-          uid: message.uid,
-          date: message.date,
-          text: message.text,
-          updated: message.updated,
-          reactions: message.reactions || {},
-          replies: message.replies ? message.replies.map((reply: any): Reply => ({
-            author: reply.author,
-            uid: reply.uid,
-            date: reply.date,
-            text: reply.text,
-            reactions: reply.reactions || {}
-          })) : [],
-          hrefs: message.hrefs || [],
-          attachments: message.attachments || [],
-          labels: message.labels || [],
-          status: message.status || 'open',
-                      references: message.references || [],
-            tasks: message.tasks || [],
-            priority: message.priority || 'low',
-            assignees: message.assignees || [],
-            notifyAllUsers: message.notifyAllUsers || false
-          }));
-          dataLoaded.value = true;
-
-        restoreRepliesExpandedState();
-
-        handleHighlight();
-
-        // 設置下拉菜單事件監聽器
-        nextTick(() => {
-          document.addEventListener('click', handleDocumentClick);
-          // 添加滾動事件監聽器，滾動時關閉所有下拉菜單
-          document.addEventListener('scroll', scrollHandler, true);
-
-          // 添加監聽器來關閉 @ 提及選單
-          const closeMentionSuggestions = () => {
-            showMentions.value = false;
-          };
-
-          document.addEventListener('scroll', closeMentionSuggestions, true);
-          window.addEventListener('resize', closeMentionSuggestions);
-
-          document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
-            trigger.addEventListener('click', handleDropdownClick);
-          });
-        });
-      });
-      setInterval(async () => {
-        console.log('tick');
-        await nextTick();
-        messages.value = [...messages.value];
-      }, 60 * 1000);
-
-      document.addEventListener('click', handleMentionClick);
-
-      if (process.env.NODE_ENV === 'development') {
-        testMentions();
-      }
-    });
-
-    onBeforeUnmount(() => {
-      // 清理事件監聽器
-      document.removeEventListener('click', handleDocumentClick);
-      document.removeEventListener('scroll', scrollHandler, true);
-      document.removeEventListener('click', handleMentionClick);
-
-      // 清理激活的下拉菜單
-      removeActiveDropdownMenu();
-    });
-
-    const addHref = () => {
-      if (newMessageHref.value) {
-        try {
-          new URL(newMessageHref.value);
-          newMessageHrefs.value.push(newMessageHref.value);
-          newMessageHref.value = '';
-        } catch (e) {
-          alert('請輸入有效的網址');
-        }
-      }
-    };
-
-    const removeHref = () => {
-      if (newMessageHrefs.value.length > 0) {
-        newMessageHrefs.value.pop();
-      }
-    };
-
-    const removeHrefByIndex = (index: number) => {
-      newMessageHrefs.value.splice(index, 1);
-    };
-
-    const showMoreMessages = (force: boolean = false) => {
-      if (force) {
-        maxShowMessages.value = sortedMessages.value.length;
-      } else {
-        maxShowMessages.value += 10;
-      }
-    };
-
-    const showLessMessages = () => {
-      maxShowMessages.value -= 10;
-    };
-
     const detectMentionedUsers = (text: string): string[] => {
       if (!text) return [];
 
@@ -1600,7 +597,7 @@ export default defineComponent({
       while ((match = mentionRegex.exec(text)) !== null) {
         const username = match[1];
 
-        const userEntry = Object.entries(props.users).find(([_, user]) =>
+        const userEntry = Object.entries(props.users).find(([, user]) =>
           ((user as User).name || '').toLowerCase() === username.toLowerCase()
         );
 
@@ -1741,16 +738,6 @@ export default defineComponent({
       });
     };
 
-    const getStatusIcon = (status: string): string => {
-      const statusConfig = availableStatuses.value.find(s => s.value === status);
-      return statusConfig ? statusConfig.icon : 'circle outline';
-    };
-
-    const getStatusText = (status: string): string => {
-      const statusConfig = availableStatuses.value.find(s => s.value === status);
-      return statusConfig ? statusConfig.text : '開啟';
-    };
-
     // 優先級管理相關函數
     const changePriority = (messageIndex: number, newPriority: string) => {
       if (!dataLoaded.value || !props.uid) return;
@@ -1762,63 +749,6 @@ export default defineComponent({
       set(dbRef(database, `bulletin/${messageIndex}/priority`), newPriority).then(() => {
         console.log('優先級更新成功');
       });
-    };
-
-    const getPriorityIcon = (priority: string): string => {
-      const priorityConfig = availablePriorities.value.find(p => p.value === priority);
-      return priorityConfig ? priorityConfig.icon : 'chevron down';
-    };
-
-    const getPriorityText = (priority: string): string => {
-      const priorityConfig = availablePriorities.value.find(p => p.value === priority);
-      return priorityConfig ? priorityConfig.text : '低';
-    };
-
-    // 引用功能相關函數
-    const quoteMessage = (messageIndex: number) => {
-      if (!dataLoaded.value || !props.uid) return;
-
-      const message = messages.value[messageIndex];
-      const quotedText = `> ${message.author}: ${message.text.substring(0, 100)}${message.text.length > 100 ? '...' : ''}\n\n`;
-
-      // 設置引用內容到新留言框
-      newMessage.value = quotedText + newMessage.value;
-
-      // 聚焦到留言框
-      nextTick(() => {
-        if (messageTextarea.value) {
-          messageTextarea.value.focus();
-          messageTextarea.value.setSelectionRange(newMessage.value.length, newMessage.value.length);
-        }
-      });
-    };
-
-    const scrollToMessage = (messageId: number) => {
-      const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
-      if (messageElement) {
-        messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        messageElement.classList.add('highlight-message');
-        setTimeout(() => {
-          messageElement.classList.remove('highlight-message');
-        }, 3000);
-      }
-    };
-
-    // 任務列表相關函數
-    const parseTaskList = (text: string): Array<{id: string, text: string, completed: boolean}> => {
-      const taskRegex = /^(\s*[-*+]\s*\[([x\s])\]\s*(.+))$/gm;
-      const tasks: Array<{id: string, text: string, completed: boolean}> = [];
-      let match;
-
-      while ((match = taskRegex.exec(text)) !== null) {
-        tasks.push({
-          id: Math.random().toString(36).substr(2, 9),
-          text: match[3].trim(),
-          completed: match[2] === 'x'
-        });
-      }
-
-      return tasks;
     };
 
     const toggleTask = (messageIndex: number, taskId: string) => {
@@ -1838,118 +768,160 @@ export default defineComponent({
       }
     };
 
-    const getCompletedTaskCount = (tasks: Array<{id: string, text: string, completed: boolean}>): number => {
-      return tasks.filter(task => task.completed).length;
-    };
+    watch(() => props.uid, (newUid) => {
+      console.log('newUid', newUid);
+      if (newUid) {
+        get(bulletinRef).then((snapshot) => {
+          const data = snapshot.val();
+          console.log(data);
+          messages.value = data.map((message: FirebaseMessage) => ({
+            author: message.author,
+            uid: message.uid,
+            date: message.date,
+            text: message.text,
+            updated: message.updated,
+            reactions: message.reactions || {},
+            replies: message.replies ? message.replies.map((reply: FirebaseReply): Reply => ({
+              author: reply.author,
+              uid: reply.uid,
+              date: reply.date,
+              text: reply.text,
+              reactions: reply.reactions || {}
+            })) : [],
+            hrefs: message.hrefs || [],
+            attachments: message.attachments || [],
+            labels: message.labels || [],
+            status: message.status || 'open',
+            references: message.references || [],
+            tasks: message.tasks || [],
+            priority: message.priority || 'low',
+            assignees: message.assignees || [],
+            notifyAllUsers: message.notifyAllUsers || false
+          }));
+          dataLoaded.value = true;
 
-    // 檢測引用的函數
-    const detectReferences = (text: string): Array<{id: number, preview: string, type: 'message' | 'reply'}> => {
-      const references: Array<{id: number, preview: string, type: 'message' | 'reply'}> = [];
-
-      // 檢測引用格式 (例如 #123 或 引用 #123)
-      const referenceRegex = /(?:引用\s*)?#(\d+)/g;
-      let match;
-
-      while ((match = referenceRegex.exec(text)) !== null) {
-        const messageId = parseInt(match[1]);
-        if (messageId < messages.value.length) {
-          const referencedMessage = messages.value[messageId];
-          if (referencedMessage) {
-            references.push({
-              id: messageId,
-              preview: referencedMessage.text.substring(0, 50) + (referencedMessage.text.length > 50 ? '...' : ''),
-              type: 'message'
-            });
-          }
-        }
+          setTimeout(() => {
+            handleHighlight();
+          }, 500);
+        });
       }
+    });
 
-      return references;
+    onMounted(() => {
+      console.log('mounted');
+      onValue(bulletinRef, (snapshot) => {
+        const data = snapshot.val();
+        console.log(data);
+        messages.value = data.map((message: FirebaseMessage) => ({
+          author: message.author,
+          uid: message.uid,
+          date: message.date,
+          text: message.text,
+          updated: message.updated,
+          reactions: message.reactions || {},
+          replies: message.replies ? message.replies.map((reply: FirebaseReply): Reply => ({
+            author: reply.author,
+            uid: reply.uid,
+            date: reply.date,
+            text: reply.text,
+            reactions: reply.reactions || {}
+          })) : [],
+          hrefs: message.hrefs || [],
+          attachments: message.attachments || [],
+          labels: message.labels || [],
+          status: message.status || 'open',
+          references: message.references || [],
+          tasks: message.tasks || [],
+          priority: message.priority || 'low',
+          assignees: message.assignees || [],
+          notifyAllUsers: message.notifyAllUsers || false
+        }));
+        dataLoaded.value = true;
+
+        handleHighlight();
+
+        // 設置下拉菜單事件監聽器
+        nextTick(() => {
+          document.addEventListener('click', handleDocumentClick);
+          // 添加滾動事件監聽器，滾動時關閉所有下拉菜單
+          document.addEventListener('scroll', scrollHandler, true);
+
+          document.querySelectorAll('.dropdown-trigger').forEach(trigger => {
+            trigger.addEventListener('click', handleDropdownClick);
+          });
+        });
+      });
+      setInterval(async () => {
+        console.log('tick');
+        await nextTick();
+        messages.value = [...messages.value];
+      }, 60 * 1000);
+    });
+
+    // 處理子組件的 emit 事件
+    const handleExpandMessage = (messageIndex: number) => {
+      if (messages.value[messageIndex]) {
+        messages.value[messageIndex].textExpanded = true;
+      }
     };
+
+    const handleCollapseMessage = (messageIndex: number) => {
+      if (messages.value[messageIndex]) {
+        messages.value[messageIndex].textExpanded = false;
+      }
+    };
+
+    const handleExpandReply = (messageIndex: number, replyIndex: number) => {
+      if (messages.value[messageIndex] && messages.value[messageIndex].replies) {
+        messages.value[messageIndex].replies![replyIndex].textExpanded = true;
+      }
+    };
+
+    const handleCollapseReply = (messageIndex: number, replyIndex: number) => {
+      if (messages.value[messageIndex] && messages.value[messageIndex].replies) {
+        messages.value[messageIndex].replies![replyIndex].textExpanded = false;
+      }
+    };
+
+    const handleToggleReplies = (index: number) => {
+      if (!props.uid) return;
+
+      if (messages.value[index].repliesExpanded) {
+        messages.value[index].repliesExpanded = false;
+      } else {
+        messages.value[index].repliesExpanded = true;
+      }
+    };
+
+    onBeforeUnmount(() => {
+      // 清理事件監聽器
+      document.removeEventListener('click', handleDocumentClick);
+      document.removeEventListener('scroll', scrollHandler, true);
+
+      // 清理激活的下拉菜單
+      removeActiveDropdownMenu();
+    });
 
     return {
-      isBigFile,
-      uploadProgress,
-      maxShowMessages,
-      showMoreMessages,
-      showLessMessages,
       messages,
-      newMessage,
-      newMessageHref,
-      addMessage,
-      parseDate,
-      toggleLogin,
-      sortedMessages,
-      toggleReaction,
-      toggleReplyReaction,
-      hasReacted,
-      getReactionCount,
-      getReactionUsers,
       dataLoaded,
       replyingTo,
-      replyText,
+      toggleLogin,
+      addMessage,
+      toggleReaction,
       toggleReplyForm,
       addReply,
       cancelReply,
-      toggleReplies,
       deleteReply,
-      saveRepliesExpandedState,
-      restoreRepliesExpandedState,
       editMessage,
-      editingMessage,
-      uploadingFile,
-      newMessageAttachments,
-      handleFileUpload,
-      removeAttachment,
-      addHref,
-      removeHref,
-      removeHrefByIndex,
-      newMessageHrefs,
-      messageTextarea,
-      showMentions,
-      mentionSuggestions,
-      mentionIndex,
-      handleMessageInput,
-      handleKeydown,
-      selectMention,
-      parseMentionsAndHideTasks,
-      searchKeyword,
-      filteredMessages,
-      handleSearch,
-      clearSearch,
-      detectMentionedUsers,
-      sendMentionNotifications,
-      availableLabels,
-      availableStatuses,
-      availablePriorities,
-      toggleLabel,
-      hasLabel,
-      changeStatus,
-      getStatusIcon,
-      getStatusText,
-      changePriority,
-      getPriorityIcon,
-      getPriorityText,
       quoteMessage,
-      scrollToMessage,
-      parseTaskList,
       toggleTask,
-      getCompletedTaskCount,
-      detectReferences,
       handleDropdownClick,
-      activeDropdownMenu,
-      activeDropdownType,
-      activeDropdownMessageIndex,
-      createDropdownMenu,
-      removeActiveDropdownMenu,
-      notifyAllUsers,
-      sendNotificationToAllUsers,
-      mentionPosition,
-      calculateMentionPosition,
-      expandMessage,
-      collapseMessage,
-      expandReply,
-      collapseReply,
+      handleExpandMessage,
+      handleCollapseMessage,
+      handleExpandReply,
+      handleCollapseReply,
+      handleToggleReplies,
     }
   }
 })
@@ -1964,835 +936,9 @@ export default defineComponent({
   color: #1A1A1A;
 }
 
-.ui.comments .comment {
-  background: #fff;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
-}
-
-.ui.comments .comment:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.ui.comments .comment .author {
-  font-weight: 600;
-  font-size: 1.1rem;
-  color: #0066FF;
-  margin-bottom: 0.5rem;
-}
-
-.ui.comments .comment .metadata {
-  color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 0.75rem;
-}
-
-.text {
-  white-space: pre-wrap;
-}
-
-.ui.comments .comment .text {
-  line-height: 1.6;
-  color: #333;
-}
-
-@media (hover: hover) {
-  .ui.comments .comment .text {
-    user-select: text;
-    -webkit-user-select: text;
-    -moz-user-select: text;
-    -ms-user-select: text;
-  }
-}
-
-@media (hover: none) {
-  .ui.comments .comment .text {
-    user-select: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-  }
-}
-
-.replies {
-  margin-top: 1rem;
-  margin-left: 2rem;
-}
-
-.ui.form.reply {
-  background: #f8f9fa;
-  padding: 2rem;
-  border-radius: 12px;
-}
-
-.ui.form.reply textarea {
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 1rem;
-  font-size: 1rem;
-  transition: border-color 0.2s ease;
-}
-
-.ui.form.reply textarea:focus {
-  border-color: #0066FF;
-  outline: none;
-}
-
-.ui.primary.submit.button {
-  background-color: #0066FF;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 0.8rem 1.5rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.ui.primary.submit.button:hover {
-  background-color: #0052cc;
-}
-
-img.ui.avatar.image {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin-right: 1rem;
-  border: 2px solid #f0f0f0;
-}
-
-.ui.comments.flex-column::-webkit-scrollbar {
-  width: 8px;
-}
-
-.ui.comments.flex-column::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.ui.comments.flex-column::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.ui.comments.flex-column::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-.actions {
-  margin-top: 0.75rem;
-  display: flex;
-  gap: 0.5rem;
-}
-
-.reaction-buttons {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.reaction-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.4rem 0.8rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 20px;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-}
-
-.reaction-btn:hover {
-  background-color: #f8f9fa;
-  border-color: #0066FF;
-  color: #0066FF;
-  transform: translateY(-1px);
-}
-
-.reaction-btn.active {
-  background-color: #EEF3FF;
-  border-color: #0066FF;
-  color: #0066FF;
-}
-
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.action-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.4rem 0.8rem;
-  border: 1px solid #e0e0e0;
-  border-radius: 20px;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #666;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-}
-
-.action-btn:hover {
-  background-color: #f8f9fa;
-  border-color: #0066FF;
-  color: #0066FF;
-  transform: translateY(-1px);
-}
-
-.action-btn.active {
-  background-color: #EEF3FF;
-  border-color: #0066FF;
-  color: #0066FF;
-}
-
-/* 不同按鈕的特定顏色 */
-.reply-btn {
-  border-color: #0066FF;
-  color: #0066FF;
-}
-
-.reply-btn:hover {
-  background-color: #EEF3FF;
-  border-color: #0066FF;
-  color: #0066FF;
-}
-
-.quote-btn {
-  border-color: #28a745;
-  color: #28a745;
-}
-
-.quote-btn:hover {
-  background-color: #d4edda;
-  border-color: #28a745;
-  color: #28a745;
-}
-
-.edit-btn {
-  border-color: #6f42c1;
-  color: #6f42c1;
-}
-
-.edit-btn:hover {
-  background-color: #e2d5f1;
-  border-color: #6f42c1;
-  color: #6f42c1;
-}
-
-.expand-btn {
-  border-color: #fd7e14;
-  color: #fd7e14;
-}
-
-.expand-btn:hover {
-  background-color: #fff3cd;
-  border-color: #fd7e14;
-  color: #fd7e14;
-}
-
-.delete-btn {
-  border-color: #dc3545;
-  color: #dc3545;
-}
-
-.delete-btn:hover {
-  background-color: #f8d7da;
-  border-color: #dc3545;
-  color: #dc3545;
-}
-
-.emoji {
-  font-size: 1.1rem;
-}
-
-.count {
-  font-size: 0.9rem;
-  font-weight: 500;
-  min-width: 1rem;
-  text-align: center;
-}
-
-.reaction-tooltip {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.8);
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  z-index: 1000;
-  margin-bottom: 5px;
-}
-
-.reaction-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 5px;
-  border-style: solid;
-  border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
-}
-
-.reaction-btn:hover .reaction-tooltip {
-  opacity: 1;
-}
-
 @media (max-width: 768px) {
   .ui.container {
     padding: 1rem;
   }
-
-  .ui.comments .comment {
-    padding: 1rem;
-  }
-
-  .ui.form.reply {
-    padding: 1rem;
-  }
-
-  .reaction-buttons {
-    gap: 0.3rem;
-  }
-
-  .reaction-btn {
-    padding: 0.3rem 0.6rem;
-    margin-bottom: 0.3rem;
-  }
-
-  .action-buttons {
-    gap: 0.3rem;
-  }
-
-  .action-btn {
-    padding: 0.3rem 0.6rem;
-    margin-bottom: 0.3rem;
-  }
-
-  .emoji {
-    font-size: 1rem;
-  }
-
-  .count {
-    font-size: 0.8rem;
-  }
-
-  .reaction-tooltip {
-    font-size: 0.7rem;
-    padding: 0.3rem 0.6rem;
-  }
 }
-
-.ui.upload.segment {
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 8px;
-  margin-top: 0.5rem;
-}
-
-.ui.upload.segment .ui.list {
-  margin-top: 1rem;
-}
-
-.ui.upload.segment .ui.list .item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.5rem;
-  background: white;
-  border-radius: 4px;
-  margin-bottom: 0.5rem;
-}
-
-.ui.upload.segment .ui.list .item .content {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.ui.upload.segment .ui.list .item .content a {
-  color: #0066FF;
-  text-decoration: none;
-}
-
-.ui.upload.segment .ui.list .item .content a:hover {
-  text-decoration: underline;
-}
-
-.ui.upload.segment .ui.list .item .content a:hover {
-  text-decoration: underline;
-}
-
-.ui.upload.segment .ui.mini.red.button {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.8rem;
-}
-
-.ui.upload.segment .ui.basic.button {
-  border: 1px solid #0066FF;
-  color: #0066FF;
-  background: transparent;
-  border-radius: 8px;
-  padding: 0.8rem 1.5rem;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.ui.upload.segment .ui.basic.button:hover {
-  background-color: #0066FF;
-  color: white;
-}
-
-.attachments {
-  margin-top: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.attachments i.paperclip.icon {
-  color: #666;
-  font-size: 1rem;
-}
-
-.attachments .ui.buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.attachments .ui.mini.basic.button {
-  padding: 0.3rem 0.6rem;
-  font-size: 0.8rem;
-  border: 1px solid #0066FF;
-  color: #0066FF;
-  background: transparent;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-}
-
-.attachments .ui.mini.basic.button:hover {
-  background-color: #0066FF;
-  color: white;
-}
-
-.attachments .ui.mini.basic.button i.file.icon {
-  margin-right: 0.3rem;
-}
-
-.no-border {
-  border: none !important;
-  box-shadow: none !important;
-}
-
-.text-underline {
-  text-decoration: underline !important;
-}
-
-.mention-suggestions {
-  position: fixed;
-  background: white;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 10000;
-  min-width: 200px;
-}
-
-.mention-item {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  cursor: pointer;
-  gap: 8px;
-
-  &:hover, &.active {
-    background-color: #f0f0f0;
-  }
-
-  img {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-  }
-}
-
-.mention-item.mention-all {
-  background-color: #EEF3FF;
-  border: 1px solid #0066FF;
-  border-radius: 6px;
-  font-weight: 600;
-  color: #0066FF;
-
-  &:hover, &.active {
-    background-color: #d4e6ff;
-    border-color: #0052cc;
-  }
-
-  i.envelope.icon {
-    color: #0066FF;
-    font-size: 16px;
-  }
-}
-
-.ui.search.segment {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: #f8f9fa;
-  border-radius: 8px;
-}
-
-.ui.search.segment .ui.input {
-  width: 100%;
-}
-
-.ui.search.segment .ui.label {
-  margin-top: 0.5rem;
-  background: #E3F2FD;
-  color: #1976D2;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.ui.search.segment .ui.label i.close.icon {
-  cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
-}
-
-.ui.search.segment .ui.label i.close.icon:hover {
-  opacity: 1;
-}
-
-:deep(.mention-link) {
-  color: #0066FF;
-  font-weight: 500;
-  background-color: rgba(0, 102, 255, 0.1);
-  padding: 2px 4px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-:deep(.mention-link:hover) {
-  background-color: rgba(0, 102, 255, 0.2);
-}
-
-/* 標籤系統樣式 */
-.message-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-
-.message-status-priority {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
-.message-status {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  background-color: #f8f9fa;
-  color: #666;
-}
-
-.message-status.in-progress {
-  background-color: #fff3cd;
-  color: #856404;
-}
-
-.message-status.resolved {
-  background-color: #d4edda;
-  color: #155724;
-}
-
-.message-status.closed {
-  background-color: #f8d7da;
-  color: #721c24;
-}
-
-.message-priority {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.message-priority.medium {
-  background-color: #499e2b;
-  color: white
-}
-
-.message-priority.high {
-  background-color: #ff6b6b;
-  color: white;
-}
-
-.message-priority.urgent {
-  background-color: #f4ff2b;
-  color: rgb(0, 0, 0);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.7; }
-  100% { opacity: 1; }
-}
-
-.message-labels {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.message-labels .ui.label {
-  margin: 0;
-  font-size: 0.75rem;
-  padding: 0.4rem 0.6rem;
-  border-radius: 10px;
-}
-
-/* 引用樣式 */
-.message-references {
-  margin-bottom: 1rem;
-}
-
-.referenced-message {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background-color: #f8f9fa;
-  border-left: 4px solid #0066FF;
-  border-radius: 0 8px 8px 0;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  margin-bottom: 0.5rem;
-}
-
-.referenced-message:hover {
-  background-color: #e9ecef;
-}
-
-.reference-text {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-/* 任務列表樣式 */
-.task-list {
-  margin: 1rem 0;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
-
-.task-summary {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-  font-weight: 500;
-  color: #495057;
-}
-
-.task-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #dee2e6;
-}
-
-.task-item:last-child {
-  border-bottom: none;
-}
-
-.task-item.completed .task-text {
-  text-decoration: line-through;
-  color: #6c757d;
-}
-
-.task-item input[type="checkbox"] {
-  margin: 0;
-  cursor: pointer;
-}
-
-.task-text {
-  flex: 1;
-  font-size: 0.9rem;
-  line-height: 1.4;
-}
-
-/* 下拉菜單觸發按鈕樣式 */
-.dropdown-trigger {
-  position: relative;
-  z-index: 1;
-}
-
-/* 高亮消息樣式 */
-.highlight-message {
-  background-color: #fff3cd !important;
-  border-left: 4px solid #ffc107 !important;
-  animation: highlight-fade 3s ease-in-out;
-}
-
-@keyframes highlight-fade {
-  0% { background-color: #fff3cd; }
-  100% { background-color: transparent; }
-}
-
-/* 閱讀全文連結樣式 */
-.read-more-link {
-  color: #0066FF;
-  text-decoration: none;
-  font-weight: 500;
-  cursor: pointer;
-  margin-left: 0.5rem;
-  transition: color 0.2s ease;
-}
-
-.read-more-link:hover {
-  color: #0052cc;
-  text-decoration: underline;
-}
-
-/* 響應式設計 */
-@media (max-width: 768px) {
-  .message-header {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .message-status-priority {
-    flex-wrap: wrap;
-  }
-
-  .message-labels {
-    width: 100%;
-  }
-
-  .dropdown .menu {
-    position: absolute;
-    left: 0;
-    right: 0;
-    max-width: none;
-    min-width: auto;
-    width: auto;
-    margin-left: 0;
-    margin-right: 0;
-    z-index: 99999;
-    transform: none;
-  }
-
-  .task-list {
-    margin: 0.5rem 0;
-    padding: 0.75rem;
-  }
-
-  .referenced-message {
-    padding: 0.5rem;
-  }
-
-  /* 確保下拉按鈕在小螢幕上有足夠的點擊區域 */
-  .dropdown.ui.button {
-    min-height: 44px;
-    padding: 0.5rem 1rem;
-  }
-
-  /* 小螢幕上的 @ 提及選單優化 */
-  .mention-suggestions {
-    min-width: 180px;
-    max-width: calc(100vw - 20px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  }
-
-  .mention-item {
-    padding: 12px 16px;
-    font-size: 14px;
-  }
-
-  .mention-item img {
-    width: 20px;
-    height: 20px;
-  }
-}
-
-/* 超小螢幕優化 */
-@media (max-width: 480px) {
-  .ui.buttons {
-    flex-wrap: wrap;
-    gap: 0.25rem;
-  }
-
-  .dropdown.ui.tiny.basic.button {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.8rem;
-    margin-bottom: 0.25rem;
-  }
-
-  .dropdown .menu {
-    font-size: 0.85rem;
-    max-height: 200px;
-    overflow-y: auto;
-  }
-
-  .dropdown .menu .item {
-    padding: 0.6rem 0.8rem;
-  }
-}
-
-/* 確保下拉菜單觸發按鈕有良好的視覺回饋 */
-.dropdown-trigger:hover,
-.dropdown-trigger:focus {
-  background-color: #f8f9fa;
-  border-color: #0066FF;
-}
-
-.dropdown-trigger:active {
-  background-color: #e9ecef;
-}
-
 </style>

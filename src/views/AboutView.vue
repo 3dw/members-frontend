@@ -112,7 +112,7 @@
 
       const projects = ref([]);
       const supervisors = ref<Supervisor[]>([]);
-      const arr: any[] = new Array();
+      const arr: any[] = [];
       const visibleEmails = ref(arr);
 
       const roleOrder = {

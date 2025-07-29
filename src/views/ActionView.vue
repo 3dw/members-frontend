@@ -441,7 +441,7 @@ export default {
     // 下載行動記錄, 以JSON格式
     const downloadAction = () => {
       // 排版一下，至少要有換行
-      let jsonString = JSON.stringify(actions.value)
+      const jsonString = JSON.stringify(actions.value)
         .replace(/,/g, '\n,')
         .replace(/\}\s+,/g, '},')
         .replace(/,\{/g, ',\n{');
