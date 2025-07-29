@@ -2,12 +2,23 @@
 .ui.form.reply.column(v-if="uid")
   .ui.divider.thin-only
   .field
-    label 輸入留言
+    label 留言標題 *
+    input(
+      type="text"
+      v-model="newMessageTitle"
+      placeholder="請輸入留言標題"
+      maxlength="100"
+      required
+    )
+  .field
+    label 留言內容 *
     textarea(
       v-model="newMessage"
       @input="handleMessageInput"
       @keydown="handleKeydown"
       ref="messageTextarea"
+      placeholder="請輸入留言內容"
+      required
     )
     .ui.info.message
       .header 💡 進階功能提示
@@ -116,6 +127,7 @@ export default defineComponent({
   setup(props, { emit }) {
     const uploadProgress = ref('');
     const isBigFile = ref(false);
+    const newMessageTitle = ref('');
     const newMessage = ref('');
     const newMessageHref = ref('');
     const newMessageHrefs = ref<string[]>([]);
@@ -130,6 +142,15 @@ export default defineComponent({
     const mentionPosition = ref({ top: 0, left: 0 });
 
     const addMessage = () => {
+      if (!newMessageTitle.value.trim()) {
+        alert('請輸入留言標題');
+        return;
+      }
+      if (!newMessage.value.trim()) {
+        alert('請輸入留言內容');
+        return;
+      }
+
       if (newMessageHref.value) {
         newMessageHrefs.value.push(newMessageHref.value);
         newMessageHref.value = '';
@@ -140,6 +161,7 @@ export default defineComponent({
       const referencedMessages = detectReferences(newMessage.value);
 
       const messageData = {
+        title: newMessageTitle.value.trim(),
         text: newMessage.value,
         attachments: newMessageAttachments.value,
         hrefs: newMessageHrefs.value,
@@ -152,6 +174,7 @@ export default defineComponent({
       emit('add-message', messageData);
 
       // 清空表單
+      newMessageTitle.value = '';
       newMessage.value = '';
       newMessageHrefs.value = [];
       newMessageAttachments.value = [];
@@ -575,6 +598,7 @@ export default defineComponent({
     return {
       uploadProgress,
       isBigFile,
+      newMessageTitle,
       newMessage,
       newMessageHref,
       newMessageHrefs,
@@ -611,6 +635,22 @@ export default defineComponent({
   max-width: 1200px;
   margin: 0 auto;
   border: 1px solid #e0e0e0;
+}
+
+.ui.form.reply input[type="text"] {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 1rem;
+  font-size: 1rem;
+  transition: border-color 0.2s ease;
+  background: #f8f9fa;
+  width: 100%;
+}
+
+.ui.form.reply input[type="text"]:focus {
+  border-color: #1A1A1A;
+  outline: none;
+  background: #fff;
 }
 
 .ui.form.reply textarea {

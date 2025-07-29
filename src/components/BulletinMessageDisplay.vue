@@ -40,6 +40,9 @@
         .date {{ parseDate(message.date) }}
           span.updated(v-if="message.updated") ({{ parseDate(message.updated) }}已更新)
 
+      .message-title(v-if="message.title")
+        h3.title-text {{ message.title }}
+
       .message-references(v-if="message.references && message.references.length > 0")
         .referenced-message(
           v-for="ref in message.references"

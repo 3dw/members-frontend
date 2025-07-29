@@ -56,6 +56,7 @@ interface Message {
   uid: string;
   date: string;
   updated?: string;
+  title?: string;
   text: string;
   reactions: {
     [key: string]: {
@@ -92,6 +93,7 @@ interface Reply {
 }
 
 interface MessageData {
+  title: string;
   text: string;
   attachments: Array<{name: string, url: string, size: number, type: string}>;
   hrefs: string[];
@@ -105,6 +107,7 @@ interface FirebaseMessage {
   author: string;
   uid: string;
   date: string;
+  title?: string;
   text: string;
   updated?: string;
   reactions?: {[key: string]: {[uid: string]: boolean}};
@@ -208,6 +211,7 @@ export default defineComponent({
         author: props.users[props.uid].name || '匿名',
         uid: props.uid || '123',
         date: new Date().toISOString(),
+        title: messageData.title,
         text: messageData.text,
         reactions: {},
       }
