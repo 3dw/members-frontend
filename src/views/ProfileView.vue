@@ -174,12 +174,12 @@
           .field
             label.required 自我介紹
             textarea#note(v-model='root.note' rows='5' cols='30' placeholder="請輸入自我介紹")
-          .ui.warning.message(v-if="root.note && root.note.length < 20")
+          .ui.warning.message(v-if="root.note && root.note.length < 5")
             .header 自我介紹過短
-            p 請至少輸入 20 個字。
-          .ui.success.message(v-if="root.note && root.note.length >= 20")
+            p 請至少輸入 5 個字。
+          .ui.success.message(v-if="root.note && root.note.length >= 5")
             .header 自我介紹已達標準
-            p 自我介紹已達到 20 個字以上。
+            p 自我介紹已達到 5 個字以上。
 
 
         .warning(v-if="!emailVerified && root.login_method === 'email'")
@@ -375,7 +375,7 @@ export default {
     },
 
     isValid() {
-      if (!this.root.note || this.root.note.length < 20) {
+      if (!this.root.note || this.root.note.length < 5) {
         return false
       }
       const requiredFields = [
