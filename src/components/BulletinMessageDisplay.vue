@@ -611,7 +611,10 @@ export default defineComponent({
 
     // 回覆 @ 標籤相關函數
     const calculateReplyMentionPosition = () => {
-      if (!replyTextarea.value) return;
+      if (!replyTextarea.value || typeof replyTextarea.value.getBoundingClientRect !== 'function') {
+        console.warn('replyTextarea is not a valid DOM element');
+        return;
+      }
       
       const textarea = replyTextarea.value;
       const rect = textarea.getBoundingClientRect();
@@ -648,10 +651,10 @@ export default defineComponent({
       document.body.removeChild(tempSpan);
       
       // 計算 @ 符號的實際位置
-      const charWidth = lineWidth / currentLine.length;
+      const charWidth = lineWidth / Math.max(currentLine.length, 1);
       const atSymbolOffset = currentLine.length * charWidth;
       
-      // 計算下拉選單的位置
+      // 計算下拉選單的位置 - 顯示在 @ 符號附近
       const left = rect.left + atSymbolOffset + 5;
       const top = rect.top + (lines.length - 1) * 20 + 25; // 20px 是每行的大概高度
       
