@@ -141,7 +141,7 @@
         button.action-btn.reply-btn(@click="$emit('toggle-reply-form', message.actualIndex)")
           i.reply.icon
           span 回覆
-        button.action-btn.quote-btn(@click="$emit('quote-message', message.actualIndex)")
+        button.action-btn.quote-btn(@click="handleQuoteClick(message.actualIndex)")
           i.quote.left.icon
           span 引用
         button.action-btn.expand-btn(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
@@ -185,7 +185,29 @@
 
       .ui.form.reply-form(v-if="replyingTo === message.actualIndex")
         .ui.divider
-        textarea(v-model="localReplyText" class="reply-textarea" rows="2" cols="50" placeholder="輸入回覆...")
+        textarea(
+          v-model="localReplyText" 
+          class="reply-textarea" 
+          rows="2" 
+          cols="50" 
+          placeholder="輸入回覆..."
+          @input="handleReplyInput"
+          @keydown="handleReplyKeydown"
+          ref="replyTextarea"
+        )
+        .mention-suggestions(
+          v-if="showReplyMentions && replyMentionSuggestions.length > 0"
+          :style="{ top: replyMentionPosition.top + 'px', left: replyMentionPosition.left + 'px' }"
+        )
+          .mention-item(
+            v-for="(user, index) in replyMentionSuggestions"
+            :key="user.uid"
+            :class="{ active: index === replyMentionIndex, 'mention-all': user.uid === 'all' }"
+            @click="selectReplyMention(user)"
+          )
+            img.ui.avatar.image(v-if="user.photoURL" :src="user.photoURL")
+            i.envelope.icon(v-if="user.uid === 'all'")
+            span {{ user.name }}
         .actions
           button.ui.primary.button(@click="handleAddReply(message.actualIndex)") 發送
           button.ui.button(@click="handleCancelReply") 取消
@@ -314,6 +336,14 @@ export default defineComponent({
     const editTitle = ref('');
     const editText = ref('');
     const editTextarea = ref<HTMLTextAreaElement | null>(null);
+
+    // 回覆 @ 標籤相關變數
+    const replyTextarea = ref<HTMLTextAreaElement | null>(null);
+    const showReplyMentions = ref(false);
+    const replyMentionSuggestions = ref<Array<{uid: string, name: string, photoURL?: string}>>([]);
+    const replyMentionIndex = ref(0);
+    const replyMentionStart = ref(0);
+    const replyMentionPosition = ref({ top: 0, left: 0 });
 
     // 新增狀態管理相關變數
     const availableStatuses = ref([
@@ -579,15 +609,209 @@ export default defineComponent({
       emit('handle-dropdown-click', event);
     };
 
+    // 回覆 @ 標籤相關函數
+    const calculateReplyMentionPosition = () => {
+      if (!replyTextarea.value) return;
+      
+      const textarea = replyTextarea.value;
+      const rect = textarea.getBoundingClientRect();
+      const text = localReplyText.value;
+      const cursorPosition = textarea.selectionStart || 0;
+      const lastAtSymbol = text.lastIndexOf('@', cursorPosition);
+      
+      if (lastAtSymbol === -1) return;
+      
+      // 計算 @ 符號在 textarea 中的位置
+      const textBeforeAt = text.substring(0, lastAtSymbol);
+      const lines = textBeforeAt.split('\n');
+      const currentLine = lines[lines.length - 1];
+      
+      // 創建臨時元素來計算文字寬度
+      const tempSpan = document.createElement('span');
+      tempSpan.style.position = 'absolute';
+      tempSpan.style.visibility = 'hidden';
+      tempSpan.style.whiteSpace = 'pre';
+      tempSpan.style.font = window.getComputedStyle(textarea).font;
+      tempSpan.style.padding = window.getComputedStyle(textarea).padding;
+      tempSpan.style.border = window.getComputedStyle(textarea).border;
+      tempSpan.style.boxSizing = window.getComputedStyle(textarea).boxSizing;
+      tempSpan.style.width = window.getComputedStyle(textarea).width;
+      tempSpan.style.height = window.getComputedStyle(textarea).height;
+      tempSpan.style.overflow = 'hidden';
+      tempSpan.style.wordWrap = 'break-word';
+      tempSpan.style.whiteSpace = 'pre-wrap';
+      
+      tempSpan.textContent = currentLine;
+      document.body.appendChild(tempSpan);
+      
+      const lineWidth = tempSpan.offsetWidth;
+      document.body.removeChild(tempSpan);
+      
+      // 計算 @ 符號的實際位置
+      const charWidth = lineWidth / currentLine.length;
+      const atSymbolOffset = currentLine.length * charWidth;
+      
+      // 計算下拉選單的位置
+      const left = rect.left + atSymbolOffset + 5;
+      const top = rect.top + (lines.length - 1) * 20 + 25; // 20px 是每行的大概高度
+      
+      // 確保下拉選單不會超出視窗邊界
+      const menuHeight = 200;
+      const menuWidth = 250;
+      const maxLeft = window.innerWidth - menuWidth - 10;
+      const finalLeft = Math.min(left, maxLeft);
+      const maxTop = window.innerHeight - menuHeight - 10;
+      const finalTop = Math.min(top, maxTop);
+      
+      replyMentionPosition.value = { top: finalTop, left: finalLeft };
+    };
+
+    const handleReplyInput = () => {
+      const text = localReplyText.value;
+      const cursorPosition = replyTextarea.value?.selectionStart || 0;
+      const lastAtSymbol = text.lastIndexOf('@', cursorPosition);
+      
+      if (lastAtSymbol !== -1 && lastAtSymbol <= cursorPosition) {
+        const searchText = text.slice(lastAtSymbol + 1, cursorPosition);
+        replyMentionStart.value = lastAtSymbol;
+        
+        if (searchText.length === 0) {
+          const firstFiveUsers = Object.entries(props.users)
+            .map(([uid, user]) => ({
+              uid,
+              name: (user as User).name,
+              photoURL: (user as User).photoURL
+            }));
+          
+          // 添加 "All" 選項到列表最前面
+          const allOption = {
+            uid: 'all',
+            name: 'All',
+            photoURL: undefined
+          };
+          
+          replyMentionSuggestions.value = [allOption, ...firstFiveUsers];
+          showReplyMentions.value = true;
+          replyMentionIndex.value = 0;
+          
+          // 計算位置
+          nextTick(() => {
+            calculateReplyMentionPosition();
+          });
+          return;
+        }
+        
+        if (!searchText.includes(' ')) {
+          const filteredUsers = Object.entries(props.users)
+            .filter(([, user]) =>
+              (user as User).name.toLowerCase().includes(searchText.toLowerCase())
+            )
+            .map(([uid, user]) => ({
+              uid,
+              name: (user as User).name,
+              photoURL: (user as User).photoURL
+            }));
+          
+          // 如果搜索文本匹配 "all"，則添加 All 選項
+          const suggestions: Array<{uid: string, name: string, photoURL?: string}> = [];
+          if ('all'.toLowerCase().includes(searchText.toLowerCase())) {
+            suggestions.push({
+              uid: 'all',
+              name: 'All',
+              photoURL: undefined
+            });
+          }
+          suggestions.push(...filteredUsers);
+          
+          replyMentionSuggestions.value = suggestions;
+          showReplyMentions.value = true;
+          replyMentionIndex.value = 0;
+          
+          // 計算位置
+          nextTick(() => {
+            calculateReplyMentionPosition();
+          });
+          return;
+        }
+      }
+      showReplyMentions.value = false;
+    };
+
+    const handleReplyKeydown = (event: KeyboardEvent) => {
+      if (!showReplyMentions.value) return;
+      
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault();
+          replyMentionIndex.value = (replyMentionIndex.value + 1) % replyMentionSuggestions.value.length;
+          break;
+        case 'ArrowUp':
+          event.preventDefault();
+          replyMentionIndex.value = (replyMentionIndex.value - 1 + replyMentionSuggestions.value.length) % replyMentionSuggestions.value.length;
+          break;
+        case 'Enter':
+          event.preventDefault();
+          if (replyMentionSuggestions.value[replyMentionIndex.value]) {
+            selectReplyMention(replyMentionSuggestions.value[replyMentionIndex.value]);
+          }
+          break;
+        case 'Escape':
+          showReplyMentions.value = false;
+          break;
+      }
+    };
+
+    const selectReplyMention = (user: {uid: string, name: string, photoURL?: string}) => {
+      if (!replyTextarea.value) return;
+      
+      const text = localReplyText.value;
+      const cursorPosition = replyTextarea.value.selectionStart || 0;
+      const lastAtSymbol = text.lastIndexOf('@', cursorPosition);
+      
+      if (lastAtSymbol !== -1) {
+        const beforeAt = text.substring(0, lastAtSymbol);
+        const afterCursor = text.substring(cursorPosition);
+        const mentionText = user.uid === 'all' ? '@All' : `@${user.name}`;
+        
+        localReplyText.value = beforeAt + mentionText + ' ' + afterCursor;
+        
+        nextTick(() => {
+          if (replyTextarea.value && typeof replyTextarea.value.setSelectionRange === 'function') {
+            const newCursorPosition = lastAtSymbol + mentionText.length + 1;
+            replyTextarea.value.setSelectionRange(newCursorPosition, newCursorPosition);
+            replyTextarea.value.focus();
+          }
+        });
+      }
+      
+      showReplyMentions.value = false;
+    };
+
     // 處理回覆相關功能
     const handleAddReply = (messageIndex: number) => {
       emit('add-reply', messageIndex, localReplyText.value);
       localReplyText.value = '';
+      // 清除回覆 @ 標籤狀態
+      showReplyMentions.value = false;
+      replyMentionSuggestions.value = [];
+    };
+
+    /**
+     * 處理引用按鈕點擊事件
+     * 
+     * 功能：當用戶點擊引用按鈕時，發送 quote-message 事件給父組件
+     * 父組件會處理引用邏輯並通過事件總線傳遞給編輯器
+     */
+    const handleQuoteClick = (messageIndex: number) => {
+      emit('quote-message', messageIndex);
     };
 
     const handleCancelReply = () => {
       emit('cancel-reply');
       localReplyText.value = '';
+      // 清除回覆 @ 標籤狀態
+      showReplyMentions.value = false;
+      replyMentionSuggestions.value = [];
     };
 
     // 編輯相關函數
@@ -677,6 +901,7 @@ export default defineComponent({
       saveRepliesExpandedState,
       restoreRepliesExpandedState,
       hasReacted,
+      handleQuoteClick,
       getReactionCount,
       getReactionUsers,
       parseMentionsAndHideTasks,
@@ -702,6 +927,17 @@ export default defineComponent({
       localReplyText,
       handleAddReply,
       handleCancelReply,
+      // 回覆 @ 標籤相關變數和函數
+      replyTextarea,
+      showReplyMentions,
+      replyMentionSuggestions,
+      replyMentionIndex,
+      replyMentionStart,
+      replyMentionPosition,
+      handleReplyInput,
+      handleReplyKeydown,
+      selectReplyMention,
+      calculateReplyMentionPosition,
       editingMessageIndex,
       editTitle,
       editText,

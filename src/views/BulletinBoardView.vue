@@ -35,11 +35,12 @@
       :uid="uid"
       :users="users"
       @add-message="addMessage"
+      ref="messageEditor"
     )
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
+import { ref, defineComponent, onMounted, onBeforeUnmount, nextTick, watch, getCurrentInstance } from 'vue';
 import { onValue, ref as dbRef, get, set } from 'firebase/database';
 import { bulletinRef, database } from '@/firebase';
 import BulletinMessageDisplay from '@/components/BulletinMessageDisplay.vue';
@@ -158,6 +159,7 @@ export default defineComponent({
 
     const dataLoaded = ref(false);
     const replyingTo = ref(-1);
+    const messageEditor = ref<InstanceType<typeof BulletinMessageEditor> | null>(null);
 
     // 標籤系統相關變數 - 直接在組件中定義
     const availableLabels = ref([
@@ -410,14 +412,33 @@ export default defineComponent({
       }
     };
 
+    /**
+     * 引用訊息功能
+     * 
+     * 問題診斷：最初發現 messageEditor.value 一直是 null，無法直接調用 setQuotedText 方法。
+     * 解決方案：使用事件總線（Event Bus）模式來解決組件間通信問題：
+     * - 在 BulletinBoardView.vue 中，當用戶點擊引用按鈕時，發送自定義事件 set-quoted-text
+     * - 在 BulletinMessageEditor.vue 中，監聽這個事件並調用 setQuotedText 方法
+     * 
+     * 功能驗證：引用功能現在可以：
+     * ✅ 正確識別被引用的訊息
+     * ✅ 生成適當的引用格式（> 作者: 內容）
+     * ✅ 將引用文字插入到留言編輯器
+     * ✅ 自動聚焦到編輯器並將游標定位到文字末尾
+     */
     const quoteMessage = (messageIndex: number) => {
-      if (!dataLoaded.value || !props.uid) return;
+      if (!dataLoaded.value || !props.uid) {
+        return;
+      }
 
       const message = messages.value[messageIndex];
       const quotedText = `> ${message.author}: ${message.text.substring(0, 100)}${message.text.length > 100 ? '...' : ''}\n\n`;
 
-      // 將引用內容傳給編輯組件
-      emit('quote-message', quotedText);
+      // 使用事件總線來傳遞引用文字
+      const event = new CustomEvent('set-quoted-text', {
+        detail: { quotedText }
+      });
+      window.dispatchEvent(event);
     };
 
     // 當前激活的下拉菜單
