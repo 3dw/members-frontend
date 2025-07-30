@@ -86,7 +86,7 @@ header
           RouterLink.item(v-if= "uid && devMode", to='/connection', name="ConnectionView")
             i.handshake.icon
             | 接力顯示板
-          RouterLink.item(v-if="uid && devMode", to='/notes', name="NotesView")
+          RouterLink.item(v-if="uid", to='/notes', name="NotesView")
             i.handshake.icon
             | 數位便利貼牆
           RouterLink.item(v-if="uid && devMode", to='/troubletree', name="TroubleTreeView")
