@@ -141,7 +141,7 @@
         button.action-btn.reply-btn(@click="$emit('toggle-reply-form', message.actualIndex)")
           i.reply.icon
           span 回覆
-        button.action-btn.quote-btn(@click="$emit('quote-message', message.actualIndex)")
+        button.action-btn.quote-btn(@click="handleQuoteClick(message.actualIndex)")
           i.quote.left.icon
           span 引用
         button.action-btn.expand-btn(v-if="message.replies && message.replies.length > 0" @click="toggleReplies(message.actualIndex)")
@@ -585,6 +585,10 @@ export default defineComponent({
       localReplyText.value = '';
     };
 
+    const handleQuoteClick = (messageIndex: number) => {
+      emit('quote-message', messageIndex);
+    };
+
     const handleCancelReply = () => {
       emit('cancel-reply');
       localReplyText.value = '';
@@ -677,6 +681,7 @@ export default defineComponent({
       saveRepliesExpandedState,
       restoreRepliesExpandedState,
       hasReacted,
+      handleQuoteClick,
       getReactionCount,
       getReactionUsers,
       parseMentionsAndHideTasks,

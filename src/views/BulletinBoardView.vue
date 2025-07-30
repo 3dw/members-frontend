@@ -35,11 +35,12 @@
       :uid="uid"
       :users="users"
       @add-message="addMessage"
+      ref="messageEditor"
     )
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
+import { ref, defineComponent, onMounted, onBeforeUnmount, nextTick, watch, getCurrentInstance } from 'vue';
 import { onValue, ref as dbRef, get, set } from 'firebase/database';
 import { bulletinRef, database } from '@/firebase';
 import BulletinMessageDisplay from '@/components/BulletinMessageDisplay.vue';
@@ -158,6 +159,7 @@ export default defineComponent({
 
     const dataLoaded = ref(false);
     const replyingTo = ref(-1);
+    const messageEditor = ref<InstanceType<typeof BulletinMessageEditor> | null>(null);
 
     // 標籤系統相關變數 - 直接在組件中定義
     const availableLabels = ref([
@@ -411,13 +413,18 @@ export default defineComponent({
     };
 
     const quoteMessage = (messageIndex: number) => {
-      if (!dataLoaded.value || !props.uid) return;
+      if (!dataLoaded.value || !props.uid) {
+        return;
+      }
 
       const message = messages.value[messageIndex];
       const quotedText = `> ${message.author}: ${message.text.substring(0, 100)}${message.text.length > 100 ? '...' : ''}\n\n`;
 
-      // 將引用內容傳給編輯組件
-      emit('quote-message', quotedText);
+      // 使用事件總線來傳遞引用文字
+      const event = new CustomEvent('set-quoted-text', {
+        detail: { quotedText }
+      });
+      window.dispatchEvent(event);
     };
 
     // 當前激活的下拉菜單

@@ -103,7 +103,7 @@
 </template>
 
 <script lang="ts">
-import { ref, defineComponent, nextTick } from 'vue';
+import { ref, defineComponent, nextTick, onMounted, onBeforeUnmount } from 'vue';
 
 interface User {
   name: string;
@@ -124,7 +124,7 @@ export default defineComponent({
     }
   },
   emits: ['add-message'],
-  setup(props, { emit }) {
+  setup(props, { emit, expose }) {
     const uploadProgress = ref('');
     const isBigFile = ref(false);
     const newMessageTitle = ref('');
@@ -595,6 +595,40 @@ export default defineComponent({
       return references;
     };
 
+    const setQuotedText = (quotedText: string) => {
+      newMessage.value = quotedText + newMessage.value;
+      
+      // 聚焦到留言框並將游標移到最後
+      nextTick(() => {
+        if (messageTextarea.value) {
+          messageTextarea.value.focus();
+          messageTextarea.value.setSelectionRange(newMessage.value.length, newMessage.value.length);
+        }
+      });
+    };
+
+    // 監聽引用文字事件
+    const handleSetQuotedText = (event: CustomEvent) => {
+      const { quotedText } = event.detail;
+      setQuotedText(quotedText);
+    };
+
+    // 在組件掛載時添加事件監聽器
+    onMounted(() => {
+      window.addEventListener('set-quoted-text', handleSetQuotedText as EventListener);
+    });
+
+    // 在組件卸載時移除事件監聽器
+    onBeforeUnmount(() => {
+      window.removeEventListener('set-quoted-text', handleSetQuotedText as EventListener);
+    });
+
+    const exposedMethods = {
+      setQuotedText
+    };
+
+    expose(exposedMethods);
+
     return {
       uploadProgress,
       isBigFile,
@@ -622,6 +656,7 @@ export default defineComponent({
       detectMentionedUsers,
       parseTaskList,
       detectReferences,
+      setQuotedText,
     }
   }
 });
