@@ -621,35 +621,44 @@ export default defineComponent({
       
       if (lastAtSymbol === -1) return;
       
-      // 創建一個臨時的 span 來計算 @ 符號的位置
-      const span = document.createElement('span');
-      span.style.position = 'absolute';
-      span.style.visibility = 'hidden';
-      span.style.whiteSpace = 'pre';
-      span.style.font = window.getComputedStyle(textarea).font;
-      span.style.padding = window.getComputedStyle(textarea).padding;
-      span.style.border = window.getComputedStyle(textarea).border;
-      span.style.boxSizing = window.getComputedStyle(textarea).boxSizing;
-      span.style.width = window.getComputedStyle(textarea).width;
-      span.style.height = window.getComputedStyle(textarea).height;
-      span.style.overflow = 'hidden';
-      span.style.wordWrap = 'break-word';
-      span.style.whiteSpace = 'pre-wrap';
-      
+      // 計算 @ 符號在 textarea 中的位置
       const textBeforeAt = text.substring(0, lastAtSymbol);
-      span.textContent = textBeforeAt;
+      const lines = textBeforeAt.split('\n');
+      const currentLine = lines[lines.length - 1];
       
-      document.body.appendChild(span);
+      // 創建臨時元素來計算文字寬度
+      const tempSpan = document.createElement('span');
+      tempSpan.style.position = 'absolute';
+      tempSpan.style.visibility = 'hidden';
+      tempSpan.style.whiteSpace = 'pre';
+      tempSpan.style.font = window.getComputedStyle(textarea).font;
+      tempSpan.style.padding = window.getComputedStyle(textarea).padding;
+      tempSpan.style.border = window.getComputedStyle(textarea).border;
+      tempSpan.style.boxSizing = window.getComputedStyle(textarea).boxSizing;
+      tempSpan.style.width = window.getComputedStyle(textarea).width;
+      tempSpan.style.height = window.getComputedStyle(textarea).height;
+      tempSpan.style.overflow = 'hidden';
+      tempSpan.style.wordWrap = 'break-word';
+      tempSpan.style.whiteSpace = 'pre-wrap';
       
-      const spanRect = span.getBoundingClientRect();
-      document.body.removeChild(span);
+      tempSpan.textContent = currentLine;
+      document.body.appendChild(tempSpan);
       
-      const left = rect.left + (spanRect.width - rect.width) + 10;
-      const top = rect.top + rect.height + 5;
+      const lineWidth = tempSpan.offsetWidth;
+      document.body.removeChild(tempSpan);
+      
+      // 計算 @ 符號的實際位置
+      const charWidth = lineWidth / currentLine.length;
+      const atSymbolOffset = currentLine.length * charWidth;
+      
+      // 計算下拉選單的位置
+      const left = rect.left + atSymbolOffset + 5;
+      const top = rect.top + (lines.length - 1) * 20 + 25; // 20px 是每行的大概高度
       
       // 確保下拉選單不會超出視窗邊界
       const menuHeight = 200;
-      const maxLeft = window.innerWidth - 250;
+      const menuWidth = 250;
+      const maxLeft = window.innerWidth - menuWidth - 10;
       const finalLeft = Math.min(left, maxLeft);
       const maxTop = window.innerHeight - menuHeight - 10;
       const finalTop = Math.min(top, maxTop);
