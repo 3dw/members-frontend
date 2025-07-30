@@ -10,8 +10,8 @@
     div(v-if="!isLoggedIn")
       h2 加入池塘對話！
       .login-form
-        //- label(for="username") 你的名字：
-        //- input(type="text" id="username" v-model.trim="inputUsername" placeholder="輸入你的暱稱")
+        label(for="username") 你的名字：
+        input(type="text" id="username" v-model.trim="inputUsername" placeholder="輸入你的暱稱")
 
         label 頭像選擇：
         .avatar-selection
@@ -20,12 +20,12 @@
             span.avatar(v-if="avatar.type === 'emoji'") {{ avatar.value }}
             img.avatar-img(v-else :src="avatar.src" :alt="avatar.value")
 
-        button(@click="login" :disabled="!selectedAvatar") 進入池塘
+        button(@click="login" :disabled="!inputUsername || !selectedAvatar") 進入池塘
 
     //- 打招呼和池塘顯示區 (如果已登入)
     div(v-else)
       .welcome-message
-        h2 Hi
+        h2 Hi, {{ username }}
           span.avatar(v-if="selectedAvatar.type === 'emoji'") {{ selectedAvatar.value }}
           img.avatar-img(v-else :src="selectedAvatar.src" :alt="selectedAvatar.value")
         button(@click="logout") 離開池塘
@@ -49,6 +49,7 @@
         template(v-else)
           // 若是字串 or 沒有 => 顯示字串或預設💧
           span.avatar {{ message.avatar || '💧' }}
+        span.username(v-if="message.username") {{ message.username }}
         span.time {{ formatTime(message.timestamp) }}
       .message-content {{ message.message }}
   </template>
@@ -77,7 +78,8 @@
 
       // 基本響應式狀態
       const isLoggedIn = ref(false);
-//       const username = ref('');
+      const inputUsername = ref('');
+      const username = ref('');
       const selectedAvatar = ref(null);
       const currentGreeting = ref('');
       const greetingsOnPond = ref([]);
@@ -113,7 +115,7 @@
       // 預設訊息
       const defaultGreeting = {
         id: 'default-greeting',
-        // username: '池塘管理員',
+        username: '池塘管理員',
         avatar: '🌊',
         message: '來打招呼吧！',
         timestamp: Date.now(),
@@ -139,13 +141,16 @@
 
       // 登入 / 登出 / 發送留言
       function login() {
-        if (selectedAvatar.value) {
+        if (inputUsername.value && selectedAvatar.value) {
+          username.value = inputUsername.value;
           isLoggedIn.value = true;
         }
       }
 
       function logout() {
         isLoggedIn.value = false;
+        username.value = '';
+        inputUsername.value = '';
         selectedAvatar.value = null;
         currentGreeting.value = '';
       }
@@ -157,7 +162,7 @@
         const now = new Date();
         const newGreeting = {
           id: `msg-${now.getTime()}-${Math.random().toString(16).slice(2)}`,
-          // username: username.value,
+          username: username.value,
           avatar: selectedAvatar.value,
           message: currentGreeting.value,
           timestamp: now.getTime(),
@@ -223,7 +228,7 @@
           } else {
             pondAvatars.value[idx].message = g.message;
             pondAvatars.value[idx].avatar = g.avatar;
-//            pondAvatars.value[idx].username = g.username;
+            pondAvatars.value[idx].username = g.username;
           }
         });
 
@@ -247,7 +252,7 @@
         pondAvatars.value.push({
           id: greeting.id,
           avatar: greeting.avatar,
-          // username: greeting.username,
+          username: greeting.username,
           message: greeting.message,
           x: Math.random() * (canvas.width - 50) + 25,
           y: Math.random() * (canvas.height - 50) + 25,
@@ -545,7 +550,8 @@
       return {
         availableAvatars,
         isLoggedIn,
-        // username,
+        inputUsername,
+        username,
         selectedAvatar,
         currentGreeting,
         greetingsOnPond,
