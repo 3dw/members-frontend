@@ -624,9 +624,39 @@ export default defineComponent({
       
       if (lastAtSymbol === -1) return;
       
-      // 簡化的位置計算 - 直接使用 textarea 的位置
-      const left = rect.left + 10;
-      const top = rect.top + rect.height + 5;
+      // 計算 @ 符號在 textarea 中的位置
+      const textBeforeAt = text.substring(0, lastAtSymbol);
+      const lines = textBeforeAt.split('\n');
+      const currentLine = lines[lines.length - 1];
+      
+      // 創建臨時元素來計算文字寬度
+      const tempSpan = document.createElement('span');
+      tempSpan.style.position = 'absolute';
+      tempSpan.style.visibility = 'hidden';
+      tempSpan.style.whiteSpace = 'pre';
+      tempSpan.style.font = window.getComputedStyle(textarea).font;
+      tempSpan.style.padding = window.getComputedStyle(textarea).padding;
+      tempSpan.style.border = window.getComputedStyle(textarea).border;
+      tempSpan.style.boxSizing = window.getComputedStyle(textarea).boxSizing;
+      tempSpan.style.width = window.getComputedStyle(textarea).width;
+      tempSpan.style.height = window.getComputedStyle(textarea).height;
+      tempSpan.style.overflow = 'hidden';
+      tempSpan.style.wordWrap = 'break-word';
+      tempSpan.style.whiteSpace = 'pre-wrap';
+      
+      tempSpan.textContent = currentLine;
+      document.body.appendChild(tempSpan);
+      
+      const lineWidth = tempSpan.offsetWidth;
+      document.body.removeChild(tempSpan);
+      
+      // 計算 @ 符號的實際位置
+      const charWidth = lineWidth / Math.max(currentLine.length, 1);
+      const atSymbolOffset = currentLine.length * charWidth;
+      
+      // 計算下拉選單的位置 - 顯示在 @ 符號附近
+      const left = rect.left + atSymbolOffset + 5;
+      const top = rect.top + (lines.length - 1) * 20 + 25; // 20px 是每行的大概高度
       
       // 確保下拉選單不會超出視窗邊界
       const menuHeight = 200;
