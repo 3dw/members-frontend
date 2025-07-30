@@ -16,7 +16,7 @@
     padding: 8px 12px;
     cursor: pointer;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 8px;
     transition: background-color 0.2s ease;
     
@@ -35,15 +35,19 @@
       width: 20px;
       height: 20px;
       border-radius: 50%;
+      flex-shrink: 0;
     }
     
     i.envelope.icon {
       color: #666;
+      flex-shrink: 0;
     }
     
     span {
       font-size: 14px;
       color: #333;
+      text-align: left;
+      flex: 1;
     }
   }
 }
