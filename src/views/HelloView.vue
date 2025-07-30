@@ -124,12 +124,15 @@
       const todayGreetings = computed(() => {
         const today = new Date();
         const taiwanOptions = { timeZone: 'Asia/Taipei' };
-        const taiwanToday = new Date(today.toLocaleString('en-US', taiwanOptions)).toDateString();
-
+        
+        // const taiwanToday = new Date(today.toLocaleString('en-US', taiwanOptions)).toDateString();
+        const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+        
         const filteredGreetings = greetingsOnPond.value.filter(greeting => {
           const greetingDate = new Date(greeting.timestamp);
-          const greetingDateString = new Date(greetingDate.toLocaleString('en-US', taiwanOptions)).toDateString();
-          return greetingDateString === taiwanToday;
+          //const greetingDateString = new Date(greetingDate.toLocaleString('en-US', taiwanOptions)).toDateString();
+          //return greetingDateString === taiwanToday;
+          return greetingDate >= thirtyDaysAgo;
         });
         return filteredGreetings.length > 0 ? filteredGreetings : [defaultGreeting];
       });
