@@ -1,4 +1,52 @@
 /* 所有留言顯示相關的樣式 - 參考 Cofacts 風格 */
+
+/* 回覆表單的 @ 標籤功能樣式 */
+.mention-suggestions {
+  position: fixed;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10000;
+  min-width: 200px;
+  
+  .mention-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.2s ease;
+    
+    &:hover,
+    &.active {
+      background-color: #f0f0f0;
+    }
+    
+    &.mention-all {
+      border-bottom: 1px solid #e0e0e0;
+      font-weight: 600;
+      color: #666;
+    }
+    
+    img.ui.avatar.image {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+    }
+    
+    i.envelope.icon {
+      color: #666;
+    }
+    
+    span {
+      font-size: 14px;
+      color: #333;
+    }
+  }
+}
 .ui.comments.flex-column.column {
   max-width: 1200px;
   margin: 0 auto;
