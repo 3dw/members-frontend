@@ -585,6 +585,12 @@ export default defineComponent({
       localReplyText.value = '';
     };
 
+    /**
+     * 處理引用按鈕點擊事件
+     * 
+     * 功能：當用戶點擊引用按鈕時，發送 quote-message 事件給父組件
+     * 父組件會處理引用邏輯並通過事件總線傳遞給編輯器
+     */
     const handleQuoteClick = (messageIndex: number) => {
       emit('quote-message', messageIndex);
     };

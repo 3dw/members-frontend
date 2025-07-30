@@ -595,6 +595,13 @@ export default defineComponent({
       return references;
     };
 
+    /**
+     * 設置引用文字到編輯器
+     * 
+     * 功能：
+     * ✅ 將引用文字插入到留言編輯器
+     * ✅ 自動聚焦到編輯器並將游標定位到文字末尾
+     */
     const setQuotedText = (quotedText: string) => {
       newMessage.value = quotedText + newMessage.value;
       
@@ -607,18 +614,29 @@ export default defineComponent({
       });
     };
 
-    // 監聽引用文字事件
+    /**
+     * 監聽引用文字事件
+     * 
+     * 事件總線模式：接收來自 BulletinBoardView.vue 的 set-quoted-text 事件
+     * 並調用 setQuotedText 方法來處理引用文字
+     */
     const handleSetQuotedText = (event: CustomEvent) => {
       const { quotedText } = event.detail;
       setQuotedText(quotedText);
     };
 
-    // 在組件掛載時添加事件監聽器
+    /**
+     * 在組件掛載時添加事件監聽器
+     * 監聽 set-quoted-text 事件，用於接收引用文字
+     */
     onMounted(() => {
       window.addEventListener('set-quoted-text', handleSetQuotedText as EventListener);
     });
 
-    // 在組件卸載時移除事件監聽器
+    /**
+     * 在組件卸載時移除事件監聽器
+     * 避免記憶體洩漏
+     */
     onBeforeUnmount(() => {
       window.removeEventListener('set-quoted-text', handleSetQuotedText as EventListener);
     });

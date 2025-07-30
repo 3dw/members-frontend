@@ -412,6 +412,20 @@ export default defineComponent({
       }
     };
 
+    /**
+     * 引用訊息功能
+     * 
+     * 問題診斷：最初發現 messageEditor.value 一直是 null，無法直接調用 setQuotedText 方法。
+     * 解決方案：使用事件總線（Event Bus）模式來解決組件間通信問題：
+     * - 在 BulletinBoardView.vue 中，當用戶點擊引用按鈕時，發送自定義事件 set-quoted-text
+     * - 在 BulletinMessageEditor.vue 中，監聽這個事件並調用 setQuotedText 方法
+     * 
+     * 功能驗證：引用功能現在可以：
+     * ✅ 正確識別被引用的訊息
+     * ✅ 生成適當的引用格式（> 作者: 內容）
+     * ✅ 將引用文字插入到留言編輯器
+     * ✅ 自動聚焦到編輯器並將游標定位到文字末尾
+     */
     const quoteMessage = (messageIndex: number) => {
       if (!dataLoaded.value || !props.uid) {
         return;
