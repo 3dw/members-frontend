@@ -72,7 +72,7 @@
 
           <button type="submit" class="ui basic green huge active button">
             <i class="dollar icon"></i>
-            捐贈
+            按此填卡號
           </button>
         </div>
       </form>
