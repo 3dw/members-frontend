@@ -17,7 +17,7 @@
 
       <div class="ui segment" v-if="status === 'pending'">
         <h2 class="main-title">處理中❤️</h2>
-        <p>您的捐款正在處理中，請稍候<span class="ellipsis">...</span></p>
+        <p>您的捐款正在處理中，請稍候<span class="ellipsis">...若您已關閉付款頁，請重新整理此頁面</span></p>
       </div>
     </div>
 
